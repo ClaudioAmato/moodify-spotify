@@ -1,5 +1,7 @@
 {
   "name": "moodify",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }

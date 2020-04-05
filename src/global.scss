@@ -24,3 +24,69 @@
 @import "~@ionic/angular/css/text-alignment.css";
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
+
+
+.alert-wrapper.sc-ion-alert-md {
+  --width: 90% !important;
+  --max-height: 100% !important;
+  --max-width: 400px !important;
+}
+
+.alert-wrapper.sc-ion-alert-ios {
+  --width: 90% !important;
+  --max-height: 100% !important;
+  --max-width: 400px !important;
+}
+
+.alertClass {
+  .alert-title {
+    color: var(--ion-color-primary) !important;
+    text-align: center !important;
+  }
+  .alertConfirm {
+    color: var(--ion-color-primary) !important;
+    font-weight: bold;
+  }
+  .alertMedium {
+    color: var(--ion-color-dark) !important;
+  }
+}
+
+.alertClass2 {
+  .alert-title {
+    color: var(--ion-color-danger) !important;
+    text-align: center !important;
+  }
+  .alertMedium {
+    color: var(--ion-color-dark) !important;
+  }
+  .alertConfirm {
+    color: var(--ion-color-danger) !important;
+    font-weight: bold;
+  }
+}
+
+.alertClass3 {
+  .alert-title {
+    color: var(--ion-color-warning) !important;
+    text-align: center !important;
+  }
+  .alertConfirm {
+    color: var(--ion-color-warning) !important;
+    font-weight: bold;
+  }
+  .alertMedium {
+    color: var(--ion-color-dark) !important;
+  }
+}
+
+.alertClass4 {
+  .alert-title {
+    color: var(--ion-color-success) !important;
+    text-align: center !important;
+  }
+  .alertConfirm {
+    color: var(--ion-color-success) !important;
+    font-weight: bold;
+  }
+}
