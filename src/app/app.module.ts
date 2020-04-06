@@ -1,3 +1,4 @@
+import { SharedParamsService } from './services/shared-params.service';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
@@ -25,6 +26,7 @@ import { Network } from '@ionic-native/network/ngx';
     StatusBar,
     SplashScreen,
     Network,
+    SharedParamsService,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
   ],
   bootstrap: [AppComponent]

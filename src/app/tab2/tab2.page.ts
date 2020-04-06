@@ -1,6 +1,10 @@
+import { SharedParamsService } from './../services/shared-params.service';
 import { GoogleGeolocalization } from './../services/googleGeolocalization.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import SpotifyWebApi from 'spotify-web-api-js';
+
+const spotifyApi = new SpotifyWebApi();
 
 @Component({
   selector: 'app-tab2',
@@ -8,44 +12,6 @@ import { FormBuilder } from '@angular/forms';
   styleUrls: ['tab2.page.scss']
 })
 export class Tab2Page implements OnInit {
-
-  get email() {
-    return this.registrationForm.get('email');
-  }
-  get password() {
-    return this.registrationForm.get('password');
-  }
-  get name() {
-    return this.registrationForm.get('name');
-  }
-  get surname() {
-    return this.registrationForm.get('surname');
-  }
-  get age() {
-    return this.registrationForm.get('age');
-  }
-  get sex() {
-    return this.registrationForm.get('sex');
-  }
-  get country() {
-    return this.registrationForm.get('country');
-  }
-  get favGeneres() {
-    return this.registrationForm.get('favGeneres');
-  }
-  get hatedGeneres() {
-    return this.registrationForm.get('hatedGeneres');
-  }
-  get favoriteSingers() {
-    return this.registrationForm.get('favoriteSingers');
-  }
-
-  public errorMessages = {
-    email: [
-      { type: 'required', message: 'Name is required' },
-      { type: 'maxlenght', message: 'Name can\'t be longer than 100 characters' }
-    ],
-  };
 
   registrationForm = this.formBuilder.group({
     email: [''],
@@ -61,8 +27,15 @@ export class Tab2Page implements OnInit {
   });
 
   country_name: string;
+  image: any;
 
-  constructor(private formBuilder: FormBuilder, private geoLocal: GoogleGeolocalization) { }
+  constructor(private formBuilder: FormBuilder, private geoLocal: GoogleGeolocalization, private shared: SharedParamsService) {
+    console.log(shared.getToken());
+    spotifyApi.setAccessToken(shared.getToken());
+    spotifyApi.getMe().then((response) => {
+      this.image = response.images[0].url;
+    });
+  }
 
   ngOnInit() {
     this.geoLocal.getLocation().subscribe(data => {
@@ -73,9 +46,5 @@ export class Tab2Page implements OnInit {
 
   public submit() {
     console.log(this.registrationForm.value);
-  }
-
-  uploadImage() {
-
   }
 }

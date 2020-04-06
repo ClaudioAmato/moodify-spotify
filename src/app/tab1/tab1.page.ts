@@ -1,15 +1,13 @@
-import { SpotifyService } from './../services/spotify.service';
+import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 
 const spotifyApi = new SpotifyWebApi();
 
-
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
-  providers: [SpotifyService]
 })
 export class Tab1Page {
 
@@ -23,7 +21,7 @@ export class Tab1Page {
     }
   }
 
-  constructor(private _spotifyService: SpotifyService) {
+  constructor(private shared: SharedParamsService) {
     this.params = this.getHashParams();
     this.token = this.params.access_token;
     if (this.token) {
@@ -33,6 +31,7 @@ export class Tab1Page {
       loggedIn: this.token ? true : false,
       nowPlaying: { name: null, albumArt: null },
     };
+    shared.setToken(this.token);
   }
 
   getHashParams() {
@@ -64,9 +63,14 @@ export class Tab1Page {
   }
 
   searchMusic($event) {
-    this._spotifyService.searchMusic($event.detail.value, 'artist', null, null, null, this.token).subscribe(res => {
+    /* this._spotifyService.searchMusic($event.detail.value, 'artist', null, null, null, this.token).subscribe(res => {
       console.log(res);
+    }); */
+    spotifyApi.search($event.detail.value, ['artist'], { market: "US", limit: 5, offset: 1 }).then((response) => {
+      console.log(response);
     });
   }
+
+
 
 }
