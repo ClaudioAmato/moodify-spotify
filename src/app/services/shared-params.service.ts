@@ -5,7 +5,8 @@ import { Injectable } from '@angular/core';
 })
 export class SharedParamsService {
 
-  token: any;
+  token: string;
+  refreashToken: string;
 
   constructor() { }
 
@@ -13,8 +14,15 @@ export class SharedParamsService {
     this.token = data;
   }
 
+  public setRefreashToken(data) {
+    this.refreashToken = data;
+  }
+
+  public getRefreashToken() {
+    return this.refreashToken;
+  }
+
   public getToken() {
     return this.token;
   }
-
 }

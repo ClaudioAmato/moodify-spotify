@@ -20,4 +20,8 @@ export class LoginPage implements OnInit {
       console.log(data);
     });
   }
+
+  onClickLogin() {
+    window.location.href = 'http://localhost:8888/login';
+  }
 }

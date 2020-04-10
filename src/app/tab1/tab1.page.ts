@@ -12,7 +12,7 @@ const spotifyApi = new SpotifyWebApi();
 export class Tab1Page {
 
   params: any;
-  token: any;
+  token: string;
   state: {
     loggedIn: boolean,
     nowPlaying: {
@@ -32,6 +32,7 @@ export class Tab1Page {
       nowPlaying: { name: null, albumArt: null },
     };
     shared.setToken(this.token);
+    shared.setRefreashToken(this.params.refresh_token);
   }
 
   getHashParams() {
