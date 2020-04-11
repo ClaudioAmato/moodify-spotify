@@ -7,66 +7,62 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <form [formGroup]="registrationForm" (ngSubmit)="submit()">
-    <ion-card>
-      <ion-card-header class="ion-text-center">
-        <ion-label style="font-weight: bold;" color="primary">
-          Some Spotify's Account Dates
-        </ion-label>
-      </ion-card-header>
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Some Spotify's Account Dates
+      </ion-label>
+    </ion-card-header>
 
-      <!-- PHOTO -->
-      <ion-avatar>
-        <img src="{{this.userProfilePhoto}}" />
-      </ion-avatar>
+    <!-- PHOTO -->
+    <ion-avatar>
+      <img src="{{this.userProfilePhoto}}" />
+    </ion-avatar>
 
+    <ion-list lines="full">
       <!-- EMAIL -->
       <ion-item>
-        <ion-label position="floating">Email</ion-label>
-        <ion-input
-          required
-          placeholder="email@email.com"
-          inputmode="email"
-          formControlName="email"
-          readonly
-        >
-        </ion-input>
+        <div>
+          <div class="nameField">
+            Email
+          </div>
+          <div>{{this.email}}</div>
+        </div>
       </ion-item>
 
       <!-- NAME -->
       <ion-item>
-        <ion-label position="floating">Name</ion-label>
-        <ion-input
-          required
-          placeholder="Your Name"
-          formControlName="name"
-          readonly
-        >
-        </ion-input>
-      </ion-item>
-
-      <!-- AGE -->
-      <ion-item>
-        <ion-label position="floating">Age</ion-label>
-        <ion-input formControlName="age" placeholder="18" required readonly>
-        </ion-input>
-      </ion-item>
-
-      <!-- SEX -->
-      <ion-item>
-        <ion-label position="floating">Sex</ion-label>
-        <ion-input name="sex" formGroupName="sex" readonly required>
-        </ion-input>
+        <div>
+          <div class="nameField">
+            Name
+          </div>
+          <div>{{this.name}}</div>
+        </div>
       </ion-item>
 
       <!-- COUNTRY -->
       <ion-item>
-        <ion-label position="floating">Country</ion-label>
-        <ion-input name="country" required formControlName="country" readonly>
-        </ion-input>
+        <div>
+          <div class="nameField">
+            Country
+          </div>
+          <div>{{this.country}}</div>
+        </div>
       </ion-item>
-    </ion-card>
 
+      <!-- URL -->
+      <ion-item>
+        <div>
+          <div class="nameField">
+            URL
+          </div>
+          <div>{{this.url}}</div>
+        </div>
+      </ion-item>
+    </ion-list>
+  </ion-card>
+
+  <form [formGroup]="registrationForm" (ngSubmit)="submit()">
     <!-- SINGER PREFERENCES -->
     <ion-card>
       <ion-card-header class="ion-text-center">
@@ -74,16 +70,18 @@
           Recently Spotify Added
         </ion-label>
       </ion-card-header>
-      <ion-item>
-        <ion-label position="floating">Singer Preferences</ion-label>
-        <ion-input
-          type="text"
-          maxlength="30"
-          name="favoriteSingers"
-          placeholder="Lady Gaga, Eminem, Jovanotti"
-          formControlName="favoriteSingers"
+      <ion-item lines="none">
+        <ion-label color="primary"> Singer Preferences </ion-label
+        ><ion-button
+          (click)="showSingerPref()"
+          fill="outline"
+          slot="end"
+          color="secondary"
+          >Show Artists</ion-button
         >
-        </ion-input>
+      </ion-item>
+      <ion-item *ngIf="this.singerDiv">
+        <ion-label color="primary"> To Do </ion-label>
       </ion-item>
     </ion-card>
 
@@ -94,13 +92,15 @@
           My Dates
         </ion-label>
       </ion-card-header>
-      <ion-item>
-        <ion-label position="floating"> Favorite Genres </ion-label>
+      <ion-item (click)="alertMaxGenres(5)">
+        <ion-label position="floating" style="color: var(--ion-color-primary);">
+          Favorite Genres
+        </ion-label>
         <ion-select
           multiple="true"
           cancelText="Back"
           okText="Confirm"
-          (ionChange)="refreshHatedGenres()"
+          (ionChange)="refreshHatedGenres(5)"
           formControlName="favGenres"
         >
           <ion-select-option
@@ -113,13 +113,15 @@
       </ion-item>
 
       <!-- HATED Genres -->
-      <ion-item>
-        <ion-label position="floating"> Hated Genres </ion-label>
+      <ion-item (click)="alertMaxGenres(5)">
+        <ion-label position="floating" style="color: var(--ion-color-primary);">
+          Hated Genres
+        </ion-label>
         <ion-select
           multiple="true"
           cancelText="Back"
           okText="Confirm"
-          (ionChange)="refreshFavGenres()"
+          (ionChange)="refreshFavGenres(5)"
           formControlName="hatedGenres"
         >
           <ion-select-option
@@ -142,5 +144,4 @@
       </ion-button>
     </div>
   </form>
-  <ion-button (click)="checkValid()">press</ion-button>
 </ion-content>
