@@ -28,6 +28,8 @@ export class Tab2Page {
 
   //Artists variables
   topArtistsMap = {};
+  favArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
+  selectedFavArtistID: string[] = [];
   singerDiv = false;
 
   //Genres variables
@@ -68,6 +70,8 @@ export class Tab2Page {
             this.topGenresMap[response.items[i].genres[j]] += 1;
           }
         }
+        let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
+        this.favArtist.push(data);
       }
       this.topGenresMap = this.sortProperties(this.topGenresMap);
       //console.log(this.topGenresMap);
@@ -168,6 +172,16 @@ export class Tab2Page {
   /* SINGER PREFERENCES */
   showSingerPref() {
     this.singerDiv = !this.singerDiv;
+  }
+  updateSingerPref(singer) {
+    let data = this.favArtist.find(artist => artist.key === singer);
+    this.favArtist[this.favArtist.indexOf(data)].checked = !this.favArtist[this.favArtist.indexOf(data)].checked;
+    if (data.checked === true) {
+      this.selectedFavArtistID.push(data.key);
+    } else {
+      this.selectedFavArtistID.splice(this.selectedFavArtistID.indexOf(data.key), 1);
+    }
+    console.log(this.selectedFavArtistID);
   }
 
   checkExpirationToken() {

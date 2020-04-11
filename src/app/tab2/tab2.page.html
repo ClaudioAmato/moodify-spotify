@@ -15,7 +15,7 @@
     </ion-card-header>
 
     <!-- PHOTO -->
-    <ion-avatar>
+    <ion-avatar class="myavatar">
       <img src="{{this.userProfilePhoto}}" />
     </ion-avatar>
 
@@ -80,9 +80,23 @@
           >Show Artists</ion-button
         >
       </ion-item>
-      <ion-item *ngIf="this.singerDiv">
-        <ion-label color="primary"> To Do </ion-label>
-      </ion-item>
+      <ng-container *ngIf="this.singerDiv">
+        <ion-item *ngFor="let item of favArtist">
+          <ion-avatar style="width: 40px; height: 40px;">
+            <img src="{{item.image}}" />
+          </ion-avatar>
+          <ion-label>
+            {{item.name}}
+          </ion-label>
+          <ion-checkbox
+            [value]="item.name"
+            [disabled]="!item.checked && this.selectedFavArtistID.length >= 5"
+            slot="end"
+            [checked]="item.checked"
+            (ionChange)="updateSingerPref(item.key)"
+          ></ion-checkbox>
+        </ion-item>
+      </ng-container>
     </ion-card>
 
     <!-- FAVORITE Genres -->
