@@ -81,21 +81,86 @@
         >
       </ion-item>
       <ng-container *ngIf="this.singerDiv">
-        <ion-item *ngFor="let item of favArtist">
-          <ion-avatar style="width: 40px; height: 40px;">
-            <img src="{{item.image}}" />
-          </ion-avatar>
-          <ion-label>
-            {{item.name}}
-          </ion-label>
-          <ion-checkbox
-            [value]="item.name"
-            [disabled]="!item.checked && this.selectedFavArtistID.length >= 5"
-            slot="end"
-            [checked]="item.checked"
-            (ionChange)="updateSingerPref(item.key)"
-          ></ion-checkbox>
+        <!--SEARCH ARTIST-->
+        <ion-searchbar
+          animated
+          placeholder="Search for an artist"
+          showCancelButton="focus"
+          spellcheck="true"
+          (ionChange)="searchArtist($event)"
+        ></ion-searchbar>
+        <ion-grid class="ion-no-padding">
+          <ion-row style="justify-content: space-between !important;">
+            <ion-col *ngFor="let item of searchFavArtist">
+              <ion-item lines="none">
+                <ion-avatar style="width: 40px; height: 40px;">
+                  <img src="{{item.image}}" />
+                </ion-avatar>
+                <ion-label>
+                  {{item.name}}
+                </ion-label>
+                <ion-checkbox
+                  [value]="item.name"
+                  [disabled]="!item.checked && this.selectedFavArtist.length >= 5"
+                  slot="end"
+                  [checked]="item.checked"
+                  (ionChange)="updateSingerPref('search', item.key)"
+                ></ion-checkbox>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+        <!--FAVORITE ARTIST-->
+        <ion-item color="primary" lines="full">
+          Your Preferences
         </ion-item>
+        <ng-container>
+          <ion-item *ngIf="this.selectedFavArtist.length == 0">
+            You don't have any preferences
+          </ion-item>
+          <ng-container *ngFor="let item of selectedFavArtist">
+            <ion-item>
+              <ion-avatar
+                style="width: 40px; height: 40px; margin-right: 10px;"
+              >
+                <img src="{{item.image}}" />
+              </ion-avatar>
+              <ion-label>
+                {{item.name}}
+              </ion-label>
+              <ion-checkbox
+                [value]="item.name"
+                slot="end"
+                [checked]="item.checked"
+                (ionChange)="updateSingerPref('favorite', item.key)"
+              ></ion-checkbox>
+            </ion-item>
+          </ng-container>
+        </ng-container>
+        <!--SUGGEST ARTIST-->
+        <ion-item
+          color="primary"
+          lines="full"
+          *ngIf="this.selectedFavArtist.length < 5"
+        >
+          Suggests
+        </ion-item>
+        <ng-container *ngFor="let item of suggestfavArtist">
+          <ion-item *ngIf="!item.checked && this.selectedFavArtist.length < 5">
+            <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
+              <img src="{{item.image}}" />
+            </ion-avatar>
+            <ion-label>
+              {{item.name}}
+            </ion-label>
+            <ion-checkbox
+              [value]="item.name"
+              slot="end"
+              [checked]="item.checked"
+              (ionChange)="updateSingerPref('suggest', item.key)"
+            ></ion-checkbox>
+          </ion-item>
+        </ng-container>
       </ng-container>
     </ion-card>
 

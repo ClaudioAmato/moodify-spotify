@@ -28,9 +28,11 @@ export class Tab2Page {
 
   //Artists variables
   topArtistsMap = {};
-  favArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
-  selectedFavArtistID: string[] = [];
-  singerDiv = false;
+  suggestfavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
+  searchFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
+  selectedFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
+  singerDiv = true;
+  preventSearchBug = false;
 
   //Genres variables
   topGenresMap = {};
@@ -39,8 +41,8 @@ export class Tab2Page {
   hatedGenres: Map<string, boolean> = new Map();
 
   constructor(private formBuilder: FormBuilder, private shared: SharedParamsService, private alertController: AlertController) {
-    //console.log(shared.getToken());
-    spotifyApi.setAccessToken(shared.getToken());
+    //spotifyApi.setAccessToken(shared.getToken());
+    spotifyApi.setAccessToken('BQAsAWaOSefSX_PmSwpNTXEuNdZVeYLPl7HPKx58Add8YOt9MsIAqW7uQnKHy_tLafAUxe12JjLrxKyCbwZaBhhZDz7ObZ7bDGwkQuubyj7dMlDF2nB8F8LL9EJOGV7A4wJEeRRVBsNZvY9Tg0xyQQs96fzYOeC-dpMbUXfWmdFD2llBWBV72ziC56APkKnhYCm0dyyXbsiG');
     this.initializeGenresSeeds();
     spotifyApi.getMe().then((response) => {
       this.userProfilePhoto = response.images[0].url;
@@ -60,20 +62,24 @@ export class Tab2Page {
   // based on your top artis's music genres
   autoSearchFavGenres() {
     spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
-      for (let i = 0; i < response.items.length; i++) {
-        //cycle on all the genres of the artist
-        for (let j = 0; j < response.items[i].genres.length; j++) {
-          if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
-            this.topGenresMap[response.items[i].genres[j]] = 1;
+      if (response !== undefined) {
+        for (let i = 0; i < response.items.length; i++) {
+          //cycle on all the genres of the artist
+          for (let j = 0; j < response.items[i].genres.length; j++) {
+            if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
+              this.topGenresMap[response.items[i].genres[j]] = 1;
+            }
+            else {
+              this.topGenresMap[response.items[i].genres[j]] += 1;
+            }
           }
-          else {
-            this.topGenresMap[response.items[i].genres[j]] += 1;
+          if (i < 10) {
+            let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
+            this.suggestfavArtist.push(data);
           }
         }
-        let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
-        this.favArtist.push(data);
+        this.topGenresMap = this.sortProperties(this.topGenresMap);
       }
-      this.topGenresMap = this.sortProperties(this.topGenresMap);
       //console.log(this.topGenresMap);
     });
     //this.registrationForm.controls['favGenres'].setValue();
@@ -98,10 +104,12 @@ export class Tab2Page {
   // based on your top artis's music genres
   initializeGenresSeeds() {
     spotifyApi.getAvailableGenreSeeds().then((response) => {
-      this.availabeSeedGenres = response.genres;
-      for (let i = 0; i < response.genres.length; i++) {
-        this.favGenres.set(this.availabeSeedGenres[i], true);
-        this.hatedGenres.set(this.availabeSeedGenres[i], true);
+      if (response !== undefined) {
+        this.availabeSeedGenres = response.genres;
+        for (let i = 0; i < response.genres.length; i++) {
+          this.favGenres.set(this.availabeSeedGenres[i], true);
+          this.hatedGenres.set(this.availabeSeedGenres[i], true);
+        }
       }
     });
   }
@@ -173,15 +181,105 @@ export class Tab2Page {
   showSingerPref() {
     this.singerDiv = !this.singerDiv;
   }
-  updateSingerPref(singer) {
-    let data = this.favArtist.find(artist => artist.key === singer);
-    this.favArtist[this.favArtist.indexOf(data)].checked = !this.favArtist[this.favArtist.indexOf(data)].checked;
-    if (data.checked === true) {
-      this.selectedFavArtistID.push(data.key);
-    } else {
-      this.selectedFavArtistID.splice(this.selectedFavArtistID.indexOf(data.key), 1);
+  updateSingerPref(whereSelected, singer) {
+    const dataSearch = this.searchFavArtist.find(artist => artist.key === singer);
+    const dataSelected = this.selectedFavArtist.find(artist => artist.key === singer);
+    const dataSuggest = this.suggestfavArtist.find(artist => artist.key === singer);
+    switch (whereSelected) {
+      case 'search':
+        if (!this.preventSearchBug) {
+          if (dataSearch !== undefined) {
+            this.searchFavArtist[this.searchFavArtist.indexOf(dataSearch)].checked = !dataSearch.checked;
+            const newDataSearch = this.searchFavArtist.find(artist => artist.key === singer);
+            //I add it to
+            if (dataSelected === undefined) {
+              this.selectedFavArtist.push(newDataSearch);
+              if (dataSuggest !== undefined) {
+                this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = true;
+              }
+            }
+            //I delete it
+            else {
+              this.selectedFavArtist.splice(this.selectedFavArtist.indexOf(dataSelected), 1);
+              if (dataSuggest !== undefined) {
+                this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = false;
+              }
+            }
+          }
+        }
+        this.preventSearchBug = false;
+        break;
+      case 'favorite':
+        if (dataSearch !== undefined) {
+          this.searchFavArtist[this.searchFavArtist.indexOf(dataSearch)].checked = false;
+        }
+        if (dataSuggest !== undefined) {
+          this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = false;
+        }
+        if (dataSelected !== undefined) {
+          this.selectedFavArtist.splice(this.selectedFavArtist.indexOf(dataSelected), 1);
+        }
+        if (dataSearch !== undefined) {
+          this.preventSearchBug = true;
+        }
+        break;
+      case 'suggest':
+        this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = true;
+        const newDataSuggest = this.suggestfavArtist.find(artist => artist.key === singer);
+        if (dataSelected === undefined) {
+          this.selectedFavArtist.push(this.suggestfavArtist[this.suggestfavArtist.indexOf(newDataSuggest)]);
+        }
+        if (dataSearch !== undefined) {
+          this.searchFavArtist[this.searchFavArtist.indexOf(dataSearch)].checked = true;
+        }
+        if (dataSearch !== undefined) {
+          this.preventSearchBug = true;
+        }
+        break;
+      default: break;
     }
-    console.log(this.selectedFavArtistID);
+    console.log(this.selectedFavArtist);
+  }
+
+  searchArtist($event) {
+    let dataSearch: { key: string, image: any, name: string, checked: boolean };
+    let dataSelected: { key: string, image: any, name: string, checked: boolean };
+    let check: boolean;
+    if (this.searchFavArtist.length > 0) {
+      this.searchFavArtist = [];
+    }
+    if ($event.detail.value.length > 0) {
+      spotifyApi.search($event.detail.value, ['artist'], { market: "US", limit: 5, offset: 0 }).then((response) => {
+        if (response !== undefined) {
+          for (let i = 0; i < response.artists.items.length; i++) {
+            dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);
+            if (dataSelected !== undefined) {
+              check = true;
+            }
+            else {
+              check = false;
+            }
+            if (response.artists.items[i].images.length !== 0) {
+              dataSearch = {
+                key: response.artists.items[i].id,
+                image: response.artists.items[i].images[0].url,
+                name: response.artists.items[i].name,
+                checked: check
+              };
+            }
+            else {
+              dataSearch = {
+                key: response.artists.items[i].id,
+                image: 'https://lh3.googleusercontent.com/proxy/ykknV-Vf4pceXd2LkKAt9dS7n5IAbKHi4sis0hh1izt32fD85RUYjr0baM4Il58GmdHd0N3z3QyM0xndYoXrR3Cl0gAJHfs9Bm2AhclUqxqoKqw6ZePf8sDXQdreWN-xjlAKuCC7lH2vnVTolXJ8EPp_-Cq3gg11pTo',
+                name: response.artists.items[i].name,
+                checked: check
+              };
+            }
+            this.searchFavArtist.push(dataSearch);
+          }
+        }
+      });
+    }
   }
 
   checkExpirationToken() {
