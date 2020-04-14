@@ -15,20 +15,25 @@
     </ion-card-header>
     <ion-searchbar
       animated
-      placeholder="Search a song"
+      placeholder="Search for an artist"
       showCancelButton="focus"
       spellcheck="true"
       (ionChange)="searchMusic($event)"
     ></ion-searchbar>
 
-    <div *ngIf="this.state.nowPlaying">
-      Now Playing: {{this.state.nowPlaying.name}}
-      <img src="{{this.state.nowPlaying.albumArt}}" style="height: 150px;" />
-    </div>
-    <div *ngIf="this.state.loggedIn">
-      <ion-button (click)="getNowPlaying()">
-        Check Now Playing
-      </ion-button>
-    </div>
+    <ion-grid class="ion-no-padding">
+      <ion-row style="justify-content: space-between !important;">
+        <ion-col *ngFor="let item of searchFavArtist">
+          <ion-item lines="none" (click)="onClickArtist(item.key)">
+            <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
+              <img src="{{item.image}}" />
+            </ion-avatar>
+            <ion-label>
+              {{item.name}}
+            </ion-label>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </ion-card>
 </ion-content>

@@ -41,13 +41,12 @@ export class Tab2Page {
   hatedGenres: Map<string, boolean> = new Map();
 
   constructor(private formBuilder: FormBuilder, private shared: SharedParamsService, private alertController: AlertController) {
-    //spotifyApi.setAccessToken(shared.getToken());
-    spotifyApi.setAccessToken('BQAsAWaOSefSX_PmSwpNTXEuNdZVeYLPl7HPKx58Add8YOt9MsIAqW7uQnKHy_tLafAUxe12JjLrxKyCbwZaBhhZDz7ObZ7bDGwkQuubyj7dMlDF2nB8F8LL9EJOGV7A4wJEeRRVBsNZvY9Tg0xyQQs96fzYOeC-dpMbUXfWmdFD2llBWBV72ziC56APkKnhYCm0dyyXbsiG');
+    spotifyApi.setAccessToken(shared.getToken());
     this.initializeGenresSeeds();
     spotifyApi.getMe().then((response) => {
       this.userProfilePhoto = response.images[0].url;
       if (this.userProfilePhoto === undefined) {
-        this.userProfilePhoto = 'https://t3.ftcdn.net/jpg/00/64/67/80/240_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+        this.userProfilePhoto = 'assets/img/noImgAvailable.png';
       }
       console.log(response);
       this.email = response.email;

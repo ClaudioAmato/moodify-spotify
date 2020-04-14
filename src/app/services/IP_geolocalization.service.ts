@@ -17,7 +17,7 @@ interface Location {
 @Injectable({
     providedIn: 'root'
 })
-export class GoogleGeolocalization {
+export class IP_geolocalization {
 
     constructor(private _http: HttpClient) { }
 

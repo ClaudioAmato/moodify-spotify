@@ -1,17 +1,17 @@
-import { GoogleGeolocalization } from './../services/googleGeolocalization.service';
+import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  providers: [GoogleGeolocalization]
+  providers: [IP_geolocalization]
 })
 export class LoginPage implements OnInit {
 
   country_code: string = '';
 
-  constructor(private geoLocal: GoogleGeolocalization) {
+  constructor(private geoLocal: IP_geolocalization) {
   }
 
   ngOnInit() {
