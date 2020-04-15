@@ -1,3 +1,4 @@
+import { AlertController } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -24,10 +25,19 @@ export class Tab1Page {
   country_code: string = '';
   searchFavArtist: Array<{ key: string, image: any, name: string }> = [];
   deviceId: string[] = [];
-  arrayMusic = [];
+  recommendedMusicArray: Array<{
+    uriID: string,
+    nomi_artisti: any[],
+    image: any,
+    currentlyPlaying: boolean,
+    nome_album: string,
+    preview_url: string,
+    external_urls: string
+  }> = [];
   currentPlaying: string = null;
+  soundPlayer = new Audio();
 
-  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization) {
+  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private alertController: AlertController) {
     this.params = this.getHashParams();
     this.token = this.params.access_token;
     if (this.token) {
@@ -94,7 +104,7 @@ export class Tab1Page {
             if (response.artists.items[i].images.length !== 0) {
               dataSearch = {
                 key: response.artists.items[i].id,
-                image: response.artists.items[i].images[0].url,
+                image: response.artists.items[i].images[1].url,
                 name: response.artists.items[i].name,
               };
             }
@@ -113,7 +123,11 @@ export class Tab1Page {
   }
 
   onClickArtist(idArtist: string) {
-    this.arrayMusic = [];
+    this.recommendedMusicArray = [];
+    let data: {
+      uriID: string, nomi_artisti: any[], image: any, currentlyPlaying: boolean,
+      nome_album: string, preview_url: string, external_urls: string
+    };
     spotifyApi.getRecommendations({
       limit: 5,
       market: this.country_code,
@@ -125,29 +139,81 @@ export class Tab1Page {
     }).then((response) => {
       if (response !== undefined) {
         for (let i = 0; i < response.tracks.length; i++) {
-          this.arrayMusic.push(response.tracks[i].external_urls.spotify);
+          if (response.tracks[i].album.images.length !== 0) {
+            data = {
+              uriID: response.tracks[i].uri,
+              nomi_artisti: response.tracks[i].artists,
+              image: response.tracks[i].album.images[1].url,  //even if it say that there is an error it works
+              currentlyPlaying: false,
+              nome_album: response.tracks[i].name,
+              preview_url: response.tracks[i].preview_url,
+              external_urls: response.tracks[i].external_urls.spotify
+            };
+          }
+          else {
+            data = {
+              uriID: response.tracks[i].uri,
+              nomi_artisti: response.tracks[i].artists,
+              image: 'assets/img/noImgAvailable.png',  //even if it say that there is an error it works
+              currentlyPlaying: false,
+              nome_album: response.tracks[i].name,
+              preview_url: response.tracks[i].preview_url,
+              external_urls: response.tracks[i].external_urls.spotify
+            };
+          }
+          this.recommendedMusicArray.push(data);
         }
-        this.playMusics(this.arrayMusic);
       }
     }, err => {
       console.log(err);
     });
   }
 
-  playMusics(arrayMusic: any[]) {
-    this.currentPlaying = null;
-    for (let i = 0; i < arrayMusic.length; i++) {
-      if (arrayMusic[i] != null) {
-        this.currentPlaying = arrayMusic[i].slice(0, 25) + "embed/" + arrayMusic[i].slice(0, arrayMusic[i].length);
-        console.log("non null, " + this.currentPlaying);
-        break;
+  playMusics(uri: string) {
+    if (this.currentPlaying === null) {
+      const data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
+      if (data !== undefined) {
+        if (this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].preview_url != null) {
+          this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlaying = true;
+          this.currentPlaying = this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].preview_url;
+          this.soundPlayer = new Audio(this.currentPlaying);
+          this.soundPlayer.play();
+          //console.log("non null, n° " + i + " = " + this.currentPlaying);
+        }
+        else {
+          this.alertPreviewUrl();
+          //console.log("null, n° " + i + " = " + arrayMusic[i]);
+        }
+        //console.log(this.deviceId);
+        //spotifyApi.transferMyPlayback(this.deviceId, { play: true });
       }
       else {
-        console.log("null, " + arrayMusic[i]);
+        console.log("URI not found");
       }
-    }
-    //console.log(this.deviceId);
-    //spotifyApi.transferMyPlayback(this.deviceId, { play: true });
+    } setTimeout(() => {
+      this.currentPlaying = null;
+      const data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
+      if (data !== undefined) {
+        this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlaying = false;
+      }
+    }, 30000);
   }
+
+
+  async alertPreviewUrl() {
+    const alert = await this.alertController.create({
+      header: 'Can\'t preview this song',
+      cssClass: 'alertClassDanger',
+      message: 'Preview url is null',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+        }
+      ],
+    });
+    await alert.present();
+  }
+
 
 }

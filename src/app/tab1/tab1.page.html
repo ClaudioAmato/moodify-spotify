@@ -36,4 +36,79 @@
       </ion-row>
     </ion-grid>
   </ion-card>
+
+  <ion-card>
+    <ng-container>
+      <ion-item *ngIf="this.recommendedMusicArray.length === 0">
+        Choose an artist
+      </ion-item>
+      <ng-container *ngIf="this.recommendedMusicArray.length !== 0">
+        <ion-item
+          *ngFor="let item of recommendedMusicArray"
+          (click)="playMusics(item.uriID)"
+          lines="full"
+        >
+          <ion-grid>
+            <ion-row>
+              <ion-col size="2">
+                <div>
+                  <img class="album" src="{{item.image}}" />
+                  <img
+                    src="assets/img/playing.png"
+                    class="playing"
+                    *ngIf="item.currentlyPlaying"
+                  />
+                </div>
+              </ion-col>
+              <ion-col size="10">
+                <div class="wrapDiv">
+                  <div class="nameField">
+                    Album:
+                  </div>
+                  <div class="verticalDivCenter">
+                    {{item.nome_album}}
+                  </div>
+                </div>
+                <div class="wrapDiv">
+                  <div class="nameField">
+                    Artisti:
+                  </div>
+                  <div
+                    class="verticalDivCenter"
+                    *ngFor="let artist of item.nomi_artisti"
+                  >
+                    {{artist.name}},
+                  </div>
+                </div>
+                <div class="wrapDiv">
+                  <div class="nameField">
+                    External URLS:
+                  </div>
+                  <div class="verticalDivCenter">
+                    {{item.external_urls}}
+                  </div>
+                </div>
+                <div class="wrapDiv">
+                  <div class="nameField">
+                    Preview URL:
+                  </div>
+                  <div class="verticalDivCenter">
+                    {{item.preview_url}}
+                  </div>
+                </div>
+                <div class="wrapDiv">
+                  <div class="nameField">
+                    URI:
+                  </div>
+                  <div class="verticalDivCenter">
+                    {{item.uriID}}
+                  </div>
+                </div>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-item>
+      </ng-container>
+    </ng-container>
+  </ion-card>
 </ion-content>

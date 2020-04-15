@@ -269,7 +269,7 @@ export class Tab2Page {
             else {
               dataSearch = {
                 key: response.artists.items[i].id,
-                image: 'https://lh3.googleusercontent.com/proxy/ykknV-Vf4pceXd2LkKAt9dS7n5IAbKHi4sis0hh1izt32fD85RUYjr0baM4Il58GmdHd0N3z3QyM0xndYoXrR3Cl0gAJHfs9Bm2AhclUqxqoKqw6ZePf8sDXQdreWN-xjlAKuCC7lH2vnVTolXJ8EPp_-Cq3gg11pTo',
+                image: 'assets/img/noImgAvailable.png',
                 name: response.artists.items[i].name,
                 checked: check
               };
@@ -287,7 +287,7 @@ export class Tab2Page {
     //}
   }
 
-  public submit() {
+  public onClickRegister() {
     console.log(this.registrationForm.value);
   }
 }
