@@ -4,9 +4,7 @@ ion-content ion-toolbar {
 
 .nameField {
   color: var(--ion-color-primary);
-  font-size: 20px;
   margin-right: 5px;
-  font-weight: bold;
 }
 
 .wrapDiv {
@@ -19,19 +17,77 @@ ion-content ion-toolbar {
   margin-right: 5px;
 }
 
+.image-container {
+  margin: 10px 1% 10px 0;
+  -moz-box-shadow: 0 0 10px var(--ion-color-secondary);
+  -webkit-box-shadow: 0 0 10px var(--ion-color-secondary);
+  box-shadow: 0 0 10px var(--ion-color-secondary);
+}
+
+.playing {
+  position: absolute;
+  top: 30px;
+  left: 36px;
+  width: 60px;
+  height: 60px;
+}
+
 .album {
-  width: 200px;
-  height: 200px;
   position: relative;
   top: 0;
   left: 0;
 }
 
-.playing {
-  width: 50px;
-  height: 50px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+figure {
+  width: 100px;
+  height: 100px;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+}
+figure:hover + span {
+  bottom: -36px;
+  opacity: 1;
+}
+
+/* Zoom In #1 */
+.image-container figure img {
+  -webkit-transform: scale(1);
+  transform: scale(1);
+  -webkit-transition: 0.3s ease-in-out;
+  transition: 0.3s ease-in-out;
+}
+.image-container figure:hover img {
+  -webkit-transform: scale(1.3);
+  transform: scale(1.3);
+}
+
+.previewButton {
+  font-size: small !important;
+}
+
+.search-click {
+  transition: transform 0.25s;
+
+  &::after {
+    transition: opacity 1s;
+  }
+
+  &:active {
+    transform: scale(0.8);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &::before {
+    transition: opacity 0.5s;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
 }

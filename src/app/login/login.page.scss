@@ -164,3 +164,19 @@ ion-card {
     transform: translateY(-700px) rotate(600deg);
   }
 }
+
+/* BUTTON */
+.mybutton {
+  border: 0;
+  box-shadow: 0px 5px 10px #15843c;
+  transition: all 0.3s;
+  border-radius: 5px;
+  &:hover {
+    box-shadow: 0px 15px 25px -5px #15843c;
+    transform: scale(1.03);
+  }
+  &:active {
+    box-shadow: 0px 4px 8px #15843c;
+    transform: scale(0.98);
+  }
+}

@@ -24,7 +24,12 @@
     <ion-grid class="ion-no-padding">
       <ion-row style="justify-content: space-between !important;">
         <ion-col *ngFor="let item of searchFavArtist">
-          <ion-item lines="none" (click)="onClickArtist(item.key)">
+          <ion-item
+            lines="none"
+            (click)="onClickArtist(item.key)"
+            class="search-click"
+          >
+            <ion-ripple-effect></ion-ripple-effect>
             <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
               <img src="{{item.image}}" />
             </ion-avatar>
@@ -43,70 +48,79 @@
         Choose an artist
       </ion-item>
       <ng-container *ngIf="this.recommendedMusicArray.length !== 0">
-        <ion-item
-          *ngFor="let item of recommendedMusicArray"
-          (click)="playMusics(item.uriID)"
-          lines="full"
-        >
-          <ion-grid>
-            <ion-row>
-              <ion-col size="2">
-                <div>
-                  <img class="album" src="{{item.image}}" />
-                  <img
-                    src="assets/img/playing.png"
-                    class="playing"
-                    *ngIf="item.currentlyPlaying"
-                  />
-                </div>
-              </ion-col>
-              <ion-col size="10">
-                <div class="wrapDiv">
-                  <div class="nameField">
-                    Album:
-                  </div>
-                  <div class="verticalDivCenter">
-                    {{item.nome_album}}
-                  </div>
-                </div>
-                <div class="wrapDiv">
-                  <div class="nameField">
-                    Artisti:
-                  </div>
-                  <div
-                    class="verticalDivCenter"
-                    *ngFor="let artist of item.nomi_artisti"
-                  >
-                    {{artist.name}},
-                  </div>
-                </div>
-                <div class="wrapDiv">
-                  <div class="nameField">
-                    External URLS:
-                  </div>
-                  <div class="verticalDivCenter">
-                    {{item.external_urls}}
-                  </div>
-                </div>
-                <div class="wrapDiv">
-                  <div class="nameField">
-                    Preview URL:
-                  </div>
-                  <div class="verticalDivCenter">
-                    {{item.preview_url}}
-                  </div>
-                </div>
-                <div class="wrapDiv">
-                  <div class="nameField">
-                    URI:
-                  </div>
-                  <div class="verticalDivCenter">
-                    {{item.uriID}}
-                  </div>
-                </div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
+        <ion-item *ngFor="let item of recommendedMusicArray" lines="full">
+          <div class="image-container" slot="start">
+            <figure>
+              <img
+                class="album"
+                src="{{item.image}}"
+                (click)="openSpotifyPlayer(item.external_urls)"
+              />
+              <img
+                class="playing"
+                src="assets/img/playing.png"
+                *ngIf="item.currentlyPlayingSong"
+              />
+            </figure>
+          </div>
+          <div class="containerDatas">
+            <div class="wrapDiv">
+              <div class="nameField">
+                Album:
+              </div>
+              <div class="verticalDivCenter">
+                {{item.nome_album}}
+              </div>
+            </div>
+            <div class="wrapDiv">
+              <div class="nameField">
+                Artisti:
+              </div>
+              <div
+                class="verticalDivCenter"
+                *ngFor="let artist of item.nomi_artisti"
+              >
+                {{artist.name}},
+              </div>
+            </div>
+            <div class="wrapDiv">
+              <div class="nameField">
+                External URLS:
+              </div>
+              <div class="verticalDivCenter">
+                {{item.external_urls}}
+              </div>
+            </div>
+            <div class="wrapDiv">
+              <div class="nameField">
+                URI:
+              </div>
+              <div class="verticalDivCenter">
+                {{item.uriID}}
+              </div>
+            </div>
+          </div>
+          <div slot="end">
+            <ion-button
+              (click)="playMusics(item.uriID)"
+              class="previewButton"
+              fill="clear"
+              *ngIf="item.preview_url !== null && item.currentlyPlayingPreview === false"
+              >Preview</ion-button
+            >
+            <ion-button
+              (click)="stop(item.uriID, true)"
+              class="previewButton"
+              fill="clear"
+              *ngIf="item.preview_url !== null && item.currentlyPlayingPreview === true"
+              >Stop</ion-button
+            >
+            <ion-progress-bar
+              color="primary"
+              value="{{this.soundPlayer.currentTime / 30}} "
+              *ngIf="item.preview_url !== null && item.currentlyPlayingPreview === true"
+            ></ion-progress-bar>
+          </div>
         </ion-item>
       </ng-container>
     </ng-container>
