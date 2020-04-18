@@ -9,7 +9,11 @@
           Based on your emotions and Spotify's personal music taste, Moodify
           finds music that can change your desired mood state.
         </div>
-        <ion-button (click)="onClickLogin()" class="mybutton">
+        <ion-button
+          (click)="onClickLogin()"
+          class="mybutton"
+          disabled="{{this.params.access_token !== undefined}}"
+        >
           Login with Spotify
         </ion-button>
         <br />

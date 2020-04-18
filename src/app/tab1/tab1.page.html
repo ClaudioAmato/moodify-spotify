@@ -49,20 +49,20 @@
       </ion-item>
       <ng-container *ngIf="this.recommendedMusicArray.length !== 0">
         <ion-item *ngFor="let item of recommendedMusicArray" lines="full">
-          <div class="image-container" slot="start">
-            <figure>
-              <img
-                class="album"
-                src="{{item.image}}"
-                (click)="openSpotifyPlayer(item.external_urls)"
-              />
-              <img
-                class="playing"
-                src="assets/img/playing.png"
-                *ngIf="item.currentlyPlayingSong"
-              />
-            </figure>
+          <div (click)="openSpotifyPlayer(item.external_urls)" class="listenMe">
+            <div class="image-container" slot="start">
+              <figure>
+                <img class="album" src="{{item.image}}" />
+                <img
+                  class="playing"
+                  src="assets/img/playing.png"
+                  *ngIf="item.currentlyPlayingSong"
+                />
+              </figure>
+            </div>
+            <div class="listenMeLabel">Listen Me</div>
           </div>
+
           <div class="containerDatas">
             <div class="wrapDiv">
               <div class="nameField">
@@ -109,7 +109,7 @@
               >Preview</ion-button
             >
             <ion-button
-              (click)="stop(item.uriID, true)"
+              (click)="stop(item.uriID)"
               class="previewButton"
               fill="clear"
               *ngIf="item.preview_url !== null && item.currentlyPlayingPreview === true"

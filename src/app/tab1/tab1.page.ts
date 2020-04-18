@@ -14,8 +14,6 @@ const spotifyApi = new SpotifyWebApi();
 })
 export class Tab1Page {
 
-  params: any;
-  token: string;
   country_code: string = '';
   searchFavArtist: Array<{ key: string, image: any, name: string }> = [];
   deviceId: string[] = [];
@@ -38,13 +36,7 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private alertController: AlertController) {
-    this.params = this.getHashParams();
-    this.token = this.params.access_token;
-    if (this.token) {
-      spotifyApi.setAccessToken(this.token);
-    }
-    shared.setToken(this.token);
-    shared.setRefreashToken(this.params.refresh_token);
+    spotifyApi.setAccessToken(shared.getToken());
     this.initializeDeviceReady();
   }
 
@@ -53,19 +45,6 @@ export class Tab1Page {
       this.country_code = data.country_code;
       console.log(data);
     });
-  }
-
-  getHashParams() {
-    let hashParams = {};
-    let e,
-      r = /([^&;=]+)=?([^&;]*)/g,
-      q = window.location.hash.substring(1);
-    e = r.exec(q);
-    while (e) {
-      hashParams[e[1]] = decodeURIComponent(e[2]);
-      e = r.exec(q);
-    }
-    return hashParams;
   }
 
   initializeDeviceReady() {
@@ -110,7 +89,7 @@ export class Tab1Page {
 
   onClickArtist(idArtist: string) {
     this.recommendedMusicArray = [];
-    this.stop(null, false);
+    this.stop(null);
     let data: {
       uriID: string, nomi_artisti: any[], image: any,
       currentlyPlayingPreview: boolean, currentlyPlayingSong: boolean,
@@ -166,6 +145,9 @@ export class Tab1Page {
       this.recommendedMusicArray[this.recommendedMusicArray.indexOf(this.current_playing)].currentlyPlayingSong = false;
       this.current_playing = undefined;
     }
+    if (this.current_preview !== undefined) {
+      this.stop(this.current_preview.uriID);
+    }
     const data = this.recommendedMusicArray.find(url => url.external_urls === external_urls);
     if (data !== undefined) {
       this.current_playing = data;
@@ -188,7 +170,6 @@ export class Tab1Page {
           this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingSong = false;
           clearInterval(this._playIntervalHandler);
         }
-        console.log("ci sono");
       }
     }, 2000);
   }
@@ -196,7 +177,7 @@ export class Tab1Page {
   playMusics(uri: string) {
     //if current playing
     if (this.soundPlayer.currentTime > 0) {
-      this.stop(this.current_preview.uriID, true);
+      this.stop(this.current_preview.uriID);
     }
     let data: any;
     data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
@@ -225,13 +206,13 @@ export class Tab1Page {
     }, 100);
   }
 
-  stop(uri: string, haveUri: boolean) {
+  stop(uri: string) {
     this.soundPlayer.pause();
     clearInterval(this._previewIntervalHandler);
     this.soundPlayer.currentTime = 0;
     this.current_preview = undefined;
     this.current_playing = undefined;
-    if (haveUri) {
+    if (uri !== null) {
       const data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
       if (data !== undefined) {
         this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingPreview = false;

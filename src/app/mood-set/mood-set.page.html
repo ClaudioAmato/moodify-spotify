@@ -1,0 +1,24 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>
+      Set your mood
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div style="text-align: center;">
+    <div style="display: grid;">
+      <label>What's your current mood?</label>
+      <label>Emojis</label>
+    </div>
+    <div style="display: grid;">
+      <label>What's your target mood?</label>
+      <label>Emojis</label>
+    </div>
+
+    <ion-button (click)="confirmMood()" class="previewButton"
+      >Confirm</ion-button
+    >
+  </div>
+</ion-content>
