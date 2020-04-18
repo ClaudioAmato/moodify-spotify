@@ -186,8 +186,9 @@ export class Tab1Page {
       if (this.spotifyWindow !== undefined) {
         if (this.spotifyWindow.closed && data !== undefined) {
           this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingSong = false;
+          clearInterval(this._playIntervalHandler);
         }
-        clearInterval(this._playIntervalHandler);
+        console.log("ci sono");
       }
     }, 2000);
   }
