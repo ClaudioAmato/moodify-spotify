@@ -18,8 +18,9 @@ export class LoginPage implements OnInit {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
       window.history.replaceState({}, document.title, '/' + 'login');
-      shared.setToken(this.params.access_token);
-      shared.setRefreashToken(this.params.refresh_token);
+      this.shared.setExpirationToken('expirationToken', new Date());
+      this.shared.setToken('token', this.params.access_token);
+      this.shared.setRefreashToken('refreshToken', this.params.refresh_token);
       navCtrl.navigateRoot('/mood');
     }
   }
@@ -27,7 +28,6 @@ export class LoginPage implements OnInit {
   ngOnInit() {
     this.geoLocal.getLocation().subscribe(data => {
       this.country_code = data.country_code;
-      console.log(data);
     });
     if (this.params.access_token !== undefined) {
       window.history.replaceState({}, document.title, '/' + 'login');

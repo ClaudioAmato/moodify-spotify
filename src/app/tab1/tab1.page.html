@@ -43,6 +43,11 @@
   </ion-card>
 
   <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Your moody music
+      </ion-label>
+    </ion-card-header>
     <ng-container>
       <ion-item *ngIf="this.recommendedMusicArray.length === 0">
         Choose an artist
@@ -102,7 +107,7 @@
           </div>
           <div slot="end">
             <ion-button
-              (click)="playMusics(item.uriID)"
+              (click)="playPreview(item.uriID)"
               class="previewButton"
               fill="clear"
               *ngIf="item.preview_url !== null && item.currentlyPlayingPreview === false"

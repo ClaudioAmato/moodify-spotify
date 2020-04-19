@@ -36,25 +36,34 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private alertController: AlertController) {
-    spotifyApi.setAccessToken(shared.getToken());
-    this.initializeDeviceReady();
+    if (this.shared.checkExpirationToken('expirationToken')) {
+      this.alertTokenExpired();
+    }
+    else {
+      spotifyApi.setAccessToken(this.shared.getToken('token'));
+      this.initializeDeviceReady();
+    }
   }
 
   ngOnInit() {
     this.geoLocal.getLocation().subscribe(data => {
       this.country_code = data.country_code;
-      console.log(data);
     });
   }
 
   initializeDeviceReady() {
-    spotifyApi.getMyDevices().then((response => {
-      if (response !== undefined) {
-        for (let i = 0; i < response.devices.length; i++) {
-          this.deviceId.push(response.devices[i].id);
+    if (this.shared.checkExpirationToken('expirationToken')) {
+      this.alertTokenExpired();
+    }
+    else {
+      spotifyApi.getMyDevices().then((response => {
+        if (response !== undefined) {
+          for (let i = 0; i < response.devices.length; i++) {
+            this.deviceId.push(response.devices[i].id);
+          }
         }
-      }
-    }));
+      }));
+    }
   }
 
   searchMusic($event) {
@@ -63,27 +72,32 @@ export class Tab1Page {
       if (this.searchFavArtist.length > 0) {
         this.searchFavArtist = [];
       }
-      spotifyApi.search($event.detail.value, ['artist'], { market: this.country_code, limit: 5, offset: 0 }).then((response) => {
-        if (response !== undefined) {
-          for (let i = 0; i < response.artists.items.length; i++) {
-            if (response.artists.items[i].images.length !== 0) {
-              dataSearch = {
-                key: response.artists.items[i].id,
-                image: response.artists.items[i].images[1].url,
-                name: response.artists.items[i].name,
-              };
+      if (this.shared.checkExpirationToken('expirationToken')) {
+        this.alertTokenExpired();
+      }
+      else {
+        spotifyApi.search($event.detail.value, ['artist'], { market: this.country_code, limit: 5, offset: 0 }).then((response) => {
+          if (response !== undefined) {
+            for (let i = 0; i < response.artists.items.length; i++) {
+              if (response.artists.items[i].images.length !== 0) {
+                dataSearch = {
+                  key: response.artists.items[i].id,
+                  image: response.artists.items[i].images[1].url,
+                  name: response.artists.items[i].name,
+                };
+              }
+              else {
+                dataSearch = {
+                  key: response.artists.items[i].id,
+                  image: 'assets/img/noImgAvailable.png',
+                  name: response.artists.items[i].name,
+                };
+              }
+              this.searchFavArtist.push(dataSearch);
             }
-            else {
-              dataSearch = {
-                key: response.artists.items[i].id,
-                image: 'assets/img/noImgAvailable.png',
-                name: response.artists.items[i].name,
-              };
-            }
-            this.searchFavArtist.push(dataSearch);
           }
-        }
-      });
+        });
+      }
     }
   }
 
@@ -174,7 +188,7 @@ export class Tab1Page {
     }, 2000);
   }
 
-  playMusics(uri: string) {
+  playPreview(uri: string) {
     //if current playing
     if (this.soundPlayer.currentTime > 0) {
       this.stop(this.current_preview.uriID);
@@ -218,5 +232,25 @@ export class Tab1Page {
         this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingPreview = false;
       }
     }
+  }
+
+  /* ALERTS CHECK EXPIRATION TOKEN */
+  async alertTokenExpired() {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      cssClass: 'alertClassError',
+      message: 'Your token is expired. Click ok to refresh it!',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            window.location.href = 'http://localhost:8100/login';
+          }
+        }
+      ],
+      backdropDismiss: true
+    });
+    await alert.present();
   }
 }

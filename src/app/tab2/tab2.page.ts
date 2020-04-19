@@ -41,47 +41,56 @@ export class Tab2Page {
   hatedGenres: Map<string, boolean> = new Map();
 
   constructor(private formBuilder: FormBuilder, private shared: SharedParamsService, private alertController: AlertController) {
-    spotifyApi.setAccessToken(shared.getToken());
-    this.initializeGenresSeeds();
-    spotifyApi.getMe().then((response) => {
-      this.userProfilePhoto = response.images[0].url;
-      if (this.userProfilePhoto === undefined) {
-        this.userProfilePhoto = 'assets/img/noImgAvailable.png';
-      }
-      console.log(response);
-      this.email = response.email;
-      this.name = response.display_name;
-      this.country = response.country;
-      this.url = response.external_urls.spotify;
-      this.autoSearchFavGenres(); // in registrationForm.controls['favGenres']
-    });
+    if (this.shared.checkExpirationToken('expirationToken')) {
+      this.alertTokenExpired();
+    }
+    else {
+      spotifyApi.setAccessToken(this.shared.getToken('token'));
+      this.initializeGenresSeeds();
+      spotifyApi.getMe().then((response) => {
+        this.userProfilePhoto = response.images[0].url;
+        if (this.userProfilePhoto === undefined) {
+          this.userProfilePhoto = 'assets/img/noImgAvailable.png';
+        }
+        console.log(response);
+        this.email = response.email;
+        this.name = response.display_name;
+        this.country = response.country;
+        this.url = response.external_urls.spotify;
+        this.autoSearchFavGenres(); // in registrationForm.controls['favGenres']
+      });
+    }
   }
 
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   autoSearchFavGenres() {
-    spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
-      if (response !== undefined) {
-        for (let i = 0; i < response.items.length; i++) {
-          //cycle on all the genres of the artist
-          for (let j = 0; j < response.items[i].genres.length; j++) {
-            if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
-              this.topGenresMap[response.items[i].genres[j]] = 1;
+    if (this.shared.checkExpirationToken('expirationToken')) {
+      this.alertTokenExpired();
+    }
+    else {
+      spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
+        if (response !== undefined) {
+          for (let i = 0; i < response.items.length; i++) {
+            //cycle on all the genres of the artist
+            for (let j = 0; j < response.items[i].genres.length; j++) {
+              if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
+                this.topGenresMap[response.items[i].genres[j]] = 1;
+              }
+              else {
+                this.topGenresMap[response.items[i].genres[j]] += 1;
+              }
             }
-            else {
-              this.topGenresMap[response.items[i].genres[j]] += 1;
+            if (i < 10) {
+              let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
+              this.suggestfavArtist.push(data);
             }
           }
-          if (i < 10) {
-            let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
-            this.suggestfavArtist.push(data);
-          }
+          this.topGenresMap = this.sortProperties(this.topGenresMap);
         }
-        this.topGenresMap = this.sortProperties(this.topGenresMap);
-      }
-      //console.log(this.topGenresMap);
-    });
-    //this.registrationForm.controls['favGenres'].setValue();
+      });
+      //this.registrationForm.controls['favGenres'].setValue();
+    }
   }
 
   sortProperties(obj) {
@@ -102,15 +111,20 @@ export class Tab2Page {
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   initializeGenresSeeds() {
-    spotifyApi.getAvailableGenreSeeds().then((response) => {
-      if (response !== undefined) {
-        this.availabeSeedGenres = response.genres;
-        for (let i = 0; i < response.genres.length; i++) {
-          this.favGenres.set(this.availabeSeedGenres[i], true);
-          this.hatedGenres.set(this.availabeSeedGenres[i], true);
+    if (this.shared.checkExpirationToken('expirationToken')) {
+      this.alertTokenExpired();
+    }
+    else {
+      spotifyApi.getAvailableGenreSeeds().then((response) => {
+        if (response !== undefined) {
+          this.availabeSeedGenres = response.genres;
+          for (let i = 0; i < response.genres.length; i++) {
+            this.favGenres.set(this.availabeSeedGenres[i], true);
+            this.hatedGenres.set(this.availabeSeedGenres[i], true);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   refreshHatedGenres(maxValid: number) {
@@ -248,43 +262,62 @@ export class Tab2Page {
       this.searchFavArtist = [];
     }
     if ($event.detail.value.length > 0) {
-      spotifyApi.search($event.detail.value, ['artist'], { market: "US", limit: 5, offset: 0 }).then((response) => {
-        if (response !== undefined) {
-          for (let i = 0; i < response.artists.items.length; i++) {
-            dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);
-            if (dataSelected !== undefined) {
-              check = true;
+      if (this.shared.checkExpirationToken('expirationToken')) {
+        this.alertTokenExpired();
+      }
+      else {
+        spotifyApi.search($event.detail.value, ['artist'], { market: "US", limit: 5, offset: 0 }).then((response) => {
+          if (response !== undefined) {
+            for (let i = 0; i < response.artists.items.length; i++) {
+              dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);
+              if (dataSelected !== undefined) {
+                check = true;
+              }
+              else {
+                check = false;
+              }
+              if (response.artists.items[i].images.length !== 0) {
+                dataSearch = {
+                  key: response.artists.items[i].id,
+                  image: response.artists.items[i].images[0].url,
+                  name: response.artists.items[i].name,
+                  checked: check
+                };
+              }
+              else {
+                dataSearch = {
+                  key: response.artists.items[i].id,
+                  image: 'assets/img/noImgAvailable.png',
+                  name: response.artists.items[i].name,
+                  checked: check
+                };
+              }
+              this.searchFavArtist.push(dataSearch);
             }
-            else {
-              check = false;
-            }
-            if (response.artists.items[i].images.length !== 0) {
-              dataSearch = {
-                key: response.artists.items[i].id,
-                image: response.artists.items[i].images[0].url,
-                name: response.artists.items[i].name,
-                checked: check
-              };
-            }
-            else {
-              dataSearch = {
-                key: response.artists.items[i].id,
-                image: 'assets/img/noImgAvailable.png',
-                name: response.artists.items[i].name,
-                checked: check
-              };
-            }
-            this.searchFavArtist.push(dataSearch);
           }
-        }
-      });
+        });
+      }
     }
   }
 
-  checkExpirationToken() {
-    //if(expired){
-    //window.location.href = 'http://localhost:8888/login';
-    //}
+  /* ALERTS CHECK EXPIRATION TOKEN */
+  async alertTokenExpired() {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      cssClass: 'alertClassError',
+      message: 'Your token is expired. Click ok to refresh it!',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            window.location.href = 'http://localhost:8100/login';
+          }
+        }
+      ],
+      backdropDismiss: true
+    });
+    await alert.present();
   }
 
   public onClickRegister() {

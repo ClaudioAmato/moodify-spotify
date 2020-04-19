@@ -7,11 +7,8 @@ import { Component } from '@angular/core';
   styleUrls: ['./mood-set.page.scss'],
 })
 export class MoodSetPage {
-  navCtrl: any;
-  constructor(private navigationController: NavController) {
-    this.navCtrl = navigationController;
-  }
 
+  constructor(private navCtrl: NavController) { }
 
   confirmMood() {
     this.navCtrl.navigateRoot('/moodify/home');
