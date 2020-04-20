@@ -119,38 +119,42 @@ export class Tab1Page {
       max_danceability: 0.5,
     }).then((response) => {
       if (response !== undefined) {
+        let tracksIDs: string[] = [];
         for (let i = 0; i < response.tracks.length; i++) {
-          if (response.tracks[i].album.images.length !== 0) {
-            data = {
-              uriID: response.tracks[i].uri,
-              nomi_artisti: response.tracks[i].artists,
-              image: response.tracks[i].album.images[1].url,  //even if it say that there is an error it works
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.tracks[i].duration_ms,
-              nome_album: response.tracks[i].name,
-              preview_url: response.tracks[i].preview_url,
-              external_urls: response.tracks[i].external_urls.spotify
-            };
-          }
-          else {
-            data = {
-              uriID: response.tracks[i].uri,
-              nomi_artisti: response.tracks[i].artists,
-              image: 'assets/img/noImgAvailable.png',
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.tracks[i].duration_ms,
-              nome_album: response.tracks[i].name,
-              preview_url: response.tracks[i].preview_url,
-              external_urls: response.tracks[i].external_urls.spotify
-            };
-          }
-          this.recommendedMusicArray.push(data);
+          tracksIDs[i] = response.tracks[i].id;
         }
+        spotifyApi.getTracks(tracksIDs).then((response2) => {
+          for (let i = 0; i < response2.tracks.length; i++) {
+            if (response2.tracks[i].album.images[1].url !== undefined) {
+              data = {
+                uriID: response.tracks[i].uri,
+                nomi_artisti: response.tracks[i].artists,
+                image: response2.tracks[i].album.images[1].url,
+                currentlyPlayingPreview: false,
+                currentlyPlayingSong: false,
+                duration: response.tracks[i].duration_ms,
+                nome_album: response.tracks[i].name,
+                preview_url: response.tracks[i].preview_url,
+                external_urls: response.tracks[i].external_urls.spotify
+              };
+            }
+            else {
+              data = {
+                uriID: response.tracks[i].uri,
+                nomi_artisti: response.tracks[i].artists,
+                image: 'assets/img/noImgAvailable.png',
+                currentlyPlayingPreview: false,
+                currentlyPlayingSong: false,
+                duration: response.tracks[i].duration_ms,
+                nome_album: response.tracks[i].name,
+                preview_url: response.tracks[i].preview_url,
+                external_urls: response.tracks[i].external_urls.spotify
+              };
+            }
+            this.recommendedMusicArray.push(data);
+          }
+        });
       }
-    }, err => {
-      console.log(err);
     });
   }
 
