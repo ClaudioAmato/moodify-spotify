@@ -1,7 +1,5 @@
 {
-  "name": "moodify",
-  "integrations": {
-    "cordova": {}
-  },
+  "name": "moodify-spotify",
+  "integrations": {},
   "type": "angular"
 }

@@ -10,20 +10,41 @@ ion-content ion-toolbar {
 .wrapDiv {
   display: flex;
 }
-
+.itemDiv {
+  display: contents;
+  width: 100%;
+}
+.containerDatas {
+  align-self: center;
+}
 .verticalDivCenter {
   display: flex;
   flex-direction: column-reverse;
-  margin-right: 5px;
 }
-
+.divPreview {
+  margin-left: auto;
+}
 .listenMe {
-  margin: 10px 1% 10px 0;
+  margin: 10px 10px 10px 16px;
   cursor: pointer;
   .image-container {
     -moz-box-shadow: 0 0 10px var(--ion-color-secondary);
     -webkit-box-shadow: 0 0 10px var(--ion-color-secondary);
     box-shadow: 0 0 10px var(--ion-color-secondary);
+    width: fit-content;
+    height: 100px;
+    margin: auto;
+  }
+  /* Zoom In #1 */
+  .image-container figure img {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-transition: 0.3s ease-in-out;
+    transition: 0.3s ease-in-out;
+  }
+  .image-container figure:hover img {
+    -webkit-transform: scale(1.3);
+    transform: scale(1.3);
   }
   .album {
     position: relative;
@@ -58,16 +79,38 @@ ion-content ion-toolbar {
   }
 }
 
-/* Zoom In #1 */
-.image-container figure img {
-  -webkit-transform: scale(1);
-  transform: scale(1);
-  -webkit-transition: 0.3s ease-in-out;
-  transition: 0.3s ease-in-out;
-}
-.image-container figure:hover img {
-  -webkit-transform: scale(1.3);
-  transform: scale(1.3);
+@media screen and (max-width: 900px) {
+  .divPreview {
+    text-align: center;
+    display: inherit;
+    margin: 10px 0;
+  }
+  .itemDiv {
+    display: block;
+    margin: auto;
+  }
+  .listenMe {
+    margin: 10px 0;
+  }
+  figure {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  .image-container {
+    height: 150px !important;
+  }
+  ion-item {
+    --padding-end: 0px;
+    --inner-padding-end: 0px;
+  }
+  .wrapDiv {
+    justify-content: center;
+    display: inherit;
+    text-align: center;
+  }
+  .nameField {
+    margin: 0;
+  }
 }
 
 .previewButton {

@@ -31,14 +31,17 @@ export class Tab2Page {
   suggestfavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
   searchFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
   selectedFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
-  singerDiv = true;
+  singerDiv = false;
   preventSearchBug = false;
 
   //Genres variables
   topGenresMap = {};
   availabeSeedGenres = [];
-  favGenres: Map<string, boolean> = new Map();
-  hatedGenres: Map<string, boolean> = new Map();
+  favGenresAvailable: Map<string, boolean> = new Map();
+  hatedGenresAvailable: Map<string, boolean> = new Map();
+  favGenresSelected = [];
+  hatedGenresSelected = [];
+
 
   constructor(private formBuilder: FormBuilder, private shared: SharedParamsService, private alertController: AlertController) {
     if (this.shared.checkExpirationToken('expirationToken')) {
@@ -62,6 +65,13 @@ export class Tab2Page {
     }
   }
 
+  // Function that submit the user preferences (used for cold start)
+  onClickSubmit() {
+    console.log("list of fav artist: " + this.selectedFavArtist);
+    console.log("list of fav generes: " + this.favGenresSelected);
+    console.log("list of hated generes: " + this.hatedGenresSelected);
+  }
+
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   autoSearchFavGenres() {
@@ -72,7 +82,7 @@ export class Tab2Page {
       spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
         if (response !== undefined) {
           for (let i = 0; i < response.items.length; i++) {
-            //cycle on all the genres of the artist
+            // cycle on all the genres of the artist
             for (let j = 0; j < response.items[i].genres.length; j++) {
               if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
                 this.topGenresMap[response.items[i].genres[j]] = 1;
@@ -82,17 +92,22 @@ export class Tab2Page {
               }
             }
             if (i < 10) {
-              let data = { key: response.items[i].id, image: response.items[i].images[0].url, name: response.items[i].name, checked: false };
+              let data = {
+                key: response.items[i].id,
+                image: response.items[i].images[0].url,
+                name: response.items[i].name,
+                checked: false
+              };
               this.suggestfavArtist.push(data);
             }
           }
           this.topGenresMap = this.sortProperties(this.topGenresMap);
         }
       });
-      //this.registrationForm.controls['favGenres'].setValue();
     }
   }
-
+  // this function sort your top array of
+  // genres" from the higher to the lower
   sortProperties(obj) {
     // convert object into array
     let sortable = [];
@@ -108,8 +123,7 @@ export class Tab2Page {
   }
 
   /* FAVORITE AND HATED GENRES */
-  // Function that search for your favorite musics' genres
-  // based on your top artis's music genres
+  // This function get all spotify's seed's genres available
   initializeGenresSeeds() {
     if (this.shared.checkExpirationToken('expirationToken')) {
       this.alertTokenExpired();
@@ -119,45 +133,62 @@ export class Tab2Page {
         if (response !== undefined) {
           this.availabeSeedGenres = response.genres;
           for (let i = 0; i < response.genres.length; i++) {
-            this.favGenres.set(this.availabeSeedGenres[i], true);
-            this.hatedGenres.set(this.availabeSeedGenres[i], true);
+            this.favGenresAvailable.set(this.availabeSeedGenres[i], true);
+            this.hatedGenresAvailable.set(this.availabeSeedGenres[i], true);
           }
         }
       });
     }
   }
 
+  /* REFRESH FAVORITE AND HATED LIST OF GENRES */
+  // This function refresh the hated genres available
+  // after the user chose from a list of favorite music genres
   refreshHatedGenres(maxValid: number) {
     let i = 0;
+    this.favGenresSelected = [];
     let favGenresLenght = this.registrationForm.controls.favGenres.value.length;
     if (favGenresLenght > maxValid) {
-      this.alertMaxGenresExceeded(maxValid, favGenresLenght - maxValid);
       this.registrationForm.controls.favGenres.value.splice(maxValid, favGenresLenght - maxValid);
+      this.alertMaxGenresExceeded(maxValid, favGenresLenght - maxValid);
     }
     for (i = 0; i < this.availabeSeedGenres.length; i++) {
-      this.hatedGenres.set(this.availabeSeedGenres[i], true);
+      this.hatedGenresAvailable.set(this.availabeSeedGenres[i], true);
     }
     for (i = 0; i < this.registrationForm.controls.favGenres.value.length; i++) {
-      this.hatedGenres.set(this.registrationForm.controls.favGenres.value[i], false);
+      this.hatedGenresAvailable.set(this.registrationForm.controls.favGenres.value[i], false);
+    }
+    // new lenght if max exceeded
+    favGenresLenght = this.registrationForm.controls.favGenres.value.length;
+    for (i = 0; i < favGenresLenght; i++) {
+      this.favGenresSelected[i] = this.registrationForm.controls.favGenres.value[i];
     }
   }
 
+  // This function refresh the favorite genres available
+  // after the user chose from a list of hated music genres
   refreshFavGenres(maxValid: number) {
     let i = 0;
+    this.hatedGenresSelected = [];
     let hatedGenresLenght = this.registrationForm.controls.hatedGenres.value.length;
     if (hatedGenresLenght > maxValid) {
       this.alertMaxGenresExceeded(maxValid, hatedGenresLenght - maxValid);
       this.registrationForm.controls.hatedGenres.value.splice(maxValid, hatedGenresLenght - maxValid);
     }
     for (i = 0; i < this.availabeSeedGenres.length; i++) {
-      this.favGenres.set(this.availabeSeedGenres[i], true);
+      this.favGenresAvailable.set(this.availabeSeedGenres[i], true);
     }
     for (i = 0; i < this.registrationForm.controls.hatedGenres.value.length; i++) {
-      this.favGenres.set(this.registrationForm.controls.hatedGenres.value[i], false);
+      this.favGenresAvailable.set(this.registrationForm.controls.hatedGenres.value[i], false);
+    }
+    // new lenght if max exceeded
+    hatedGenresLenght = this.registrationForm.controls.hatedGenres.value.length;
+    for (i = 0; i < hatedGenresLenght; i++) {
+      this.hatedGenresSelected[i] = this.registrationForm.controls.hatedGenres.value[i];
     }
   }
 
-  /* ALERTS CHECK */
+  /* ALERTS WARNING MAX VALID MUSIC GENRES IN FORM */
   async alertMaxGenres(maxValid: number) {
     const alert = await this.alertController.create({
       header: 'Warning',
@@ -174,6 +205,7 @@ export class Tab2Page {
     await alert.present();
   }
 
+  /* ALERT MAX MUSIC GENERS IN FORM REACHED */
   async alertMaxGenresExceeded(maxValid: number, numExceed: number) {
     const alert = await this.alertController.create({
       header: 'Max genres\' number exceeded of ' + numExceed,
@@ -191,14 +223,19 @@ export class Tab2Page {
   }
 
   /* SINGER PREFERENCES */
+  // This function open Div of artist preference
   showSingerPref() {
     this.singerDiv = !this.singerDiv;
   }
+
+  // This function add or remove a favorite artist
+  // from an array of the user's favorite artist
   updateSingerPref(whereSelected, singer) {
     const dataSearch = this.searchFavArtist.find(artist => artist.key === singer);
     const dataSelected = this.selectedFavArtist.find(artist => artist.key === singer);
     const dataSuggest = this.suggestfavArtist.find(artist => artist.key === singer);
     switch (whereSelected) {
+      // if user use "search" for adding or removing an artist
       case 'search':
         if (!this.preventSearchBug) {
           if (dataSearch !== undefined) {
@@ -222,6 +259,7 @@ export class Tab2Page {
         }
         this.preventSearchBug = false;
         break;
+      // if user use "favorite section" for removing an artist
       case 'favorite':
         if (dataSearch !== undefined) {
           this.searchFavArtist[this.searchFavArtist.indexOf(dataSearch)].checked = false;
@@ -236,6 +274,7 @@ export class Tab2Page {
           this.preventSearchBug = true;
         }
         break;
+      // if user use "suggest" for adding or removing an artist
       case 'suggest':
         this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = true;
         const newDataSuggest = this.suggestfavArtist.find(artist => artist.key === singer);
@@ -251,9 +290,9 @@ export class Tab2Page {
         break;
       default: break;
     }
-    console.log(this.selectedFavArtist);
   }
 
+  /* This function let you search an artist */
   searchArtist($event) {
     let dataSearch: { key: string, image: any, name: string, checked: boolean };
     let dataSelected: { key: string, image: any, name: string, checked: boolean };
@@ -300,7 +339,7 @@ export class Tab2Page {
     }
   }
 
-  /* ALERTS CHECK EXPIRATION TOKEN */
+  /* ALERT CHECK EXPIRATION TOKEN */
   async alertTokenExpired() {
     const alert = await this.alertController.create({
       header: 'Error',
@@ -318,9 +357,5 @@ export class Tab2Page {
       backdropDismiss: true
     });
     await alert.present();
-  }
-
-  public onClickRegister() {
-    console.log(this.registrationForm.value);
   }
 }

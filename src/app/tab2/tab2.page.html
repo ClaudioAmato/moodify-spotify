@@ -62,7 +62,7 @@
     </ion-list>
   </ion-card>
 
-  <form [formGroup]="registrationForm" (ngSubmit)="onClickRegister()">
+  <form [formGroup]="registrationForm">
     <!-- SINGER PREFERENCES -->
     <ion-card>
       <ion-card-header class="ion-text-center">
@@ -115,8 +115,11 @@
           Your Preferences
         </ion-item>
         <ng-container>
-          <ion-item *ngIf="this.selectedFavArtist.length == 0">
-            You don't have any preferences
+          <ion-item
+            *ngIf="this.selectedFavArtist.length == 0"
+            style="color: var(--ion-color-warning);"
+          >
+            You don't have any preferences (choose one)
           </ion-item>
           <ng-container *ngFor="let item of selectedFavArtist">
             <ion-item>
@@ -183,7 +186,7 @@
           formControlName="favGenres"
         >
           <ion-select-option
-            *ngFor="let item of favGenres | keyvalue"
+            *ngFor="let item of favGenresAvailable | keyvalue"
             [value]="item.key"
             [disabled]="!item.value"
             >{{item.key}}</ion-select-option
@@ -204,7 +207,7 @@
           formControlName="hatedGenres"
         >
           <ion-select-option
-            *ngFor="let item of hatedGenres | keyvalue"
+            *ngFor="let item of hatedGenresAvailable | keyvalue"
             [value]="item.key"
             [disabled]="!item.value"
             >{{item.key}}</ion-select-option
@@ -212,12 +215,17 @@
         </ion-select>
       </ion-item>
     </ion-card>
-    <div style="text-align: center;">
+    <div style="text-align: center; display: grid;">
+      <ion-label
+        color="warning"
+        *ngIf="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
+        >Fill out the section above</ion-label
+      >
       <ion-button
-        type="submit"
-        style="width: 30%; margin: 20px auto;"
-        [disabled]="!registrationForm.valid"
-        [color]="registrationForm.valid? 'primary':'medium'"
+        (click)="onClickSubmit()"
+        class="submit"
+        [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
+        [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
       >
         Confirm
       </ion-button>

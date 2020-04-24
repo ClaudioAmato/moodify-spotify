@@ -15,8 +15,10 @@ const spotifyApi = new SpotifyWebApi();
 export class Tab1Page {
 
   country_code: string = '';
-  searchFavArtist: Array<{ key: string, image: any, name: string }> = [];
   deviceId: string[] = [];
+
+  // recommendation variables
+  searchArtist: Array<{ key: string, image: any, name: string }> = [];
   recommendedMusicArray: Array<{
     uriID: string,
     nomi_artisti: any[],
@@ -28,6 +30,8 @@ export class Tab1Page {
     preview_url: string,
     external_urls: string
   }> = [];
+
+  // Player variables
   soundPlayer = new Audio();
   current_preview: any = undefined;
   current_playing: any = undefined;
@@ -41,7 +45,7 @@ export class Tab1Page {
     }
     else {
       spotifyApi.setAccessToken(this.shared.getToken('token'));
-      this.initializeDeviceReady();
+      //this.initializeDeviceReady();
     }
   }
 
@@ -51,7 +55,7 @@ export class Tab1Page {
     });
   }
 
-  initializeDeviceReady() {
+  /*initializeDeviceReady() {
     if (this.shared.checkExpirationToken('expirationToken')) {
       this.alertTokenExpired();
     }
@@ -64,14 +68,15 @@ export class Tab1Page {
         }
       }));
     }
-  }
+  }*/
 
+  // this function let user searching an artist
   searchMusic($event) {
+    if (this.searchArtist.length > 0) {
+      this.searchArtist = [];
+    }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
-      if (this.searchFavArtist.length > 0) {
-        this.searchFavArtist = [];
-      }
       if (this.shared.checkExpirationToken('expirationToken')) {
         this.alertTokenExpired();
       }
@@ -93,14 +98,18 @@ export class Tab1Page {
                   name: response.artists.items[i].name,
                 };
               }
-              this.searchFavArtist.push(dataSearch);
+              this.searchArtist.push(dataSearch);
             }
           }
+        }).catch(err => {
+          console.log(err);
         });
       }
     }
   }
 
+  // This function uses spotify recommendation for searching a music/song
+  // it add into an array these musics/songs
   onClickArtist(idArtist: string) {
     this.recommendedMusicArray = [];
     this.stop(null);
@@ -123,41 +132,49 @@ export class Tab1Page {
         for (let i = 0; i < response.tracks.length; i++) {
           tracksIDs[i] = response.tracks[i].id;
         }
-        spotifyApi.getTracks(tracksIDs).then((response2) => {
-          for (let i = 0; i < response2.tracks.length; i++) {
-            if (response2.tracks[i].album.images[1].url !== undefined) {
-              data = {
-                uriID: response.tracks[i].uri,
-                nomi_artisti: response.tracks[i].artists,
-                image: response2.tracks[i].album.images[1].url,
-                currentlyPlayingPreview: false,
-                currentlyPlayingSong: false,
-                duration: response.tracks[i].duration_ms,
-                nome_album: response.tracks[i].name,
-                preview_url: response.tracks[i].preview_url,
-                external_urls: response.tracks[i].external_urls.spotify
-              };
+        if (tracksIDs.length > 0) {
+          spotifyApi.getTracks(tracksIDs).then((response2) => {
+            if (response2 !== undefined) {
+              for (let i = 0; i < response2.tracks.length; i++) {
+                if (response2.tracks[i].album.images[1].url !== undefined) {
+                  data = {
+                    uriID: response.tracks[i].uri,
+                    nomi_artisti: response.tracks[i].artists,
+                    image: response2.tracks[i].album.images[1].url,
+                    currentlyPlayingPreview: false,
+                    currentlyPlayingSong: false,
+                    duration: response.tracks[i].duration_ms,
+                    nome_album: response.tracks[i].name,
+                    preview_url: response.tracks[i].preview_url,
+                    external_urls: response.tracks[i].external_urls.spotify
+                  };
+                }
+                else {
+                  data = {
+                    uriID: response.tracks[i].uri,
+                    nomi_artisti: response.tracks[i].artists,
+                    image: 'assets/img/noImgAvailable.png',
+                    currentlyPlayingPreview: false,
+                    currentlyPlayingSong: false,
+                    duration: response.tracks[i].duration_ms,
+                    nome_album: response.tracks[i].name,
+                    preview_url: response.tracks[i].preview_url,
+                    external_urls: response.tracks[i].external_urls.spotify
+                  };
+                }
+                this.recommendedMusicArray.push(data);
+              }
             }
-            else {
-              data = {
-                uriID: response.tracks[i].uri,
-                nomi_artisti: response.tracks[i].artists,
-                image: 'assets/img/noImgAvailable.png',
-                currentlyPlayingPreview: false,
-                currentlyPlayingSong: false,
-                duration: response.tracks[i].duration_ms,
-                nome_album: response.tracks[i].name,
-                preview_url: response.tracks[i].preview_url,
-                external_urls: response.tracks[i].external_urls.spotify
-              };
-            }
-            this.recommendedMusicArray.push(data);
-          }
-        });
+          });
+        }
+        else {
+          console.log("no tracks found because are empty");
+        }
       }
     });
   }
 
+  // this function open spotify browser and play the selected song/music
   openSpotifyPlayer(external_urls: string) {
     if (this.current_playing !== undefined) {
       this.recommendedMusicArray[this.recommendedMusicArray.indexOf(this.current_playing)].currentlyPlayingSong = false;
@@ -181,6 +198,9 @@ export class Tab1Page {
     }
   }
 
+  // this function checks every 2 seconds if the opened window
+  // of spotify music/song is closed and is used for removing
+  // the play button image over the album image
   async checkWindowClosed(data: any) {
     this._playIntervalHandler = setInterval(() => {
       if (this.spotifyWindow !== undefined) {
@@ -192,6 +212,7 @@ export class Tab1Page {
     }, 2000);
   }
 
+  // this function play the preview of the song if it is available
   playPreview(uri: string) {
     //if current playing
     if (this.soundPlayer.currentTime > 0) {
@@ -219,11 +240,14 @@ export class Tab1Page {
     }
   }
 
+  // this function is used in combination with "playPreview" function
+  // only for visual scope
   async progressBar() {
     this._previewIntervalHandler = setInterval(() => {
     }, 100);
   }
 
+  // this function stop a preview music/song if it is in playing
   stop(uri: string) {
     this.soundPlayer.pause();
     clearInterval(this._previewIntervalHandler);
@@ -238,11 +262,27 @@ export class Tab1Page {
     }
   }
 
+  /* ALERTS NO PREVIEW BUTTON */
+  async noPreview() {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      cssClass: 'alertClassDanger',
+      message: 'No preview is available for this song',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+        }
+      ],
+    });
+    await alert.present();
+  }
+
   /* ALERTS CHECK EXPIRATION TOKEN */
   async alertTokenExpired() {
     const alert = await this.alertController.create({
       header: 'Error',
-      cssClass: 'alertClassError',
+      cssClass: 'alertClassDanger',
       message: 'Your token is expired. Click ok to refresh it!',
       buttons: [
         {
