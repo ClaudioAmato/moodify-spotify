@@ -8,12 +8,6 @@
   margin: 0 auto;
 }
 
-ion-card {
-  height: -moz-available;
-  height: -webkit-fill-available;
-  height: stretch;
-}
-
 .description {
   padding: 5% 2%;
   color: black;
@@ -39,9 +33,7 @@ ion-card {
   width: 100%;
   overflow: hidden;
   width: 100%;
-  height: -moz-available;
-  height: -webkit-fill-available;
-  height: stretch;
+  height: 100%;
 }
 .wrapper.form-success .container h1 {
   -webkit-transform: translateY(85px);
@@ -168,9 +160,9 @@ ion-card {
 /* BUTTON */
 .mybutton {
   border: 0;
-  box-shadow: 0px 5px 10px #15843c;
+  box-shadow: 0 0 10px 2px #15843c;
   transition: all 0.3s;
-  border-radius: 5px;
+  border-radius: 10px;
   &:hover {
     box-shadow: 0px 15px 25px -5px #15843c;
     transform: scale(1.03);

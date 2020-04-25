@@ -1,6 +1,5 @@
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { AlertController } from '@ionic/angular';
 
@@ -12,12 +11,6 @@ const spotifyApi = new SpotifyWebApi();
   styleUrls: ['tab2.page.scss']
 })
 export class Tab2Page {
-
-  registrationForm = this.formBuilder.group({
-    favGenres: [''],
-    hatedGenres: [''],
-    favoriteSingers: ['']
-  });
 
   // User varialbes
   userProfilePhoto: any;
@@ -36,14 +29,12 @@ export class Tab2Page {
 
   //Genres variables
   topGenresMap = {};
-  availabeSeedGenres = [];
-  favGenresAvailable: Map<string, boolean> = new Map();
-  hatedGenresAvailable: Map<string, boolean> = new Map();
+  genresAvailable: Array<{ key: string, checkedFav: boolean, checkedHate: boolean }> = [];
   favGenresSelected = [];
   hatedGenresSelected = [];
 
 
-  constructor(private formBuilder: FormBuilder, private shared: SharedParamsService, private alertController: AlertController) {
+  constructor(private shared: SharedParamsService, private alertController: AlertController) {
     if (this.shared.checkExpirationToken('expirationToken')) {
       this.alertTokenExpired();
     }
@@ -55,19 +46,22 @@ export class Tab2Page {
         if (this.userProfilePhoto === undefined) {
           this.userProfilePhoto = 'assets/img/noImgAvailable.png';
         }
-        console.log(response);
         this.email = response.email;
         this.name = response.display_name;
         this.country = response.country;
         this.url = response.external_urls.spotify;
-        this.autoSearchFavGenres(); // in registrationForm.controls['favGenres']
+        this.autoSearchFavGenres();
       });
     }
   }
 
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
-    console.log("list of fav artist: " + this.selectedFavArtist);
+    let favArist = [];
+    for (let i = 0; i < this.selectedFavArtist.length; i++) {
+      favArist[i] = this.selectedFavArtist[i].key;
+    }
+    console.log("list of fav artist: " + favArist);
     console.log("list of fav generes: " + this.favGenresSelected);
     console.log("list of hated generes: " + this.hatedGenresSelected);
   }
@@ -131,95 +125,74 @@ export class Tab2Page {
     else {
       spotifyApi.getAvailableGenreSeeds().then((response) => {
         if (response !== undefined) {
-          this.availabeSeedGenres = response.genres;
+          let data: { key: string, checkedFav: boolean, checkedHate: boolean };
           for (let i = 0; i < response.genres.length; i++) {
-            this.favGenresAvailable.set(this.availabeSeedGenres[i], true);
-            this.hatedGenresAvailable.set(this.availabeSeedGenres[i], true);
+            data = {
+              key: response.genres[i],
+              checkedFav: false,
+              checkedHate: false
+            }
+            this.genresAvailable.push(data);
           }
         }
       });
     }
   }
 
-  /* REFRESH FAVORITE AND HATED LIST OF GENRES */
-  // This function refresh the hated genres available
-  // after the user chose from a list of favorite music genres
-  refreshHatedGenres(maxValid: number) {
-    let i = 0;
-    this.favGenresSelected = [];
-    let favGenresLenght = this.registrationForm.controls.favGenres.value.length;
-    if (favGenresLenght > maxValid) {
-      this.registrationForm.controls.favGenres.value.splice(maxValid, favGenresLenght - maxValid);
-      this.alertMaxGenresExceeded(maxValid, favGenresLenght - maxValid);
+  /* SINGER PREFERENCES */
+  // This function open Div of artist preference
+  showFavGenresDiv() {
+    const favDiv = document.querySelector('#favDiv') as HTMLElement;
+    if (favDiv.style.display !== 'block') {
+      favDiv.style.display = 'block';
     }
-    for (i = 0; i < this.availabeSeedGenres.length; i++) {
-      this.hatedGenresAvailable.set(this.availabeSeedGenres[i], true);
+    else {
+      favDiv.style.display = 'none';
     }
-    for (i = 0; i < this.registrationForm.controls.favGenres.value.length; i++) {
-      this.hatedGenresAvailable.set(this.registrationForm.controls.favGenres.value[i], false);
+  }
+  /* SINGER PREFERENCES */
+  // This function open Div of artist preference
+  showHatedGenresDiv() {
+    const hatedDiv = document.querySelector('#hateDiv') as HTMLElement;
+    if (hatedDiv.style.display !== 'block') {
+      hatedDiv.style.display = 'block';
     }
-    // new lenght if max exceeded
-    favGenresLenght = this.registrationForm.controls.favGenres.value.length;
-    for (i = 0; i < favGenresLenght; i++) {
-      this.favGenresSelected[i] = this.registrationForm.controls.favGenres.value[i];
+    else {
+      hatedDiv.style.display = 'none';
     }
   }
 
-  // This function refresh the favorite genres available
-  // after the user chose from a list of hated music genres
-  refreshFavGenres(maxValid: number) {
-    let i = 0;
-    this.hatedGenresSelected = [];
-    let hatedGenresLenght = this.registrationForm.controls.hatedGenres.value.length;
-    if (hatedGenresLenght > maxValid) {
-      this.alertMaxGenresExceeded(maxValid, hatedGenresLenght - maxValid);
-      this.registrationForm.controls.hatedGenres.value.splice(maxValid, hatedGenresLenght - maxValid);
-    }
-    for (i = 0; i < this.availabeSeedGenres.length; i++) {
-      this.favGenresAvailable.set(this.availabeSeedGenres[i], true);
-    }
-    for (i = 0; i < this.registrationForm.controls.hatedGenres.value.length; i++) {
-      this.favGenresAvailable.set(this.registrationForm.controls.hatedGenres.value[i], false);
-    }
-    // new lenght if max exceeded
-    hatedGenresLenght = this.registrationForm.controls.hatedGenres.value.length;
-    for (i = 0; i < hatedGenresLenght; i++) {
-      this.hatedGenresSelected[i] = this.registrationForm.controls.hatedGenres.value[i];
-    }
-  }
-
-  /* ALERTS WARNING MAX VALID MUSIC GENRES IN FORM */
-  async alertMaxGenres(maxValid: number) {
-    const alert = await this.alertController.create({
-      header: 'Warning',
-      cssClass: 'alertClassWarning',
-      message: 'Select at most ' + maxValid + ' genres',
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alertConfirm',
+  // this function update the genres' preferences of the user
+  updateGenresPref(whereSelected, genres) {
+    let dataSelected = this.genresAvailable.find(genData => genData.key === genres);
+    switch (whereSelected) {
+      // if user use "favorite" for adding or removing an genres preference
+      case 'favorite':
+        if (dataSelected !== undefined) {
+          dataSelected.checkedFav = !dataSelected.checkedFav;
+          if (dataSelected.checkedFav) {
+            this.favGenresSelected.push(dataSelected.key);
+          }
+          else {
+            this.favGenresSelected.splice(this.favGenresSelected.indexOf(dataSelected.key), 1);
+          }
+          console.log(this.favGenresSelected);
         }
-      ],
-      backdropDismiss: false
-    });
-    await alert.present();
-  }
-
-  /* ALERT MAX MUSIC GENERS IN FORM REACHED */
-  async alertMaxGenresExceeded(maxValid: number, numExceed: number) {
-    const alert = await this.alertController.create({
-      header: 'Max genres\' number exceeded of ' + numExceed,
-      cssClass: 'alertClassDanger',
-      message: 'Only the first ' + maxValid + ' genres will be considered',
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alertConfirm',
+        break;
+      // if user use "hated" for adding or removing an genres preference
+      case 'hated':
+        if (dataSelected !== undefined) {
+          dataSelected.checkedHate = !dataSelected.checkedHate;
+          if (dataSelected.checkedHate) {
+            this.hatedGenresSelected.push(dataSelected.key);
+          }
+          else {
+            this.hatedGenresSelected.splice(this.hatedGenresSelected.indexOf(dataSelected.key), 1);
+          }
         }
-      ],
-      backdropDismiss: false
-    });
-    await alert.present();
+        break;
+      default: break;
+    }
   }
 
   /* SINGER PREFERENCES */

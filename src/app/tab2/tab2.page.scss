@@ -19,3 +19,43 @@ ion-content ion-toolbar {
   margin: 10px auto 20px auto;
   width: 30%;
 }
+
+div[scrolly="true"] {
+  position: relative;
+  overflow: hidden;
+}
+
+div[scrolly="true"] {
+  overflow-y: auto;
+}
+
+.itemDivButton {
+  display: inherit;
+  ion-button {
+    margin-left: auto;
+    font-size: small !important;
+  }
+}
+
+#hateDiv {
+  display: none;
+  max-height: 200px;
+}
+#favDiv {
+  display: none;
+  max-height: 200px;
+}
+
+@media screen and (max-width: 500px) {
+  .itemDivButton {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .itemLineButton {
+    --padding-end: 0px !important;
+    --inner-padding-end: 0px !important;
+    --padding-start: 0px !important;
+    --inner-inline-start: 0px !important;
+  }
+}
