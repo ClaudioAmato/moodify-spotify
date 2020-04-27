@@ -19,7 +19,7 @@ export class Tab2Page {
   country: any;
   url: any;
 
-  //Artists variables
+  // Artists variables
   topArtistsMap = {};
   suggestfavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
   searchFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
@@ -27,7 +27,7 @@ export class Tab2Page {
   singerDiv = false;
   preventSearchBug = false;
 
-  //Genres variables
+  // Genres variables
   topGenresMap = {};
   genresAvailable: Array<{ key: string, checkedFav: boolean, checkedHate: boolean }> = [];
   favGenresSelected = [];
@@ -61,9 +61,9 @@ export class Tab2Page {
     for (let i = 0; i < this.selectedFavArtist.length; i++) {
       favArist[i] = this.selectedFavArtist[i].key;
     }
-    console.log("list of fav artist: " + favArist);
-    console.log("list of fav generes: " + this.favGenresSelected);
-    console.log("list of hated generes: " + this.hatedGenresSelected);
+    console.log('list of fav artist: ' + favArist);
+    console.log('list of fav generes: ' + this.favGenresSelected);
+    console.log('list of hated generes: ' + this.hatedGenresSelected);
   }
 
   // Function that search for your favorite musics' genres
@@ -214,14 +214,14 @@ export class Tab2Page {
           if (dataSearch !== undefined) {
             this.searchFavArtist[this.searchFavArtist.indexOf(dataSearch)].checked = !dataSearch.checked;
             const newDataSearch = this.searchFavArtist.find(artist => artist.key === singer);
-            //I add it to
+            // I add it to
             if (dataSelected === undefined) {
               this.selectedFavArtist.push(newDataSearch);
               if (dataSuggest !== undefined) {
                 this.suggestfavArtist[this.suggestfavArtist.indexOf(dataSuggest)].checked = true;
               }
             }
-            //I delete it
+            // I delete it
             else {
               this.selectedFavArtist.splice(this.selectedFavArtist.indexOf(dataSelected), 1);
               if (dataSuggest !== undefined) {
@@ -278,7 +278,7 @@ export class Tab2Page {
         this.alertTokenExpired();
       }
       else {
-        spotifyApi.search($event.detail.value, ['artist'], { market: "US", limit: 5, offset: 0 }).then((response) => {
+        spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
             for (let i = 0; i < response.artists.items.length; i++) {
               dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);

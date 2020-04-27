@@ -7,18 +7,49 @@
 </ion-header>
 
 <ion-content>
-  <div style="text-align: center;">
-    <div style="display: grid;">
-      <label>What's your current mood?</label>
-      <label>Emojis</label>
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold; font-size: 20px;" color="primary">
+        What's your current mood?
+      </ion-label>
+    </ion-card-header>
+    <div class="center-div"></div>
+    <div class="center-div">
+      <ng-container *ngFor="let item of arrayEmoji; let i = index">
+        <div
+          class="emojiContainer"
+          tabindex="{{i+1}}"
+          (click)="currentState(item)"
+        >
+          <img src="{{item}}" class="emojiImg" id="current{{i}}" />
+        </div>
+      </ng-container>
     </div>
-    <div style="display: grid;">
-      <label>What's your target mood?</label>
-      <label>Emojis</label>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold; font-size: 20px;" color="primary">
+        What's your target mood?
+      </ion-label>
+    </ion-card-header>
+    <div class="center-div"></div>
+    <div class="center-div">
+      <ng-container *ngFor="let item of arrayEmoji; let i = index">
+        <div
+          class="emojiContainer"
+          tabindex="{{i+1}}"
+          (click)="targetState(item)"
+        >
+          <img src="{{item}}" class="emojiImg" id="target{{i}}" />
+        </div>
+      </ng-container>
     </div>
-
-    <ion-button (click)="confirmMood()" class="previewButton"
-      >Confirm</ion-button
-    >
-  </div>
+    <div class="center-div">
+      <ion-button
+        (click)="confirmMood()"
+        class="submit"
+        [disabled]="this.currentEmotion === undefined || this.targetEmotion === undefined"
+        [color]="this.currentEmotion === undefined || this.targetEmotion === undefined ? 'medium':'primary'"
+        >Confirm</ion-button
+      >
+    </div>
+  </ion-card>
 </ion-content>
