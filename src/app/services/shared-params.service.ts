@@ -8,6 +8,7 @@ export class SharedParamsService {
   constructor() {
   }
 
+  /* SETTERS */
   public setToken(key, data) {
     localStorage.setItem(key, data);
   }
@@ -20,6 +21,15 @@ export class SharedParamsService {
     localStorage.setItem(key, time)
   }
 
+  public setCurrentMood(key, currentMood) {
+    localStorage.setItem(key, currentMood)
+  }
+
+  public setTargetMood(key, targetMood) {
+    localStorage.setItem(key, targetMood)
+  }
+
+  /* GETTERS */
   public getRefreashToken(key) {
     return localStorage.getItem(key);
   }
@@ -33,5 +43,13 @@ export class SharedParamsService {
     const currentDate = new Date();
     const storageDate = new Date(JSON.parse(JSON.stringify(localStorage.getItem(key))));
     return ((currentDate.getTime() - storageDate.getTime()) > ONE_HOUR);
+  }
+
+  public getCurrentMood(key) {
+    return localStorage.getItem(key)
+  }
+
+  public getTargetMood(key) {
+    return localStorage.getItem(key)
   }
 }

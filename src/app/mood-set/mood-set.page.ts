@@ -1,3 +1,5 @@
+import { keyTargetMood, keyCurrentMood } from './../../environments/environment';
+import { SharedParamsService } from './../services/shared-params.service';
 import { NavController } from '@ionic/angular';
 import { Component } from '@angular/core';
 
@@ -26,97 +28,113 @@ export class MoodSetPage {
     this.happyImg,
     this.sensualImg
   ]
-  currentEmotion: any = undefined;
-  targetEmotion: any = undefined;
+  currentEmotion: string = undefined;
+  targetEmotion: string = undefined;
 
-  constructor(private navCtrl: NavController) {
+  constructor(private navCtrl: NavController, private shared: SharedParamsService) {
   }
 
   currentState(emoji: string) {
-    this.currentEmotion = emoji;
-    let image: any;
-    for (let i = 0; i < this.arrayEmoji.length; i++) {
-      image = document.querySelector('#current' + i) as HTMLElement;
-      if (this.arrayEmoji[i] !== this.currentEmotion) {
-        image.style.filter = 'grayscale(100%) blur(1px)';
+    if (this.currentEmotion === undefined || this.currentEmotion !== emoji) {
+      this.currentEmotion = emoji;
+      let image: any;
+      for (let i = 0; i < this.arrayEmoji.length; i++) {
+        image = document.querySelector('#current' + i) as HTMLElement;
+        if (this.arrayEmoji[i] !== this.currentEmotion) {
+          image.style.filter = 'grayscale(100%) blur(1px)';
+        }
+        else {
+          image.style.filter = 'none';
+        }
       }
-      else {
-        image.style.filter = 'none';
+      switch (emoji) {
+        case this.amusedImg:
+          console.log('amused');
+          break;
+        case this.angryImg:
+          console.log('angry');
+          break;
+        case this.anxiousImg:
+          console.log('anxious');
+          break;
+        case this.calmImg:
+          console.log('calm');
+          break;
+        case this.cryImg:
+          console.log('cry');
+          break;
+        case this.energyImg:
+          console.log('energy');
+          break;
+        case this.happyImg:
+          console.log('happy');
+          break;
+        case this.sensualImg:
+          console.log('sensual');
+          break;
+        default:
+          break;
       }
-    }
-    switch (emoji) {
-      case this.amusedImg:
-        console.log('amused');
-        break;
-      case this.angryImg:
-        console.log('angry');
-        break;
-      case this.anxiousImg:
-        console.log('anxious');
-        break;
-      case this.calmImg:
-        console.log('calm');
-        break;
-      case this.cryImg:
-        console.log('cry');
-        break;
-      case this.energyImg:
-        console.log('energy');
-        break;
-      case this.happyImg:
-        console.log('happy');
-        break;
-      case this.sensualImg:
-        console.log('sensual');
-        break;
-      default:
-        break;
     }
   }
 
   targetState(emoji: string) {
-    this.targetEmotion = emoji;
-    let image: any;
-    for (let i = 0; i < this.arrayEmoji.length; i++) {
-      image = document.querySelector('#target' + i) as HTMLElement;
-      if (this.arrayEmoji[i] !== this.targetEmotion) {
-        image.style.filter = 'grayscale(100%) blur(1px)';
+    if (this.targetEmotion === undefined || this.targetEmotion !== emoji) {
+      this.targetEmotion = emoji;
+      let image: any;
+      for (let i = 0; i < this.arrayEmoji.length; i++) {
+        image = document.querySelector('#target' + i) as HTMLElement;
+        if (this.arrayEmoji[i] !== this.targetEmotion) {
+          image.style.filter = 'grayscale(100%) blur(1px)';
+        }
+        else {
+          image.style.filter = 'none';
+        }
       }
-      else {
-        image.style.filter = 'none';
+      switch (emoji) {
+        case this.amusedImg:
+          console.log('amused');
+          break;
+        case this.angryImg:
+          console.log('angry');
+          break;
+        case this.anxiousImg:
+          console.log('anxious');
+          break;
+        case this.calmImg:
+          console.log('calm');
+          break;
+        case this.cryImg:
+          console.log('cry');
+          break;
+        case this.energyImg:
+          console.log('energy');
+          break;
+        case this.happyImg:
+          console.log('happy');
+          break;
+        case this.sensualImg:
+          console.log('sensual');
+          break;
+        default:
+          break;
       }
-    }
-    switch (emoji) {
-      case this.amusedImg:
-        console.log('amused');
-        break;
-      case this.angryImg:
-        console.log('angry');
-        break;
-      case this.anxiousImg:
-        console.log('anxious');
-        break;
-      case this.calmImg:
-        console.log('calm');
-        break;
-      case this.cryImg:
-        console.log('cry');
-        break;
-      case this.energyImg:
-        console.log('energy');
-        break;
-      case this.happyImg:
-        console.log('happy');
-        break;
-      case this.sensualImg:
-        console.log('sensual');
-        break;
-      default:
-        break;
     }
   }
 
   confirmMood() {
+    const index1 = this.currentEmotion.indexOf('/', this.currentEmotion.indexOf('/') + 1) + 1;
+    const index2 = this.targetEmotion.indexOf('/', this.targetEmotion.indexOf('/') + 1) + 1;
+
+    this.shared.setCurrentMood(keyCurrentMood, this.currentEmotion.substring(
+      index1,
+      this.currentEmotion.length - 4)
+    );
+
+    this.shared.setTargetMood(keyTargetMood, this.targetEmotion.substring(
+      index2,
+      this.targetEmotion.length - 4)
+    );
     this.navCtrl.navigateRoot('/moodify/home');
   }
 }

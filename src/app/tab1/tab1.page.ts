@@ -1,3 +1,4 @@
+import { keyExpirationToken, keyToken, keyCurrentMood, keyTargetMood } from './../../environments/environment';
 import { AlertController } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { SharedParamsService } from './../services/shared-params.service';
@@ -40,13 +41,15 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private alertController: AlertController) {
-    if (this.shared.checkExpirationToken('expirationToken')) {
+    if (this.shared.checkExpirationToken(keyExpirationToken)) {
       this.alertTokenExpired();
     }
     else {
-      spotifyApi.setAccessToken(this.shared.getToken('token'));
+      spotifyApi.setAccessToken(this.shared.getToken(keyToken));
       //this.initializeDeviceReady();
     }
+    console.log(this.shared.getCurrentMood(keyCurrentMood));
+    console.log(this.shared.getTargetMood(keyTargetMood));
   }
 
   ngOnInit() {
@@ -55,21 +58,6 @@ export class Tab1Page {
     });
   }
 
-  /*initializeDeviceReady() {
-    if (this.shared.checkExpirationToken('expirationToken')) {
-      this.alertTokenExpired();
-    }
-    else {
-      spotifyApi.getMyDevices().then((response => {
-        if (response !== undefined) {
-          for (let i = 0; i < response.devices.length; i++) {
-            this.deviceId.push(response.devices[i].id);
-          }
-        }
-      }));
-    }
-  }*/
-
   // this function let user searching an artist
   searchMusic($event) {
     if (this.searchArtist.length > 0) {
@@ -77,7 +65,7 @@ export class Tab1Page {
     }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
-      if (this.shared.checkExpirationToken('expirationToken')) {
+      if (this.shared.checkExpirationToken(keyExpirationToken)) {
         this.alertTokenExpired();
       }
       else {

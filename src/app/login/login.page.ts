@@ -1,3 +1,4 @@
+import { keyRefreshToken, keyToken, keyExpirationToken } from './../../environments/environment';
 import { SharedParamsService } from './../services/shared-params.service';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { Component, OnInit } from '@angular/core';
@@ -18,9 +19,9 @@ export class LoginPage implements OnInit {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
       window.history.replaceState({}, document.title, '/' + 'login');
-      this.shared.setExpirationToken('expirationToken', new Date());
-      this.shared.setToken('token', this.params.access_token);
-      this.shared.setRefreashToken('refreshToken', this.params.refresh_token);
+      this.shared.setExpirationToken(keyExpirationToken, new Date());
+      this.shared.setToken(keyToken, this.params.access_token);
+      this.shared.setRefreashToken(keyRefreshToken, this.params.refresh_token);
       navCtrl.navigateRoot('/mood');
     }
   }
@@ -51,5 +52,4 @@ export class LoginPage implements OnInit {
     }
     return hashParams;
   }
-
 }

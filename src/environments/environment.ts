@@ -8,6 +8,12 @@ export const environment = {
 
 export const IP_API = '498f6a9b7a3f11743aa199776ef8509e';
 
+export const keyToken = 'token';
+export const keyRefreshToken = 'refreshToken';
+export const keyExpirationToken = 'expirationToken';
+export const keyCurrentMood = 'currentMood';
+export const keyTargetMood = 'targetMood';
+
 /*
  * For easier debugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
