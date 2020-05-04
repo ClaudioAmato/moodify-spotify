@@ -13,6 +13,7 @@ export const keyRefreshToken = 'refreshToken';
 export const keyExpirationToken = 'expirationToken';
 export const keyCurrentMood = 'currentMood';
 export const keyTargetMood = 'targetMood';
+export const dataBase = 'https://moodify-firebase.firebaseio.com/';
 
 /*
  * For easier debugging in development mode, you can import the following file

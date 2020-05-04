@@ -1,4 +1,6 @@
+import { keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken } from './../../environments/environment';
 import { Injectable } from '@angular/core';
+import { keyCurrentMood } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,47 +11,54 @@ export class SharedParamsService {
   }
 
   /* SETTERS */
-  public setToken(key, data) {
-    localStorage.setItem(key, data);
+  public setToken(data) {
+    localStorage.setItem(keyToken, data);
   }
 
-  public setRefreashToken(key, data) {
-    localStorage.setItem(key, data);
+  public setRefreashToken(data) {
+    localStorage.setItem(keyRefreshToken, data);
   }
 
-  public setExpirationToken(key, time) {
-    localStorage.setItem(key, time)
+  public setExpirationToken(time) {
+    localStorage.setItem(keyExpirationToken, time);
   }
 
-  public setCurrentMood(key, currentMood) {
-    localStorage.setItem(key, currentMood)
+  public setCurrentMood(currentMood) {
+    localStorage.setItem(keyCurrentMood, currentMood);
   }
 
-  public setTargetMood(key, targetMood) {
-    localStorage.setItem(key, targetMood)
+  public setTargetMood(targetMood) {
+    localStorage.setItem(keyTargetMood, targetMood);
   }
 
   /* GETTERS */
-  public getRefreashToken(key) {
-    return localStorage.getItem(key);
+  public getRefreashToken() {
+    return localStorage.getItem(keyRefreshToken);
   }
 
-  public getToken(key) {
-    return localStorage.getItem(key);
+  public getToken() {
+    return localStorage.getItem(keyToken);
   }
 
-  public checkExpirationToken(key) {
+  public checkExpirationToken() {
     const ONE_HOUR = 59 * 60 * 1000; // 59 minutes after expiration in millisecond
     const currentDate = new Date();
-    const storageDate = new Date(JSON.parse(JSON.stringify(localStorage.getItem(key))));
-    return ((currentDate.getTime() - storageDate.getTime()) > ONE_HOUR);
+    const storageDate = new Date(JSON.parse(JSON.stringify(localStorage.getItem(keyExpirationToken))));
+    // an hour is passed
+    if (((currentDate.getTime() - storageDate.getTime()) > ONE_HOUR)) {
+      localStorage.removeItem(keyExpirationToken);
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
-  public getCurrentMood(key) {
-    return localStorage.getItem(key)
+  public getCurrentMood() {
+    return localStorage.getItem(keyCurrentMood);
   }
 
-  public getTargetMood(key) {
-    return localStorage.getItem(key)
+  public getTargetMood() {
+    return localStorage.getItem(keyTargetMood);
   }
 }

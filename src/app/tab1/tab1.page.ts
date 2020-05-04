@@ -1,3 +1,4 @@
+import { MoodGuardService } from './../services/mood-guard.service';
 import { keyExpirationToken, keyToken, keyCurrentMood, keyTargetMood } from './../../environments/environment';
 import { AlertController } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
@@ -40,16 +41,16 @@ export class Tab1Page {
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private alertController: AlertController) {
-    if (this.shared.checkExpirationToken(keyExpirationToken)) {
+  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization,
+    private alertController: AlertController) {
+    if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
-      spotifyApi.setAccessToken(this.shared.getToken(keyToken));
-      //this.initializeDeviceReady();
+      spotifyApi.setAccessToken(this.shared.getToken());
     }
-    console.log(this.shared.getCurrentMood(keyCurrentMood));
-    console.log(this.shared.getTargetMood(keyTargetMood));
+    console.log(this.shared.getCurrentMood());
+    console.log(this.shared.getTargetMood());
   }
 
   ngOnInit() {
@@ -65,7 +66,7 @@ export class Tab1Page {
     }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
-      if (this.shared.checkExpirationToken(keyExpirationToken)) {
+      if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {

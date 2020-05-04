@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import AuthGuard from './services/auth.guard';
 
 const routes: Routes = [
   {
@@ -8,16 +9,18 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'moodify',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
-  },
-  {
     path: 'login',
     loadChildren: () => import('./login/login.module').then(m => m.LoginPageModule),
   },
   {
+    path: 'moodify',
+    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
+    canLoad: [AuthGuard]
+  },
+  {
     path: 'mood',
-    loadChildren: () => import('./mood-set/mood-set.module').then(m => m.MoodSetPageModule)
+    loadChildren: () => import('./mood-set/mood-set.module').then(m => m.MoodSetPageModule),
+    canLoad: [AuthGuard]
   }
 ];
 @NgModule({

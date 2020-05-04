@@ -1,3 +1,6 @@
+import { MoodGuardService } from './../services/mood-guard.service';
+import { keyToken, keyExpirationToken } from './../../environments/environment';
+import { UserService } from './../services/user.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -18,6 +21,7 @@ export class Tab2Page {
   name: any;
   country: any;
   url: any;
+  id: any;
 
   // Artists variables
   topArtistsMap = {};
@@ -34,12 +38,13 @@ export class Tab2Page {
   hatedGenresSelected = [];
 
 
-  constructor(private shared: SharedParamsService, private alertController: AlertController) {
-    if (this.shared.checkExpirationToken('expirationToken')) {
+  constructor(private shared: SharedParamsService, private userService: UserService,
+    private alertController: AlertController) {
+    if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
-      spotifyApi.setAccessToken(this.shared.getToken('token'));
+      spotifyApi.setAccessToken(this.shared.getToken());
       this.initializeGenresSeeds();
       spotifyApi.getMe().then((response) => {
         this.userProfilePhoto = response.images[0].url;
@@ -53,6 +58,15 @@ export class Tab2Page {
         this.autoSearchFavGenres();
       });
     }
+  }
+
+  addUser() {
+    this.userService.addUser(
+      this.name,
+      this.email,
+    ).subscribe(() => {
+      console.log("fatto!");
+    });
   }
 
   // Function that submit the user preferences (used for cold start)
@@ -69,7 +83,7 @@ export class Tab2Page {
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   autoSearchFavGenres() {
-    if (this.shared.checkExpirationToken('expirationToken')) {
+    if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
@@ -119,7 +133,7 @@ export class Tab2Page {
   /* FAVORITE AND HATED GENRES */
   // This function get all spotify's seed's genres available
   initializeGenresSeeds() {
-    if (this.shared.checkExpirationToken('expirationToken')) {
+    if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
@@ -274,7 +288,7 @@ export class Tab2Page {
       this.searchFavArtist = [];
     }
     if ($event.detail.value.length > 0) {
-      if (this.shared.checkExpirationToken('expirationToken')) {
+      if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {

@@ -126,12 +126,12 @@ export class MoodSetPage {
     const index1 = this.currentEmotion.indexOf('/', this.currentEmotion.indexOf('/') + 1) + 1;
     const index2 = this.targetEmotion.indexOf('/', this.targetEmotion.indexOf('/') + 1) + 1;
 
-    this.shared.setCurrentMood(keyCurrentMood, this.currentEmotion.substring(
+    this.shared.setCurrentMood(this.currentEmotion.substring(
       index1,
       this.currentEmotion.length - 4)
     );
 
-    this.shared.setTargetMood(keyTargetMood, this.targetEmotion.substring(
+    this.shared.setTargetMood(this.targetEmotion.substring(
       index2,
       this.targetEmotion.length - 4)
     );
