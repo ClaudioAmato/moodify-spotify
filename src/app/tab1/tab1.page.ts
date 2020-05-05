@@ -1,12 +1,10 @@
+import { SpotifyService } from './../services/spotify.service';
 import { MoodGuardService } from './../services/mood-guard.service';
-import { keyExpirationToken, keyToken, keyCurrentMood, keyTargetMood } from './../../environments/environment';
-import { AlertController } from '@ionic/angular';
+import { AlertController, Platform } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { SharedParamsService } from './../services/shared-params.service';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-
-const spotifyApi = new SpotifyWebApi();
 
 @Component({
   selector: 'app-tab1',
@@ -14,10 +12,12 @@ const spotifyApi = new SpotifyWebApi();
   styleUrls: ['tab1.page.scss'],
   providers: [IP_geolocalization]
 })
-export class Tab1Page {
+export class Tab1Page implements OnInit {
+
+  //spotifyApi
+  spotifyApi;
 
   country_code: string = '';
-  deviceId: string[] = [];
 
   // recommendation variables
   searchArtist: Array<{ key: string, image: any, name: string }> = [];
@@ -41,16 +41,19 @@ export class Tab1Page {
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization,
-    private alertController: AlertController) {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
+  constructor(private spotifyService: SpotifyService, private shared: SharedParamsService,
+    private geoLocal: IP_geolocalization, private alertController: AlertController,
+    private moodGuard: MoodGuardService) {
+    if (this.moodGuard.checkMood()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        this.spotifyApi = this.spotifyService.getSpotifyApi();
+      }
+      console.log(this.shared.getCurrentMood());
+      console.log(this.shared.getTargetMood());
     }
-    else {
-      spotifyApi.setAccessToken(this.shared.getToken());
-    }
-    console.log(this.shared.getCurrentMood());
-    console.log(this.shared.getTargetMood());
   }
 
   ngOnInit() {
@@ -70,7 +73,7 @@ export class Tab1Page {
         this.alertTokenExpired();
       }
       else {
-        spotifyApi.search($event.detail.value, ['artist'], { market: this.country_code, limit: 5, offset: 0 }).then((response) => {
+        this.spotifyApi.search($event.detail.value, ['artist'], { market: this.country_code, limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
             for (let i = 0; i < response.artists.items.length; i++) {
               if (response.artists.items[i].images.length !== 0) {
@@ -107,7 +110,7 @@ export class Tab1Page {
       currentlyPlayingPreview: boolean, currentlyPlayingSong: boolean,
       duration: number, nome_album: string, preview_url: string, external_urls: string
     };
-    spotifyApi.getRecommendations({
+    this.spotifyApi.getRecommendations({
       limit: 5,
       market: this.country_code,
       seed_artists: idArtist,
@@ -122,7 +125,7 @@ export class Tab1Page {
           tracksIDs[i] = response.tracks[i].id;
         }
         if (tracksIDs.length > 0) {
-          spotifyApi.getTracks(tracksIDs).then((response2) => {
+          this.spotifyApi.getTracks(tracksIDs).then((response2) => {
             if (response2 !== undefined) {
               for (let i = 0; i < response2.tracks.length; i++) {
                 if (response2.tracks[i].album.images[1].url !== undefined) {

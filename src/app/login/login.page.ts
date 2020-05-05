@@ -1,4 +1,4 @@
-import { keyRefreshToken, keyToken, keyExpirationToken, keyCurrentMood, keyTargetMood } from './../../environments/environment';
+import { SpotifyService } from './../services/spotify.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { Component, OnInit } from '@angular/core';
@@ -15,7 +15,8 @@ export class LoginPage implements OnInit {
   country_code: string = '';
   params: any;
 
-  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization, private navCtrl: NavController) {
+  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization,
+    private navCtrl: NavController, private spotifyService: SpotifyService) {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
       window.history.replaceState({}, document.title, '/' + 'login');
@@ -26,12 +27,10 @@ export class LoginPage implements OnInit {
         this.shared.getCurrentMood() !== null &&
         this.shared.getTargetMood() !== null
       ) {
-        console.log("if: " + this.shared.getCurrentMood());
-        navCtrl.navigateRoot('/moodify/home');
+        this.navCtrl.navigateRoot('/moodify/home');
       }
       else {
-        console.log("else: " + this.shared.getCurrentMood());
-        navCtrl.navigateRoot('/mood');
+        this.navCtrl.navigateRoot('/mood');
       }
     }
   }

@@ -1,4 +1,3 @@
-import { keyTargetMood, keyCurrentMood } from './../../environments/environment';
 import { SharedParamsService } from './../services/shared-params.service';
 import { NavController } from '@ionic/angular';
 import { Component } from '@angular/core';

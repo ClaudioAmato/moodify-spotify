@@ -12,6 +12,10 @@ export class MoodGuardService {
   checkMood() {
     if (this.shared.getCurrentMood() == null || this.shared.getTargetMood() == null) {
       this.navCtrl.navigateRoot('/mood');
+      return false;
+    }
+    else {
+      return true;
     }
   }
 }

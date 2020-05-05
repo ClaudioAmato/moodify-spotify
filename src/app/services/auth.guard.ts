@@ -14,7 +14,6 @@ export default class AuthGuard implements CanLoad {
     segments: UrlSegment[]
   ): Observable<boolean> | Promise<boolean> | boolean {
     if (this.shared.getToken() !== null) {
-      console.log("auth: " + this.shared.getToken());
       return true;
     } else {
       this.navCtrl.navigateRoot('/login');

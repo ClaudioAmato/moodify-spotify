@@ -1,12 +1,10 @@
+import { SpotifyService } from './../services/spotify.service';
 import { MoodGuardService } from './../services/mood-guard.service';
-import { keyToken, keyExpirationToken } from './../../environments/environment';
 import { UserService } from './../services/user.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { AlertController } from '@ionic/angular';
-
-const spotifyApi = new SpotifyWebApi();
 
 @Component({
   selector: 'app-tab2',
@@ -15,13 +13,16 @@ const spotifyApi = new SpotifyWebApi();
 })
 export class Tab2Page {
 
+  //spotifyAPI
+  spotifyApi;
+
   // User varialbes
   userProfilePhoto: any;
-  email: any;
-  name: any;
-  country: any;
-  url: any;
-  id: any;
+  email: string;
+  name: string;
+  country: string;
+  url: string;
+  id: string;
 
   // Artists variables
   topArtistsMap = {};
@@ -37,26 +38,32 @@ export class Tab2Page {
   favGenresSelected = [];
   hatedGenresSelected = [];
 
+  //html variables
+  showArtist: string = 'Show';
+  showFavoritGenres: string = 'Show';
+  showHatedGeneres: string = 'Show';
 
-  constructor(private shared: SharedParamsService, private userService: UserService,
-    private alertController: AlertController) {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
-    }
-    else {
-      spotifyApi.setAccessToken(this.shared.getToken());
-      this.initializeGenresSeeds();
-      spotifyApi.getMe().then((response) => {
-        this.userProfilePhoto = response.images[0].url;
-        if (this.userProfilePhoto === undefined) {
-          this.userProfilePhoto = 'assets/img/noImgAvailable.png';
-        }
-        this.email = response.email;
-        this.name = response.display_name;
-        this.country = response.country;
-        this.url = response.external_urls.spotify;
+  constructor(private spotifyService: SpotifyService, private shared: SharedParamsService, private userService: UserService,
+    private alertController: AlertController, private moodGuard: MoodGuardService) {
+    if (this.moodGuard.checkMood()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        this.spotifyApi = this.spotifyService.getSpotifyApi();
+        this.spotifyApi.getMe().then((response) => {
+          this.userProfilePhoto = response.images[0].url;
+          if (this.userProfilePhoto === undefined) {
+            this.userProfilePhoto = 'assets/img/noImgAvailable.png';
+          }
+          this.email = response.email;
+          this.name = response.display_name;
+          this.country = response.country;
+          this.url = response.external_urls.spotify;
+        });
+        this.initializeGenresSeeds();
         this.autoSearchFavGenres();
-      });
+      }
     }
   }
 
@@ -87,7 +94,7 @@ export class Tab2Page {
       this.alertTokenExpired();
     }
     else {
-      spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
+      this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
         if (response !== undefined) {
           for (let i = 0; i < response.items.length; i++) {
             // cycle on all the genres of the artist
@@ -137,7 +144,7 @@ export class Tab2Page {
       this.alertTokenExpired();
     }
     else {
-      spotifyApi.getAvailableGenreSeeds().then((response) => {
+      this.spotifyApi.getAvailableGenreSeeds().then((response) => {
         if (response !== undefined) {
           let data: { key: string, checkedFav: boolean, checkedHate: boolean };
           for (let i = 0; i < response.genres.length; i++) {
@@ -159,9 +166,11 @@ export class Tab2Page {
     const favDiv = document.querySelector('#favDiv') as HTMLElement;
     if (favDiv.style.display !== 'block') {
       favDiv.style.display = 'block';
+      this.showFavoritGenres = 'Hide';
     }
     else {
       favDiv.style.display = 'none';
+      this.showFavoritGenres = 'Show';
     }
   }
   /* SINGER PREFERENCES */
@@ -170,9 +179,11 @@ export class Tab2Page {
     const hatedDiv = document.querySelector('#hateDiv') as HTMLElement;
     if (hatedDiv.style.display !== 'block') {
       hatedDiv.style.display = 'block';
+      this.showHatedGeneres = 'Hide';
     }
     else {
       hatedDiv.style.display = 'none';
+      this.showHatedGeneres = 'Show';
     }
   }
 
@@ -190,7 +201,6 @@ export class Tab2Page {
           else {
             this.favGenresSelected.splice(this.favGenresSelected.indexOf(dataSelected.key), 1);
           }
-          console.log(this.favGenresSelected);
         }
         break;
       // if user use "hated" for adding or removing an genres preference
@@ -213,6 +223,7 @@ export class Tab2Page {
   // This function open Div of artist preference
   showSingerPref() {
     this.singerDiv = !this.singerDiv;
+    this.showArtist = this.singerDiv === false ? 'Show' : 'Hide';
   }
 
   // This function add or remove a favorite artist
@@ -292,7 +303,7 @@ export class Tab2Page {
         this.alertTokenExpired();
       }
       else {
-        spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
+        this.spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
             for (let i = 0; i < response.artists.items.length; i++) {
               dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);
