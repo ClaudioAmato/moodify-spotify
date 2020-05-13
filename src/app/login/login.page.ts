@@ -1,4 +1,3 @@
-import { SpotifyService } from './../services/spotify.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { Component, OnInit } from '@angular/core';
@@ -16,7 +15,7 @@ export class LoginPage implements OnInit {
   params: any;
 
   constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization,
-    private navCtrl: NavController, private spotifyService: SpotifyService) {
+    private navCtrl: NavController) {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
       window.history.replaceState({}, document.title, '/' + 'login');

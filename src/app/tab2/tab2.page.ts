@@ -1,4 +1,3 @@
-import { SpotifyService } from './../services/spotify.service';
 import { MoodGuardService } from './../services/mood-guard.service';
 import { UserService } from './../services/user.service';
 import { SharedParamsService } from './../services/shared-params.service';
@@ -43,14 +42,15 @@ export class Tab2Page {
   showFavoritGenres: string = 'Show';
   showHatedGeneres: string = 'Show';
 
-  constructor(private spotifyService: SpotifyService, private shared: SharedParamsService, private userService: UserService,
+  constructor(private shared: SharedParamsService, private userService: UserService,
     private alertController: AlertController, private moodGuard: MoodGuardService) {
     if (this.moodGuard.checkMood()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi = this.spotifyService.getSpotifyApi();
+        this.spotifyApi = new SpotifyWebApi();
+        this.spotifyApi.setAccessToken(this.shared.getToken());
         this.spotifyApi.getMe().then((response) => {
           this.userProfilePhoto = response.images[0].url;
           if (this.userProfilePhoto === undefined) {

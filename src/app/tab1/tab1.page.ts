@@ -1,4 +1,3 @@
-import { SpotifyService } from './../services/spotify.service';
 import { MoodGuardService } from './../services/mood-guard.service';
 import { AlertController, Platform } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
@@ -41,7 +40,7 @@ export class Tab1Page implements OnInit {
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private spotifyService: SpotifyService, private shared: SharedParamsService,
+  constructor(private shared: SharedParamsService,
     private geoLocal: IP_geolocalization, private alertController: AlertController,
     private moodGuard: MoodGuardService) {
     if (this.moodGuard.checkMood()) {
@@ -49,7 +48,8 @@ export class Tab1Page implements OnInit {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi = this.spotifyService.getSpotifyApi();
+        this.spotifyApi = new SpotifyWebApi();
+        this.spotifyApi.setAccessToken(this.shared.getToken());
       }
       console.log(this.shared.getCurrentMood());
       console.log(this.shared.getTargetMood());
