@@ -11,7 +11,7 @@ ion-content ion-toolbar {
   display: flex;
 }
 .itemDiv {
-  display: contents;
+  display: inherit;
   width: 100%;
 }
 .containerDatas {
@@ -139,4 +139,27 @@ ion-content ion-toolbar {
   &:hover::after {
     opacity: 1;
   }
+}
+
+.emojiContainer {
+  width: calc(100% / 11);
+  margin: 5px;
+  display: inline-grid;
+  img {
+    margin: auto;
+  }
+}
+
+.emojiImg:hover {
+  cursor: pointer;
+}
+
+.center-div {
+  text-align: center;
+}
+
+.emoji-div {
+  position: absolute;
+  bottom: 0px;
+  left: 120px;
 }

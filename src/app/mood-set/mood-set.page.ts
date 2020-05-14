@@ -1,3 +1,4 @@
+import { EmojisService } from './../services/emojis.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { NavController } from '@ionic/angular';
 import { Component } from '@angular/core';
@@ -8,71 +9,28 @@ import { Component } from '@angular/core';
   styleUrls: ['./mood-set.page.scss'],
 })
 export class MoodSetPage {
-  amusedImg = 'assets/emoji/amused.png';
-  angryImg = 'assets/emoji/angry.png';
-  anxiousImg = 'assets/emoji/anxious.png';
-  calmImg = 'assets/emoji/calm.png';
-  cryImg = 'assets/emoji/cry.png';
-  energyImg = 'assets/emoji/energy.png';
-  happyImg = 'assets/emoji/happy.png';
-  sensualImg = 'assets/emoji/sensual.png';
-
-  arrayEmoji = [
-    this.amusedImg,
-    this.angryImg,
-    this.anxiousImg,
-    this.calmImg,
-    this.cryImg,
-    this.energyImg,
-    this.happyImg,
-    this.sensualImg
-  ]
+  arrayEmoji: Array<{ name: string, image: string }> = [];
   currentEmotion: string = undefined;
   targetEmotion: string = undefined;
 
-  constructor(private navCtrl: NavController, private shared: SharedParamsService) {
+  constructor(private navCtrl: NavController, private shared: SharedParamsService, private emoji: EmojisService) {
+    this.arrayEmoji = emoji.getArrayEmoji();
   }
 
   currentState(emoji: string) {
+
     if (this.currentEmotion === undefined || this.currentEmotion !== emoji) {
       this.currentEmotion = emoji;
       let image: any;
+      const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === this.currentEmotion);
       for (let i = 0; i < this.arrayEmoji.length; i++) {
         image = document.querySelector('#current' + i) as HTMLElement;
-        if (this.arrayEmoji[i] !== this.currentEmotion) {
+        if (i !== this.arrayEmoji.indexOf(data)) {
           image.style.filter = 'grayscale(100%) blur(1px)';
         }
         else {
           image.style.filter = 'none';
         }
-      }
-      switch (emoji) {
-        case this.amusedImg:
-          console.log('amused');
-          break;
-        case this.angryImg:
-          console.log('angry');
-          break;
-        case this.anxiousImg:
-          console.log('anxious');
-          break;
-        case this.calmImg:
-          console.log('calm');
-          break;
-        case this.cryImg:
-          console.log('cry');
-          break;
-        case this.energyImg:
-          console.log('energy');
-          break;
-        case this.happyImg:
-          console.log('happy');
-          break;
-        case this.sensualImg:
-          console.log('sensual');
-          break;
-        default:
-          break;
       }
     }
   }
@@ -81,59 +39,22 @@ export class MoodSetPage {
     if (this.targetEmotion === undefined || this.targetEmotion !== emoji) {
       this.targetEmotion = emoji;
       let image: any;
+      const data = this.arrayEmoji.find(targetEmotion => targetEmotion.name === this.targetEmotion);
       for (let i = 0; i < this.arrayEmoji.length; i++) {
         image = document.querySelector('#target' + i) as HTMLElement;
-        if (this.arrayEmoji[i] !== this.targetEmotion) {
+        if (i !== this.arrayEmoji.indexOf(data)) {
           image.style.filter = 'grayscale(100%) blur(1px)';
         }
         else {
           image.style.filter = 'none';
         }
       }
-      switch (emoji) {
-        case this.amusedImg:
-          console.log('amused');
-          break;
-        case this.angryImg:
-          console.log('angry');
-          break;
-        case this.anxiousImg:
-          console.log('anxious');
-          break;
-        case this.calmImg:
-          console.log('calm');
-          break;
-        case this.cryImg:
-          console.log('cry');
-          break;
-        case this.energyImg:
-          console.log('energy');
-          break;
-        case this.happyImg:
-          console.log('happy');
-          break;
-        case this.sensualImg:
-          console.log('sensual');
-          break;
-        default:
-          break;
-      }
     }
   }
 
   confirmMood() {
-    const index1 = this.currentEmotion.indexOf('/', this.currentEmotion.indexOf('/') + 1) + 1;
-    const index2 = this.targetEmotion.indexOf('/', this.targetEmotion.indexOf('/') + 1) + 1;
-
-    this.shared.setCurrentMood(this.currentEmotion.substring(
-      index1,
-      this.currentEmotion.length - 4)
-    );
-
-    this.shared.setTargetMood(this.targetEmotion.substring(
-      index2,
-      this.targetEmotion.length - 4)
-    );
+    this.shared.setCurrentMood(this.currentEmotion);
+    this.shared.setTargetMood(this.targetEmotion);
     this.navCtrl.navigateRoot('/moodify/home');
   }
 }

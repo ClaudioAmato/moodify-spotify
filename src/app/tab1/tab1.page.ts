@@ -1,9 +1,12 @@
+import { EmojisService } from './../services/emojis.service';
+import { Tripla } from './../dataTriple/tripla';
 import { MoodGuardService } from './../services/mood-guard.service';
-import { AlertController, Platform } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component, OnInit } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
+
 
 @Component({
   selector: 'app-tab1',
@@ -14,14 +17,18 @@ import SpotifyWebApi from 'spotify-web-api-js';
 export class Tab1Page implements OnInit {
 
   //spotifyApi
-  spotifyApi;
+  spotifyApi = new SpotifyWebApi();
 
   country_code: string = '';
 
   // recommendation variables
-  searchArtist: Array<{ key: string, image: any, name: string }> = [];
-  recommendedMusicArray: Array<{
+  searchTrack: Array<{ key: string, image: any, name: string }> = [];
+
+  // triple used for the reinforcement learning
+  arrayTriple: Array<Tripla> = [];
+  currentMusicplaying: {
     uriID: string,
+    idTrack: string,
     nomi_artisti: any[],
     image: any,
     currentlyPlayingPreview: boolean,
@@ -30,7 +37,11 @@ export class Tab1Page implements OnInit {
     nome_album: string,
     preview_url: string,
     external_urls: string
-  }> = [];
+  } = null;
+
+  //emojis
+  arrayEmoji: Array<{ name: string, image: string }> = [];
+  divEmoji = false;
 
   // Player variables
   soundPlayer = new Audio();
@@ -42,14 +53,14 @@ export class Tab1Page implements OnInit {
 
   constructor(private shared: SharedParamsService,
     private geoLocal: IP_geolocalization, private alertController: AlertController,
-    private moodGuard: MoodGuardService) {
+    private moodGuard: MoodGuardService, private emoji: EmojisService) {
     if (this.moodGuard.checkMood()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi = new SpotifyWebApi();
         this.spotifyApi.setAccessToken(this.shared.getToken());
+        this.arrayEmoji = emoji.getArrayEmoji();
       }
       console.log(this.shared.getCurrentMood());
       console.log(this.shared.getTargetMood());
@@ -64,8 +75,8 @@ export class Tab1Page implements OnInit {
 
   // this function let user searching an artist
   searchMusic($event) {
-    if (this.searchArtist.length > 0) {
-      this.searchArtist = [];
+    if (this.searchTrack.length > 0) {
+      this.searchTrack = [];
     }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
@@ -73,24 +84,24 @@ export class Tab1Page implements OnInit {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi.search($event.detail.value, ['artist'], { market: this.country_code, limit: 5, offset: 0 }).then((response) => {
+        this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
-            for (let i = 0; i < response.artists.items.length; i++) {
-              if (response.artists.items[i].images.length !== 0) {
+            for (let i = 0; i < response.tracks.items.length; i++) {
+              if (response.tracks.items[i].album.images.length !== 0) {
                 dataSearch = {
-                  key: response.artists.items[i].id,
-                  image: response.artists.items[i].images[1].url,
-                  name: response.artists.items[i].name,
+                  key: response.tracks.items[i].id,
+                  image: response.tracks.items[i].album.images[1].url,
+                  name: response.tracks.items[i].name,
                 };
               }
               else {
                 dataSearch = {
-                  key: response.artists.items[i].id,
+                  key: response.tracks.items[i].id,
                   image: 'assets/img/noImgAvailable.png',
-                  name: response.artists.items[i].name,
+                  name: response.tracks.items[i].name,
                 };
               }
-              this.searchArtist.push(dataSearch);
+              this.searchTrack.push(dataSearch);
             }
           }
         }).catch(err => {
@@ -100,93 +111,104 @@ export class Tab1Page implements OnInit {
     }
   }
 
-  // This function uses spotify recommendation for searching a music/song
-  // it add into an array these musics/songs
-  onClickArtist(idArtist: string) {
-    this.recommendedMusicArray = [];
+  // This function uses spotify for searching a music/song
+  onClickTrack(idTrack: string) {
     this.stop(null);
-    let data: {
-      uriID: string, nomi_artisti: any[], image: any,
-      currentlyPlayingPreview: boolean, currentlyPlayingSong: boolean,
-      duration: number, nome_album: string, preview_url: string, external_urls: string
-    };
-    this.spotifyApi.getRecommendations({
-      limit: 5,
-      market: this.country_code,
-      seed_artists: idArtist,
-      min_acousticness: 0.1,
-      max_acousticness: 0.9,
-      min_danceability: 0.4,
-      max_danceability: 0.5,
-    }).then((response) => {
+    this.spotifyApi.getTrack(idTrack).then((response) => {
       if (response !== undefined) {
-        let tracksIDs: string[] = [];
-        for (let i = 0; i < response.tracks.length; i++) {
-          tracksIDs[i] = response.tracks[i].id;
-        }
-        if (tracksIDs.length > 0) {
-          this.spotifyApi.getTracks(tracksIDs).then((response2) => {
-            if (response2 !== undefined) {
-              for (let i = 0; i < response2.tracks.length; i++) {
-                if (response2.tracks[i].album.images[1].url !== undefined) {
-                  data = {
-                    uriID: response.tracks[i].uri,
-                    nomi_artisti: response.tracks[i].artists,
-                    image: response2.tracks[i].album.images[1].url,
-                    currentlyPlayingPreview: false,
-                    currentlyPlayingSong: false,
-                    duration: response.tracks[i].duration_ms,
-                    nome_album: response.tracks[i].name,
-                    preview_url: response.tracks[i].preview_url,
-                    external_urls: response.tracks[i].external_urls.spotify
-                  };
-                }
-                else {
-                  data = {
-                    uriID: response.tracks[i].uri,
-                    nomi_artisti: response.tracks[i].artists,
-                    image: 'assets/img/noImgAvailable.png',
-                    currentlyPlayingPreview: false,
-                    currentlyPlayingSong: false,
-                    duration: response.tracks[i].duration_ms,
-                    nome_album: response.tracks[i].name,
-                    preview_url: response.tracks[i].preview_url,
-                    external_urls: response.tracks[i].external_urls.spotify
-                  };
-                }
-                this.recommendedMusicArray.push(data);
-              }
-            }
-          });
+        if (response.album.images[1].url !== undefined) {
+          this.currentMusicplaying = {
+            uriID: response.uri,
+            idTrack: idTrack,
+            nomi_artisti: response.artists,
+            image: response.album.images[1].url,
+            currentlyPlayingPreview: false,
+            currentlyPlayingSong: false,
+            duration: response.duration_ms,
+            nome_album: response.name,
+            preview_url: response.preview_url,
+            external_urls: response.external_urls.spotify
+          };
         }
         else {
-          console.log("no tracks found because are empty");
+          this.currentMusicplaying = {
+            uriID: response.uri,
+            idTrack: idTrack,
+            nomi_artisti: response.artists,
+            image: 'assets/img/noImgAvailable.png',
+            currentlyPlayingPreview: false,
+            currentlyPlayingSong: false,
+            duration: response.duration_ms,
+            nome_album: response.name,
+            preview_url: response.preview_url,
+            external_urls: response.external_urls.spotify
+          };
         }
       }
+    }).catch(err => {
+      console.log(err);
     });
+  }
+
+  openDivEmoji() {
+    this.divEmoji = true;
+  }
+
+  onGivenFeedback(feedback: string) {
+    this.divEmoji = false;
+    this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
+      let triple = new Tripla(this.currentMusicplaying.idTrack);
+      if (this.arrayTriple.length === 0) {
+        triple.setPreviusMood(this.shared.getCurrentMood());
+      }
+      else {
+        triple.setPreviusMood(
+          this.arrayTriple[this.arrayTriple.length - 1].getNewMood()
+        );
+      }
+      triple.setNewMood(feedback);
+      triple.setSpotifyData(
+        response.duration_ms,
+        response.key,
+        response.mode,
+        response.time_signature,
+        response.acousticness,
+        response.danceability,
+        response.energy,
+        response.instrumentalness,
+        response.liveness,
+        response.loudness,
+        response.speechiness,
+        response.valence,
+        response.tempo
+      );
+      this.arrayTriple.push(triple);
+      console.log(this.arrayTriple);
+
+    }).catch(err => {
+      console.log(err);
+    });;
   }
 
   // this function open spotify browser and play the selected song/music
   openSpotifyPlayer(external_urls: string) {
     if (this.current_playing !== undefined) {
-      this.recommendedMusicArray[this.recommendedMusicArray.indexOf(this.current_playing)].currentlyPlayingSong = false;
+      this.currentMusicplaying.currentlyPlayingSong = false;
       this.current_playing = undefined;
     }
     if (this.current_preview !== undefined) {
       this.stop(this.current_preview.uriID);
     }
-    const data = this.recommendedMusicArray.find(url => url.external_urls === external_urls);
-    if (data !== undefined) {
-      this.current_playing = data;
-      const index = this.recommendedMusicArray.indexOf(this.current_playing);
-      if (this.recommendedMusicArray[index].external_urls !== null) {
-        this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingSong = true;
+    if (this.currentMusicplaying !== undefined) {
+      this.current_playing = this.currentMusicplaying;
+      if (this.currentMusicplaying.external_urls !== null) {
+        this.currentMusicplaying.currentlyPlayingSong = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
-        this.checkWindowClosed(data);
+        this.checkWindowClosed(this.currentMusicplaying);
       } setTimeout(() => {
         this.current_playing = undefined;
-        this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingSong = false;
-      }, data.duration);
+        this.currentMusicplaying.currentlyPlayingSong = false;
+      }, this.currentMusicplaying.duration);
     }
   }
 
@@ -197,7 +219,7 @@ export class Tab1Page implements OnInit {
     this._playIntervalHandler = setInterval(() => {
       if (this.spotifyWindow !== undefined) {
         if (this.spotifyWindow.closed && data !== undefined) {
-          this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingSong = false;
+          this.currentMusicplaying.currentlyPlayingSong = false;
           clearInterval(this._playIntervalHandler);
         }
       }
@@ -210,23 +232,18 @@ export class Tab1Page implements OnInit {
     if (this.soundPlayer.currentTime > 0) {
       this.stop(this.current_preview.uriID);
     }
-    let data: any;
-    data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
-    if (data !== undefined) {
-      this.current_preview = data;
-      const index = this.recommendedMusicArray.indexOf(this.current_preview);
-      if (this.recommendedMusicArray[index].preview_url !== null) {
-        this.recommendedMusicArray[index].currentlyPlayingPreview = true;
-        this.soundPlayer.src = this.recommendedMusicArray[index].preview_url;
+    if (this.currentMusicplaying !== undefined) {
+      if (this.currentMusicplaying.preview_url !== null) {
+        this.currentMusicplaying.currentlyPlayingPreview = true;
+        this.soundPlayer.src = this.currentMusicplaying.preview_url;
         this.soundPlayer.play();
         this.progressBar();
       } setTimeout(() => {
         this.soundPlayer.pause();
         this.soundPlayer.currentTime = 0;
-        this.current_preview = undefined;
-        data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
-        if (data !== undefined) {
-          this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingPreview = false;
+        this.currentMusicplaying = undefined;
+        if (this.currentMusicplaying !== undefined) {
+          this.currentMusicplaying.currentlyPlayingPreview = false;
         }
       }, 30000);
     }
@@ -247,9 +264,8 @@ export class Tab1Page implements OnInit {
     this.current_preview = undefined;
     this.current_playing = undefined;
     if (uri !== null) {
-      const data = this.recommendedMusicArray.find(uriID => uriID.uriID === uri);
-      if (data !== undefined) {
-        this.recommendedMusicArray[this.recommendedMusicArray.indexOf(data)].currentlyPlayingPreview = false;
+      if (this.currentMusicplaying !== undefined) {
+        this.currentMusicplaying.currentlyPlayingPreview = false;
       }
     }
   }

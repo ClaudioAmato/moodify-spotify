@@ -13,7 +13,7 @@ import { AlertController } from '@ionic/angular';
 export class Tab2Page {
 
   //spotifyAPI
-  spotifyApi;
+  spotifyApi = new SpotifyWebApi();
 
   // User varialbes
   userProfilePhoto: any;
@@ -49,7 +49,6 @@ export class Tab2Page {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi = new SpotifyWebApi();
         this.spotifyApi.setAccessToken(this.shared.getToken());
         this.spotifyApi.getMe().then((response) => {
           this.userProfilePhoto = response.images[0].url;

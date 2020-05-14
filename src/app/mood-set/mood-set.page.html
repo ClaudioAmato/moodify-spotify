@@ -13,15 +13,15 @@
         What's your current mood?
       </ion-label>
     </ion-card-header>
-    <div class="center-div"></div>
     <div class="center-div">
       <ng-container *ngFor="let item of arrayEmoji; let i = index">
         <div
           class="emojiContainer"
           tabindex="{{i+1}}"
-          (click)="currentState(item)"
+          (click)="currentState(item.name)"
         >
-          <img src="{{item}}" class="emojiImg" id="current{{i}}" />
+          <img src="{{item.image}}" class="emojiImg" id="current{{i}}" />
+          {{item.name}}
         </div>
       </ng-container>
     </div>
@@ -30,15 +30,15 @@
         What's your target mood?
       </ion-label>
     </ion-card-header>
-    <div class="center-div"></div>
     <div class="center-div">
       <ng-container *ngFor="let item of arrayEmoji; let i = index">
         <div
           class="emojiContainer"
           tabindex="{{i+1}}"
-          (click)="targetState(item)"
+          (click)="targetState(item.name)"
         >
-          <img src="{{item}}" class="emojiImg" id="target{{i}}" />
+          <img src="{{item.image}}" class="emojiImg" id="target{{i}}" />
+          {{item.name}}
         </div>
       </ng-container>
     </div>
