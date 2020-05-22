@@ -1,0 +1,17 @@
+{
+  "author": "Spotify & Claudio Amato",
+  "name": "web-api-auth",
+  "description": "Spotify authorization flows through OAuth 2",
+  "version": "0.0.2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "1.4.5",
+    "express": "~4.17.1",
+    "querystring": "~0.2.0",
+    "request": "~2.88.2"
+  }
+}
