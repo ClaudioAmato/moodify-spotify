@@ -1,20 +1,18 @@
 import { SharedParamsService } from './../services/shared-params.service';
-import { IP_geolocalization } from './../services/IP_geolocalization.service';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
-  providers: [IP_geolocalization]
+  styleUrls: ['./login.page.scss']
 })
-export class LoginPage implements OnInit {
+export class LoginPage {
 
-  country_code: string = '';
   params: any;
+  href: string;
 
-  constructor(private shared: SharedParamsService, private geoLocal: IP_geolocalization,
+  constructor(private shared: SharedParamsService,
     private navCtrl: NavController) {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
@@ -32,19 +30,16 @@ export class LoginPage implements OnInit {
         this.navCtrl.navigateRoot('/mood');
       }
     }
-  }
-
-  ngOnInit() {
-    this.geoLocal.getLocation().subscribe(data => {
-      this.country_code = data.country_code;
-    });
-    if (this.params.access_token !== undefined) {
-      window.history.replaceState({}, document.title, '/' + 'login');
+    if (window.location.href.includes('localhost')) {
+      this.href = 'http://localhost:8888/login';
+    }
+    else {
+      this.href = 'https://moodify-spotify-server.herokuapp.com/login';
     }
   }
 
   onClickLogin() {
-    window.location.href = 'http://localhost:8888/login';
+    window.location.href = this.href;
   }
 
 

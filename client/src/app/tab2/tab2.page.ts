@@ -12,7 +12,7 @@ import { AlertController } from '@ionic/angular';
 })
 export class Tab2Page {
 
-  //spotifyAPI
+  // spotifyAPI
   spotifyApi = new SpotifyWebApi();
 
   // User varialbes

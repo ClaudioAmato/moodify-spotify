@@ -2,7 +2,7 @@
   "author": "Spotify & Claudio Amato",
   "name": "web-api-auth",
   "description": "Spotify authorization flows through OAuth 2",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

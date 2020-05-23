@@ -2,24 +2,19 @@ import { EmojisService } from './../services/emojis.service';
 import { Tripla } from './../dataTriple/tripla';
 import { MoodGuardService } from './../services/mood-guard.service';
 import { AlertController } from '@ionic/angular';
-import { IP_geolocalization } from './../services/IP_geolocalization.service';
 import { SharedParamsService } from './../services/shared-params.service';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
-  providers: [IP_geolocalization]
 })
-export class Tab1Page implements OnInit {
+export class Tab1Page {
 
-  //spotifyApi
+  // spotifyApi
   spotifyApi = new SpotifyWebApi();
-
-  country_code: string = '';
 
   // recommendation variables
   searchTrack: Array<{ key: string, image: any, name: string }> = [];
@@ -39,7 +34,7 @@ export class Tab1Page implements OnInit {
     external_urls: string
   } = null;
 
-  //emojis
+  // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
   divEmoji = false;
 
@@ -51,8 +46,7 @@ export class Tab1Page implements OnInit {
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private shared: SharedParamsService,
-    private geoLocal: IP_geolocalization, private alertController: AlertController,
+  constructor(private shared: SharedParamsService, private alertController: AlertController,
     private moodGuard: MoodGuardService, private emoji: EmojisService) {
     if (this.moodGuard.checkMood()) {
       if (this.shared.checkExpirationToken()) {
@@ -60,17 +54,11 @@ export class Tab1Page implements OnInit {
       }
       else {
         this.spotifyApi.setAccessToken(this.shared.getToken());
-        this.arrayEmoji = emoji.getArrayEmoji();
+        this.arrayEmoji = this.emoji.getArrayEmoji();
       }
       console.log(this.shared.getCurrentMood());
       console.log(this.shared.getTargetMood());
     }
-  }
-
-  ngOnInit() {
-    this.geoLocal.getLocation().subscribe(data => {
-      this.country_code = data.country_code;
-    });
   }
 
   // this function let user searching an artist
@@ -228,7 +216,7 @@ export class Tab1Page implements OnInit {
 
   // this function play the preview of the song if it is available
   playPreview(uri: string) {
-    //if current playing
+    // if current playing
     if (this.soundPlayer.currentTime > 0) {
       this.stop(this.current_preview.uriID);
     }

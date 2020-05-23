@@ -14,7 +14,7 @@ export class MoodSetPage {
   targetEmotion: string = undefined;
 
   constructor(private navCtrl: NavController, private shared: SharedParamsService, private emoji: EmojisService) {
-    this.arrayEmoji = emoji.getArrayEmoji();
+    this.arrayEmoji = this.emoji.getArrayEmoji();
   }
 
   currentState(emoji: string) {

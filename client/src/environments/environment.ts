@@ -6,8 +6,6 @@ export const environment = {
   production: false
 };
 
-export const IP_API = '498f6a9b7a3f11743aa199776ef8509e';
-
 export const keyToken = 'token';
 export const keyRefreshToken = 'refreshToken';
 export const keyExpirationToken = 'expirationToken';
