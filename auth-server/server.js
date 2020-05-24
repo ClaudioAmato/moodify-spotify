@@ -84,7 +84,7 @@ app.get("/callback", function (req, res) {
       headers: {
         Authorization:
           "Basic " +
-          new Buffer(client_id + ":" + client_secret).toString("base64"),
+          Buffer.from(client_id + ":" + client_secret).toString("base64"),
       },
       json: true,
     };
@@ -123,7 +123,7 @@ app.get("/refresh_token", function (req, res) {
     headers: {
       Authorization:
         "Basic " +
-        new Buffer(client_id + ":" + client_secret).toString("base64"),
+        Buffer.from(client_id + ":" + client_secret).toString("base64"),
     },
     form: {
       grant_type: "refresh_token",
