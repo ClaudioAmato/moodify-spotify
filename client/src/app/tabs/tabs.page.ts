@@ -55,6 +55,7 @@ export class TabsPage {
   goToMoodSet() {
     this.shared.removeCurrentMood();
     this.shared.removeTargetMood();
+    this.shared.setPreviousDay(this.shared.getExpirationToken());
     this.navCtrl.navigateRoot('/mood');
   }
 

@@ -57,4 +57,12 @@ export class MoodSetPage {
     this.shared.setTargetMood(this.targetEmotion);
     this.navCtrl.navigateRoot('/moodify/home');
   }
+
+  /* REFRESH PAGE */
+  doRefresh(event) {
+    window.location.reload();
+    setTimeout(() => {
+      event.target.complete();
+    }, 5000);
+  }
 }

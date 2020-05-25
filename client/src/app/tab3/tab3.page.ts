@@ -77,4 +77,12 @@ export class Tab3Page {
     });
     await alert.present();
   }
+
+  /* REFRESH PAGE */
+  doRefresh(event) {
+    window.location.reload();
+    setTimeout(() => {
+      event.target.complete();
+    }, 5000);
+  }
 }

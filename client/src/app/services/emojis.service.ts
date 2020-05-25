@@ -10,31 +10,31 @@ export class EmojisService {
   angry = 'angry';
   anxious = 'anxious';
   calm = 'calm';
-  cry = 'cry';
+  sad = 'sad';
   energy = 'energy';
   happy = 'happy';
   sensual = 'sensual';
 
   arrayNameEmoji = [
-    this.amused,
-    this.angry,
-    this.anxious,
-    this.calm,
-    this.cry,
     this.energy,
+    this.amused,
     this.happy,
-    this.sensual
+    this.sensual,
+    this.calm,
+    this.anxious,
+    this.sad,
+    this.angry
   ];
 
   arrayImgEmoji = [
-    this.startPath + this.amused + this.endPath,
-    this.startPath + this.angry + this.endPath,
-    this.startPath + this.anxious + this.endPath,
-    this.startPath + this.calm + this.endPath,
-    this.startPath + this.cry + this.endPath,
     this.startPath + this.energy + this.endPath,
+    this.startPath + this.amused + this.endPath,
     this.startPath + this.happy + this.endPath,
-    this.startPath + this.sensual + this.endPath
+    this.startPath + this.sensual + this.endPath,
+    this.startPath + this.calm + this.endPath,
+    this.startPath + this.anxious + this.endPath,
+    this.startPath + this.sad + this.endPath,
+    this.startPath + this.angry + this.endPath
   ];
 
   arrayEmoji: Array<{ name: string, image: string }> = [];

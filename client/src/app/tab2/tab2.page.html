@@ -10,6 +10,20 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <ion-refresher
+    (ionRefresh)="doRefresh($event)"
+    slot="fixed"
+    pullFactor="0.5"
+    pullMin="80"
+    pullMax="200"
+  >
+    <ion-refresher-content
+      pullingIcon="chevron-down"
+      refreshingSpinner="dots"
+      pullingText="Pull to refresh"
+      refreshingText="Refreshing..."
+    ></ion-refresher-content>
+  </ion-refresher>
   <ion-card>
     <ion-card-header class="ion-text-center">
       <ion-label style="font-weight: bold;" color="primary">

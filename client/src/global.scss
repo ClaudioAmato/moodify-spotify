@@ -100,3 +100,11 @@
   font-size: small !important;
   text-transform: none !important;
 }
+
+ion-refresher ion-refresher-content {
+  --color: var(--ion-color-primary) !important;
+  .refresher-refreshing-icon,
+  .refresher-pulling-icon {
+    color: var(--ion-color-primary) !important;
+  }
+}

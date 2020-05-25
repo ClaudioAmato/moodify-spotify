@@ -1,6 +1,6 @@
 import { EmojisService } from './../services/emojis.service';
 import { Tripla } from './../dataTriple/tripla';
-import { AlertController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -46,7 +46,7 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private emoji: EmojisService) {
+    private emoji: EmojisService, private navCtrl: NavController) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -330,5 +330,13 @@ export class Tab1Page {
       ],
     });
     await alert.present();
+  }
+
+  /* REFRESH PAGE */
+  doRefresh(event) {
+    window.location.reload();
+    setTimeout(() => {
+      event.target.complete();
+    }, 5000);
   }
 }
