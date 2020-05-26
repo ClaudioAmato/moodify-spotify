@@ -8,6 +8,7 @@ export const environment = {
 
 export const keyToken = 'token';
 export const keyRefreshToken = 'refreshToken';
+export const keyPreviousDay = 'previousDay';
 export const keyExpirationToken = 'expirationToken';
 export const keyCurrentMood = 'currentMood';
 export const keyTargetMood = 'targetMood';

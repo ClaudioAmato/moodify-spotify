@@ -1,4 +1,4 @@
-import { keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken } from './../../environments/environment';
+import { keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken, keyPreviousDay } from './../../environments/environment';
 import { Injectable } from '@angular/core';
 import { keyCurrentMood } from 'src/environments/environment';
 
@@ -23,6 +23,10 @@ export class SharedParamsService {
     localStorage.setItem(keyExpirationToken, time);
   }
 
+  public setPreviousDay(time) {
+    localStorage.setItem(keyPreviousDay, time);
+  }
+
   public setCurrentMood(currentMood) {
     localStorage.setItem(keyCurrentMood, currentMood);
   }
@@ -40,10 +44,18 @@ export class SharedParamsService {
     return localStorage.getItem(keyToken);
   }
 
+  public getExpirationToken() {
+    return localStorage.getItem(keyExpirationToken);
+  }
+
+  public getPreviousDay() {
+    return localStorage.getItem(keyPreviousDay);
+  }
+
   public checkExpirationToken() {
     const ONE_HOUR = 59 * 60 * 1000; // 59 minutes after expiration in millisecond
     const currentDate = new Date();
-    const storageDate = new Date(JSON.parse(JSON.stringify(localStorage.getItem(keyExpirationToken))));
+    const storageDate = new Date(JSON.parse(JSON.stringify(this.getExpirationToken())));
     // an hour is passed
     if (((currentDate.getTime() - storageDate.getTime()) > ONE_HOUR)) {
       localStorage.removeItem(keyExpirationToken);
@@ -60,5 +72,26 @@ export class SharedParamsService {
 
   public getTargetMood() {
     return localStorage.getItem(keyTargetMood);
+  }
+
+  /* REMOVERS */
+  public removeToken() {
+    localStorage.removeItem(keyToken);
+  }
+
+  public removeRefreashToken() {
+    localStorage.removeItem(keyRefreshToken);
+  }
+
+  public removeExpirationToken() {
+    localStorage.removeItem(keyExpirationToken);
+  }
+
+  public removeCurrentMood() {
+    localStorage.removeItem(keyCurrentMood);
+  }
+
+  public removeTargetMood() {
+    localStorage.removeItem(keyTargetMood);
   }
 }

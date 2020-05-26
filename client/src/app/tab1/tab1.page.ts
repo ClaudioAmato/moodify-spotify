@@ -1,6 +1,5 @@
 import { EmojisService } from './../services/emojis.service';
 import { Tripla } from './../dataTriple/tripla';
-import { MoodGuardService } from './../services/mood-guard.service';
 import { AlertController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -47,15 +46,15 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private moodGuard: MoodGuardService, private emoji: EmojisService) {
-    if (this.moodGuard.checkMood()) {
-      if (this.shared.checkExpirationToken()) {
-        this.alertTokenExpired();
-      }
-      else {
-        this.spotifyApi.setAccessToken(this.shared.getToken());
-        this.arrayEmoji = this.emoji.getArrayEmoji();
-      }
+    private emoji: EmojisService) {
+    if (this.shared.checkExpirationToken()) {
+      this.alertTokenExpired();
+    }
+    else {
+      this.spotifyApi.setAccessToken(this.shared.getToken());
+      this.arrayEmoji = this.emoji.getArrayEmoji();
+    }
+    if (this.shared.getCurrentMood() != null && this.shared.getTargetMood !== null) {
       console.log(this.shared.getCurrentMood());
       console.log(this.shared.getTargetMood());
     }
@@ -258,7 +257,18 @@ export class Tab1Page {
     }
   }
 
-  /* ALERTS NO PREVIEW BUTTON */
+  // Logout form the website
+  logout() {
+    this.shared.removeToken();
+    this.shared.removeRefreashToken();
+    this.shared.removeExpirationToken();
+    this.shared.removeCurrentMood();
+    this.shared.removeTargetMood();
+    window.location.href = 'http://localhost:8100/login';
+  }
+
+  /** ALERTS */
+  /* ALERT NO PREVIEW BUTTON */
   async noPreview() {
     const alert = await this.alertController.create({
       header: 'Error',
@@ -274,7 +284,7 @@ export class Tab1Page {
     await alert.present();
   }
 
-  /* ALERTS CHECK EXPIRATION TOKEN */
+  /* ALERT CHECK EXPIRATION TOKEN */
   async alertTokenExpired() {
     const alert = await this.alertController.create({
       header: 'Error',
@@ -285,11 +295,39 @@ export class Tab1Page {
           text: 'OK',
           cssClass: 'alertConfirm',
           handler: () => {
-            window.location.href = 'http://localhost:8100/login';
+            if (window.location.href.includes('localhost')) {
+              window.location.href = 'http://localhost:8888/login';
+            }
+            else {
+              window.location.href = 'https://moodify-spotify-server.herokuapp.com/login';
+            }
           }
         }
       ],
-      backdropDismiss: true
+      backdropDismiss: false
+    });
+    await alert.present();
+  }
+
+  /* ALERT LOGOUT */
+  async alertLogout() {
+    const alert = await this.alertController.create({
+      header: 'Logout',
+      cssClass: 'alertClassWarning',
+      message: 'Are you sure to logout?',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertMedium',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancel',
+          cssClass: 'alertConfirm',
+        }
+      ],
     });
     await alert.present();
   }

@@ -1,3 +1,13 @@
 ion-content ion-toolbar {
   --background: translucent;
 }
+
+.changeButton {
+  margin: 10px auto 20px auto;
+  width: 30%;
+  min-width: 120px;
+}
+
+.centerDiv {
+  text-align: center;
+}

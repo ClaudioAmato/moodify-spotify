@@ -1,15 +1,23 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>
-      Tab 3
+      Mood
     </ion-title>
+    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear"
+      >Logout</ion-button
+    >
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-card-header class="ion-text-center">
+    <ion-label style="font-weight: bold;" color="primary">
+      Change your starting and target mood
+    </ion-label>
+  </ion-card-header>
+  <div class="centerDiv">
+    <ion-button (click)="goToMoodSet()" class="changeButton"
+      >Change it</ion-button
+    >
+  </div>
 </ion-content>

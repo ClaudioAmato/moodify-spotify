@@ -1,9 +1,8 @@
-import { MoodGuardService } from './../services/mood-guard.service';
 import { UserService } from './../services/user.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { AlertController } from '@ionic/angular';
+import { AlertController, NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tab2',
@@ -43,26 +42,25 @@ export class Tab2Page {
   showHatedGeneres: string = 'Show';
 
   constructor(private shared: SharedParamsService, private userService: UserService,
-    private alertController: AlertController, private moodGuard: MoodGuardService) {
-    if (this.moodGuard.checkMood()) {
-      if (this.shared.checkExpirationToken()) {
-        this.alertTokenExpired();
-      }
-      else {
-        this.spotifyApi.setAccessToken(this.shared.getToken());
-        this.spotifyApi.getMe().then((response) => {
-          this.userProfilePhoto = response.images[0].url;
-          if (this.userProfilePhoto === undefined) {
-            this.userProfilePhoto = 'assets/img/noImgAvailable.png';
-          }
-          this.email = response.email;
-          this.name = response.display_name;
-          this.country = response.country;
-          this.url = response.external_urls.spotify;
-        });
-        this.initializeGenresSeeds();
-        this.autoSearchFavGenres();
-      }
+    private alertController: AlertController,
+    private navCtrl: NavController) {
+    if (this.shared.checkExpirationToken()) {
+      this.alertTokenExpired();
+    }
+    else {
+      this.spotifyApi.setAccessToken(this.shared.getToken());
+      this.spotifyApi.getMe().then((response) => {
+        this.userProfilePhoto = response.images[0].url;
+        if (this.userProfilePhoto === undefined) {
+          this.userProfilePhoto = 'assets/img/noImgAvailable.png';
+        }
+        this.email = response.email;
+        this.name = response.display_name;
+        this.country = response.country;
+        this.url = response.external_urls.spotify;
+      });
+      this.initializeGenresSeeds();
+      this.autoSearchFavGenres();
     }
   }
 
@@ -336,6 +334,25 @@ export class Tab2Page {
     }
   }
 
+  // Logout form the website
+  logout() {
+    this.shared.removeToken();
+    this.shared.removeRefreashToken();
+    this.shared.removeExpirationToken();
+    this.shared.removeCurrentMood();
+    this.shared.removeTargetMood();
+    window.location.href = 'http://localhost:8100/login';
+  }
+
+  // change your starting and target mood function
+  goToMoodSet() {
+    this.shared.removeCurrentMood();
+    this.shared.removeTargetMood();
+    this.shared.setPreviousDay(new Date());
+    this.navCtrl.navigateRoot('/mood');
+  }
+
+  /** ALERTS */
   /* ALERT CHECK EXPIRATION TOKEN */
   async alertTokenExpired() {
     const alert = await this.alertController.create({
@@ -347,11 +364,39 @@ export class Tab2Page {
           text: 'OK',
           cssClass: 'alertConfirm',
           handler: () => {
-            window.location.href = 'http://localhost:8100/login';
+            if (window.location.href.includes('localhost')) {
+              window.location.href = 'http://localhost:8888/login';
+            }
+            else {
+              window.location.href = 'https://moodify-spotify-server.herokuapp.com/login';
+            }
           }
         }
       ],
-      backdropDismiss: true
+      backdropDismiss: false
+    });
+    await alert.present();
+  }
+
+  /* ALERT LOGOUT */
+  async alertLogout() {
+    const alert = await this.alertController.create({
+      header: 'Logout',
+      cssClass: 'alertClassWarning',
+      message: 'Are you sure to logout?',
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertMedium',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancel',
+          cssClass: 'alertConfirm',
+        }
+      ],
     });
     await alert.present();
   }

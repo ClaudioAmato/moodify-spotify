@@ -28,7 +28,7 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'tab3',
+        path: 'changeMood',
         children: [
           {
             path: '',

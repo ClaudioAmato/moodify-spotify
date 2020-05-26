@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 })
 export class MoodGuardService {
 
-  constructor(private shared: SharedParamsService, private navCtrl: NavController) { }
+  constructor(private shared: SharedParamsService, private navCtrl: NavController, ) { }
 
   checkMood() {
     if (this.shared.getCurrentMood() == null || this.shared.getTargetMood() == null) {
@@ -17,5 +17,13 @@ export class MoodGuardService {
     else {
       return true;
     }
+  }
+
+  checkSameDay() {
+    const today = new Date();
+    const someDate = new Date(JSON.parse(JSON.stringify(this.shared.getPreviousDay())));
+    return someDate.getDate() === today.getDate() &&
+      someDate.getMonth() === today.getMonth() &&
+      someDate.getFullYear() === today.getFullYear();
   }
 }

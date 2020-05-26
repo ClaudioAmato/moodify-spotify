@@ -110,6 +110,10 @@
   }
 }
 
+* {
+  outline: none;
+}
+
 .emojiImg:hover {
   -webkit-animation: pulse 0.8s ease infinite normal;
   -o-animation: pulse 0.8s ease infinite normal;
