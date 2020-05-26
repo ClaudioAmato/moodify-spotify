@@ -39,7 +39,6 @@ export class Tab1Page {
   feedbackEmoji = true;
   waitNewFeedback = false;
 
-
   // Player variables
   soundPlayer = new Audio();
   current_preview: any = undefined;

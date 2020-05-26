@@ -1,6 +1,6 @@
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
-import { NavController } from '@ionic/angular';
+import { NavController, LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-login',
@@ -13,28 +13,32 @@ export class LoginPage {
   href: string;
 
   constructor(private shared: SharedParamsService,
-    private navCtrl: NavController) {
+    private navCtrl: NavController, private loadingCtrl: LoadingController) {
     this.params = this.getHashParams();
     if (this.params.access_token !== undefined) {
-      window.history.replaceState({}, document.title, '/' + 'login');
-      if (this.shared.getExpirationToken() !== null) {
-        this.shared.setPreviousDay(this.shared.getExpirationToken());
-      }
-      else {
-        this.shared.setPreviousDay(new Date());
-      }
-      this.shared.setExpirationToken(new Date());
-      this.shared.setToken(this.params.access_token);
-      this.shared.setRefreashToken(this.params.refresh_token);
-      if (
-        this.shared.getCurrentMood() !== null &&
-        this.shared.getTargetMood() !== null
-      ) {
-        this.navCtrl.navigateRoot('/moodify/home');
-      }
-      else {
-        this.navCtrl.navigateRoot('/mood');
-      }
+      this.presentLoading().then(() => {
+        window.history.replaceState({}, document.title, '/' + 'login');
+        if (this.shared.getExpirationToken() !== null) {
+          this.shared.setPreviousDay(this.shared.getExpirationToken());
+        }
+        else {
+          this.shared.setPreviousDay(new Date());
+        }
+        this.shared.setExpirationToken(new Date());
+        this.shared.setToken(this.params.access_token);
+        this.shared.setRefreashToken(this.params.refresh_token);
+        if (
+          this.shared.getCurrentMood() !== null &&
+          this.shared.getTargetMood() !== null
+        ) {
+          this.navCtrl.navigateRoot('/moodify/home');
+        }
+        else {
+          this.navCtrl.navigateRoot('/mood');
+        }
+      }).finally(() => {
+        this.loadingCtrl.dismiss();
+      });
     }
     if (window.location.href.includes('localhost')) {
       this.href = 'http://localhost:8888/login';
@@ -48,7 +52,6 @@ export class LoginPage {
     window.location.href = this.href;
   }
 
-
   getHashParams() {
     let hashParams = {};
     let e,
@@ -60,5 +63,12 @@ export class LoginPage {
       e = r.exec(q);
     }
     return hashParams;
+  }
+
+  async presentLoading() {
+    const loading = await this.loadingCtrl.create({
+      message: 'logging in . . .',
+    });
+    return await loading.present();
   }
 }
