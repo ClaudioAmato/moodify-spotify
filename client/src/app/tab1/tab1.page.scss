@@ -32,7 +32,7 @@ ion-content ion-toolbar {
     -webkit-box-shadow: 0 0 10px var(--ion-color-secondary);
     box-shadow: 0 0 10px var(--ion-color-secondary);
     width: fit-content;
-    height: 100px;
+    height: 200px;
     margin: auto;
   }
   /* Zoom In #1 */
@@ -59,8 +59,8 @@ ion-content ion-toolbar {
     color: var(--ion-color-primary);
   }
   figure {
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     margin: 0;
     padding: 0;
     background: #fff;
@@ -72,10 +72,10 @@ ion-content ion-toolbar {
   }
   .playing {
     position: absolute;
-    top: 30px;
-    left: 36px;
-    width: 60px;
-    height: 60px;
+    top: 64px;
+    left: 66px;
+    width: 100px;
+    height: 100px;
   }
 }
 
@@ -91,6 +91,12 @@ ion-content ion-toolbar {
   }
   .listenMe {
     margin: 10px 0;
+    .playing {
+      top: 45px;
+      left: calc(50% - 40px);
+      width: 80px;
+      height: 80px;
+    }
   }
   figure {
     width: 150px !important;
@@ -142,12 +148,17 @@ ion-content ion-toolbar {
 }
 
 .emojiContainer {
-  width: calc(100% / 11);
-  margin: 5px;
+  min-width: 60px;
+  width: 5%;
+  margin: 15px;
   display: inline-grid;
   img {
     margin: auto;
   }
+}
+
+* {
+  outline: none;
 }
 
 .emojiImg:hover {
@@ -158,8 +169,33 @@ ion-content ion-toolbar {
   text-align: center;
 }
 
-.emoji-div {
-  position: absolute;
-  bottom: 0px;
-  left: 120px;
+@media screen and (max-width: 744px) {
+  .emojiContainer {
+    margin: 10px;
+  }
+}
+
+@media screen and (max-width: 662px) {
+  .emojiContainer {
+    width: 10%;
+    margin: 10px 35px;
+  }
+}
+
+@media screen and (max-width: 538px) {
+  .emojiContainer {
+    margin: 10px 25px;
+  }
+}
+
+@media screen and (max-width: 458px) {
+  .emojiContainer {
+    margin: 10px 15px;
+  }
+}
+
+@media screen and (max-width: 384px) {
+  .emojiContainer {
+    margin: 10px 10px;
+  }
 }

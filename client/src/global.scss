@@ -90,6 +90,25 @@
   }
 }
 
+.alertClassThreeOption {
+  .alert-title {
+    color: var(--ion-color-warning) !important;
+    text-align: center !important;
+  }
+  .alertRed {
+    color: var(--ion-color-danger) !important;
+    font-weight: bold;
+  }
+  .alertYellow {
+    color: var(--ion-color-warning) !important;
+    font-weight: bold;
+  }
+  .alertGreen {
+    color: var(--ion-color-primary) !important;
+    font-weight: bold;
+  }
+}
+
 .alert-message {
   color: black !important;
   text-align: center !important;

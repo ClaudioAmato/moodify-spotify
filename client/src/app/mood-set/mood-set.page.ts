@@ -18,7 +18,6 @@ export class MoodSetPage {
   }
 
   currentState(emoji: string) {
-
     if (this.currentEmotion === undefined || this.currentEmotion !== emoji) {
       this.currentEmotion = emoji;
       let image: any;

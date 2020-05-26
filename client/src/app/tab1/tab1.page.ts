@@ -1,6 +1,6 @@
 import { EmojisService } from './../services/emojis.service';
 import { Tripla } from './../dataTriple/tripla';
-import { AlertController, NavController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -15,7 +15,7 @@ export class Tab1Page {
   // spotifyApi
   spotifyApi = new SpotifyWebApi();
 
-  // recommendation variables
+  // search variables
   searchTrack: Array<{ key: string, image: any, name: string }> = [];
 
   // triple used for the reinforcement learning
@@ -36,17 +36,20 @@ export class Tab1Page {
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
   divEmoji = false;
+  feedbackEmoji = true;
+  waitNewFeedback = false;
+
 
   // Player variables
   soundPlayer = new Audio();
   current_preview: any = undefined;
   current_playing: any = undefined;
-  spotifyWindow: any;
+  spotifyWindow: Window;
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private emoji: EmojisService, private navCtrl: NavController) {
+  constructor(private shared: SharedParamsService,
+    private alertController: AlertController, private emoji: EmojisService) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -62,8 +65,12 @@ export class Tab1Page {
 
   // this function let user searching an artist
   searchMusic($event) {
+    this.divEmoji = false;
     if (this.searchTrack.length > 0) {
       this.searchTrack = [];
+    }
+    if (this.currentMusicplaying !== null) {
+      this.currentMusicplaying = null;
     }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
@@ -98,12 +105,24 @@ export class Tab1Page {
     }
   }
 
-  // This function uses spotify for searching a music/song
+  // This function clear search input
+  clearInput($event) {
+    if (this.searchTrack.length > 0) {
+      this.searchTrack = [];
+    }
+  }
+
+  // This function uses spotify API to get a specific track and load its information
   onClickTrack(idTrack: string) {
+    this.divEmoji = true;
+    this.waitNewFeedback = false;
     this.stop(null);
+    if (this.searchTrack.length > 0) {
+      this.searchTrack = [];
+    }
     this.spotifyApi.getTrack(idTrack).then((response) => {
       if (response !== undefined) {
-        if (response.album.images[1].url !== undefined) {
+        if (response.album.images[0].url !== undefined) {
           this.currentMusicplaying = {
             uriID: response.uri,
             idTrack: idTrack,
@@ -137,44 +156,60 @@ export class Tab1Page {
     });
   }
 
-  openDivEmoji() {
-    this.divEmoji = true;
-  }
-
+  // this function is used to get emotion feedback triple
   onGivenFeedback(feedback: string) {
-    this.divEmoji = false;
-    this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
-      let triple = new Tripla(this.currentMusicplaying.idTrack);
-      if (this.arrayTriple.length === 0) {
-        triple.setPreviusMood(this.shared.getCurrentMood());
+    const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === feedback);
+    if (this.feedbackEmoji && this.waitNewFeedback) {
+      let image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
+      if (image.style.filter !== 'none') {
+        this.alertChangeFeedback(feedback);
       }
-      else {
-        triple.setPreviusMood(
-          this.arrayTriple[this.arrayTriple.length - 1].getNewMood()
+    }
+    else {
+      let image: any;
+      for (let i = 0; i < this.arrayEmoji.length; i++) {
+        image = document.querySelector('#current' + i) as HTMLElement;
+        if (i !== this.arrayEmoji.indexOf(data)) {
+          image.style.filter = 'grayscale(100%) blur(1px)';
+        }
+        else {
+          image.style.filter = 'none';
+        }
+      }
+      this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
+        let triple = new Tripla(this.currentMusicplaying.idTrack);
+        if (this.arrayTriple.length === 0) {
+          triple.setPreviusMood(this.shared.getCurrentMood());
+        }
+        else {
+          triple.setPreviusMood(
+            this.arrayTriple[this.arrayTriple.length - 1].getNewMood()
+          );
+        }
+        triple.setNewMood(feedback);
+        triple.setSpotifyData(
+          response.duration_ms,
+          response.key,
+          response.mode,
+          response.time_signature,
+          response.acousticness,
+          response.danceability,
+          response.energy,
+          response.instrumentalness,
+          response.liveness,
+          response.loudness,
+          response.speechiness,
+          response.valence,
+          response.tempo
         );
-      }
-      triple.setNewMood(feedback);
-      triple.setSpotifyData(
-        response.duration_ms,
-        response.key,
-        response.mode,
-        response.time_signature,
-        response.acousticness,
-        response.danceability,
-        response.energy,
-        response.instrumentalness,
-        response.liveness,
-        response.loudness,
-        response.speechiness,
-        response.valence,
-        response.tempo
-      );
-      this.arrayTriple.push(triple);
-      console.log(this.arrayTriple);
-
-    }).catch(err => {
-      console.log(err);
-    });;
+        this.arrayTriple.push(triple);
+        this.feedbackEmoji = true;
+        this.waitNewFeedback = true;
+        console.log(this.arrayTriple);
+      }).catch(err => {
+        console.log(err);
+      });;
+    }
   }
 
   // this function open spotify browser and play the selected song/music
@@ -190,7 +225,10 @@ export class Tab1Page {
       this.current_playing = this.currentMusicplaying;
       if (this.currentMusicplaying.external_urls !== null) {
         this.currentMusicplaying.currentlyPlayingSong = true;
+        this.feedbackEmoji = false;
+        this.divEmoji = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
+        this.clearInput('');
         this.checkWindowClosed(this.currentMusicplaying);
       } setTimeout(() => {
         this.current_playing = undefined;
@@ -199,7 +237,7 @@ export class Tab1Page {
     }
   }
 
-  // this function checks every 2 seconds if the opened window
+  // this function checks every second if the opened window
   // of spotify music/song is closed and is used for removing
   // the play button image over the album image
   async checkWindowClosed(data: any) {
@@ -210,7 +248,7 @@ export class Tab1Page {
           clearInterval(this._playIntervalHandler);
         }
       }
-    }, 2000);
+    }, 1000);
   }
 
   // this function play the preview of the song if it is available
@@ -305,6 +343,39 @@ export class Tab1Page {
         }
       ],
       backdropDismiss: false
+    });
+    await alert.present();
+  }
+
+  /* ALERT USER CHANGE HIS/HER FEEDBACK FOR A SONG */
+  async alertChangeFeedback(feedback: string) {
+    const alert = await this.alertController.create({
+      header: 'Change Feedback',
+      cssClass: 'alertClassThreeOption',
+      message: 'Do you want to change the previous feedback?',
+      buttons: [
+        {
+          text: 'Yes',
+          cssClass: 'alertRed',
+          handler: () => {
+            this.arrayTriple.pop();
+            this.waitNewFeedback = false;
+            this.onGivenFeedback(feedback);
+          }
+        },
+        {
+          text: 'No, add new one',
+          cssClass: 'alertYellow',
+          handler: () => {
+            this.waitNewFeedback = false;
+            this.onGivenFeedback(feedback);
+          }
+        },
+        {
+          text: 'No, do nothing',
+          cssClass: 'alertGreen',
+        }
+      ],
     });
     await alert.present();
   }

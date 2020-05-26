@@ -35,7 +35,9 @@
       placeholder="Search for a song"
       showCancelButton="focus"
       spellcheck="true"
+      disabled="{{!this.feedbackEmoji}}"
       (ionChange)="searchMusic($event)"
+      (ionClear)="clearInput($event)"
     ></ion-searchbar>
 
     <ion-grid class="ion-no-padding">
@@ -71,44 +73,23 @@
       <ng-container *ngIf="this.currentMusicplaying !== null">
         <ion-item lines="full" class="ion-no-padding">
           <div class="itemDiv">
-            <div>
-              <div
-                (click)="openSpotifyPlayer(currentMusicplaying.external_urls)"
-                class="listenMe"
-                style="display: grid;"
-              >
-                <div class="image-container">
-                  <figure>
-                    <img class="album" src="{{currentMusicplaying.image}}" />
-                    <img
-                      class="playing"
-                      src="assets/img/playing.png"
-                      *ngIf="currentMusicplaying.currentlyPlayingSong"
-                    />
-                  </figure>
-                </div>
-                <div class="listenMeLabel">Listen Me</div>
+            <div
+              (click)="openSpotifyPlayer(currentMusicplaying.external_urls)"
+              class="listenMe"
+              style="display: grid;"
+            >
+              <div class="image-container">
+                <figure>
+                  <img class="album" src="{{currentMusicplaying.image}}" />
+                  <img
+                    class="playing"
+                    src="assets/img/playing.png"
+                    *ngIf="currentMusicplaying.currentlyPlayingSong"
+                  />
+                </figure>
               </div>
-              <div class="wrapDiv">
-                <div class="nameField" *ngIf="!divEmoji">
-                  <ion-button (click)="openDivEmoji()">EmojiClick</ion-button>
-                </div>
-                <div class="emoji-div" *ngIf="divEmoji">
-                  <ng-container *ngFor="let item of arrayEmoji; let i = index">
-                    <div
-                      class="emojiContainer"
-                      tabindex="{{i+1}}"
-                      (click)="onGivenFeedback(item.name)"
-                    >
-                      <img
-                        src="{{item.image}}"
-                        class="emojiImg"
-                        id="current{{i}}"
-                      />
-                      <label style="text-align: center;">{{item.name}}</label>
-                    </div>
-                  </ng-container>
-                </div>
+              <div class="listenMeLabel">
+                Click on the cover to listen to me
               </div>
             </div>
 
@@ -174,5 +155,24 @@
         </ion-item>
       </ng-container>
     </ng-container>
+  </ion-card>
+  <ion-card *ngIf="divEmoji">
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Feedback
+      </ion-label>
+    </ion-card-header>
+    <div class="center-div">
+      <ng-container *ngFor="let item of arrayEmoji; let i = index">
+        <div
+          class="emojiContainer"
+          tabindex="{{i+1}}"
+          (click)="onGivenFeedback(item.name)"
+        >
+          <img src="{{item.image}}" class="emojiImg" id="current{{i}}" />
+          <label style="text-align: center;">{{item.name}}</label>
+        </div>
+      </ng-container>
+    </div>
   </ion-card>
 </ion-content>
