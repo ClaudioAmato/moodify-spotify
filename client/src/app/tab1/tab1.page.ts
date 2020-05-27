@@ -105,7 +105,7 @@ export class Tab1Page {
   }
 
   // This function clear search input
-  clearInput($event) {
+  clearInput() {
     if (this.searchTrack.length > 0) {
       this.searchTrack = [];
     }
@@ -227,7 +227,7 @@ export class Tab1Page {
         this.feedbackEmoji = false;
         this.divEmoji = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
-        this.clearInput('');
+        this.clearInput();
         this.checkWindowClosed(this.currentMusicplaying);
       } setTimeout(() => {
         this.current_playing = undefined;

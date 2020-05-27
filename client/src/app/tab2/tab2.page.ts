@@ -118,6 +118,7 @@ export class Tab2Page {
       });
     }
   }
+
   // this function sort your top array of
   // genres" from the higher to the lower
   sortProperties(obj) {
@@ -157,7 +158,6 @@ export class Tab2Page {
     }
   }
 
-  /* SINGER PREFERENCES */
   // This function open Div of artist preference
   showFavGenresDiv() {
     const favDiv = document.querySelector('#favDiv') as HTMLElement;
@@ -170,7 +170,7 @@ export class Tab2Page {
       this.showFavoritGenres = 'Show';
     }
   }
-  /* SINGER PREFERENCES */
+
   // This function open Div of artist preference
   showHatedGenresDiv() {
     const hatedDiv = document.querySelector('#hateDiv') as HTMLElement;
@@ -220,6 +220,9 @@ export class Tab2Page {
   // This function open Div of artist preference
   showSingerPref() {
     this.singerDiv = !this.singerDiv;
+    if (!this.singerDiv) {
+      this.clearSearch();
+    }
     this.showArtist = this.singerDiv === false ? 'Show' : 'Hide';
   }
 
@@ -334,6 +337,13 @@ export class Tab2Page {
     }
   }
 
+  // clear searchbar
+  clearSearch() {
+    if (this.searchFavArtist.length > 0) {
+      this.searchFavArtist = [];
+    }
+  }
+
   // Logout form the website
   logout() {
     this.shared.removeToken();
@@ -342,14 +352,6 @@ export class Tab2Page {
     this.shared.removeCurrentMood();
     this.shared.removeTargetMood();
     window.location.href = 'http://localhost:8100/login';
-  }
-
-  // change your starting and target mood function
-  goToMoodSet() {
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
-    this.shared.setPreviousDay(new Date());
-    this.navCtrl.navigateRoot('/mood');
   }
 
   /** ALERTS */
