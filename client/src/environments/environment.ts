@@ -3,7 +3,17 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  firebaseConfig: {
+    apiKey: 'AIzaSyCVgFEGlKlplMr_D_dU1uOQwcF3GS08IMw',
+    authDomain: 'moodify-spotify.firebaseapp.com',
+    databaseURL: 'https://moodify-spotify.firebaseio.com',
+    projectId: 'moodify-spotify',
+    storageBucket: 'moodify-spotify.appspot.com',
+    messagingSenderId: '303921443720',
+    appId: '1:303921443720:web:b359c0f50f49bcaea1803d',
+    measurementId: 'G-EE0FP6L4F2'
+  }
 };
 
 export const keyToken = 'token';
@@ -12,7 +22,10 @@ export const keyPreviousDay = 'previousDay';
 export const keyExpirationToken = 'expirationToken';
 export const keyCurrentMood = 'currentMood';
 export const keyTargetMood = 'targetMood';
-export const dataBase = 'https://moodify-firebase.firebaseio.com/';
+export const keyFavGenres = 'favGenres';
+export const keyHatedGenres = 'hatedGenres';
+export const keyFavSinger = 'favSinger';
+export const keyIDuser = 'IDuser';
 
 /*
  * For easier debugging in development mode, you can import the following file

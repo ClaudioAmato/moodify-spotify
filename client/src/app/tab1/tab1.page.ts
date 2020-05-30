@@ -1,5 +1,6 @@
+import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
-import { Tripla } from './../dataTriple/tripla';
+import { Tripla } from '../classes/tripla';
 import { AlertController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -47,7 +48,7 @@ export class Tab1Page {
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
 
-  constructor(private shared: SharedParamsService,
+  constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
@@ -296,12 +297,7 @@ export class Tab1Page {
 
   // Logout form the website
   logout() {
-    this.shared.removeToken();
-    this.shared.removeRefreashToken();
-    this.shared.removeExpirationToken();
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
-    window.location.href = 'http://localhost:8100/login';
+    this.logoutService.logout();
   }
 
   /** ALERTS */

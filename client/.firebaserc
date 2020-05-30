@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "moodify-spotify"
+  },
+  "targets": {
+    "moodify-spotify": {
+      "hosting": {
+        "app": [
+          "moodify-spotify"
+        ]
+      }
+    }
   }
 }

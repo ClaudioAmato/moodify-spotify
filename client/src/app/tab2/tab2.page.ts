@@ -1,8 +1,11 @@
-import { UserService } from './../services/user.service';
+import { LogoutService } from './../services/logout.service';
+import { UserPreferences } from './../interfaces/UserPreferences';
+import { PreferencesServices } from '../services/preferences.service';
+import { Observable } from 'rxjs';
 import { SharedParamsService } from './../services/shared-params.service';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { AlertController, NavController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tab2',
@@ -36,14 +39,25 @@ export class Tab2Page {
   favGenresSelected = [];
   hatedGenresSelected = [];
 
-  //html variables
-  showArtist: string = 'Show';
-  showFavoritGenres: string = 'Show';
-  showHatedGeneres: string = 'Show';
+  // html variables
+  showArtist = 'Show';
+  showFavoritGenres = 'Show';
+  showHatedGenres = 'Show';
 
-  constructor(private shared: SharedParamsService, private userService: UserService,
-    private alertController: AlertController,
-    private navCtrl: NavController) {
+  // User prefereces
+  userPreferences: Observable<UserPreferences[]>;
+  waitUserPreferences = true;
+  initUserPref = false;
+  userFirebaseData: UserPreferences = {
+    id: '',
+    email: '',
+    favoriteGenres: [],
+    favoriteSingers: [],
+    hatedGenres: [],
+  }
+
+  constructor(private shared: SharedParamsService, private alertController: AlertController,
+    private prefService: PreferencesServices, private logoutService: LogoutService) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -61,27 +75,69 @@ export class Tab2Page {
       });
       this.initializeGenresSeeds();
       this.autoSearchFavGenres();
+      this.prefService.getAllUsersPreference().subscribe(data => {
+        let i;
+        for (i = 0; i < data.length; i++) {
+          if (data[i].email === this.email) {
+            this.favGenresSelected = data[i].favoriteGenres;
+            this.hatedGenresSelected = data[i].hatedGenres;
+            this.shared.setFavGenres(this.favGenresSelected);
+            this.shared.setHatedGenres(this.hatedGenresSelected);
+            this.userFirebaseData = {
+              id: data[i].id,
+              email: this.email,
+              favoriteGenres: this.shared.getFavGenres(),
+              favoriteSingers: [],
+              hatedGenres: this.shared.getHatedGenres(),
+            }
+            return;
+          }
+        }
+      });
     }
-  }
-
-  addUser() {
-    this.userService.addUser(
-      this.name,
-      this.email,
-    ).subscribe(() => {
-      console.log("fatto!");
-    });
   }
 
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
-    let favArist = [];
-    for (let i = 0; i < this.selectedFavArtist.length; i++) {
-      favArist[i] = this.selectedFavArtist[i].key;
+    if (this.waitUserPreferences) {
+      if (this.shared.getFavGenres() === null && this.shared.getHatedGenres() === null && this.shared.getFavSinger() === null) {
+        this.alertAddPreferences('Add preferences', 'Do you want to add this preferences?');
+      }
+      else {
+        this.alertAddPreferences('Update preferences', 'Do you want to update your preferences?');
+      }
     }
-    console.log('list of fav artist: ' + favArist);
-    console.log('list of fav generes: ' + this.favGenresSelected);
-    console.log('list of hated generes: ' + this.hatedGenresSelected);
+    else {
+      let favArist = [];
+      for (let i = 0; i < this.selectedFavArtist.length; i++) {
+        favArist[i] = this.selectedFavArtist[i].key;
+      }
+      if ((this.favGenresSelected.length > 0 && this.hatedGenresSelected.length > 0) ||
+        favArist.length > 0) {
+        let adduserPreferences: UserPreferences = {
+          email: this.email,
+          favoriteGenres: this.favGenresSelected,
+          favoriteSingers: favArist,
+          hatedGenres: this.hatedGenresSelected
+        }
+        if (this.shared.getFavGenres() === null && this.shared.getHatedGenres() === null && this.shared.getFavSinger() === null) {
+          this.prefService.addUserPreferences(adduserPreferences).then(() => {
+            console.log('list of fav artist: ' + favArist);
+          });
+        }
+        else {
+          this.prefService.deleteUserPreferences(this.userFirebaseData.id).then(() => {
+            this.prefService.addUserPreferences(adduserPreferences).then(() => {
+              console.log('list of fav artist: ' + favArist);
+            });
+          });
+        }
+        this.shared.setFavGenres(this.favGenresSelected);
+        this.shared.setHatedGenres(this.hatedGenresSelected);
+        this.shared.setFavSinger(favArist);
+        this.waitUserPreferences = true;
+      }
+    }
   }
 
   // Function that search for your favorite musics' genres
@@ -146,10 +202,28 @@ export class Tab2Page {
         if (response !== undefined) {
           let data: { key: string, checkedFav: boolean, checkedHate: boolean };
           for (let i = 0; i < response.genres.length; i++) {
+            let checkFav = false;
+            let checkHate = false;
+            if (this.shared.getFavGenres() !== null) {
+              for (let j = 0; j < this.shared.getFavGenres().length; j++) {
+                if (response.genres[i] === this.shared.getFavGenres()[j]) {
+                  checkFav = true;
+                  break;
+                }
+              }
+            }
+            if (this.shared.getHatedGenres() !== null) {
+              for (let j = 0; j < this.shared.getHatedGenres().length; j++) {
+                if (response.genres[i] === this.shared.getHatedGenres()[j]) {
+                  checkHate = true;
+                  break;
+                }
+              }
+            }
             data = {
               key: response.genres[i],
-              checkedFav: false,
-              checkedHate: false
+              checkedFav: checkFav,
+              checkedHate: checkHate
             }
             this.genresAvailable.push(data);
           }
@@ -158,8 +232,19 @@ export class Tab2Page {
     }
   }
 
+  // This function initialize user preferences if he/she had
+  // previously choosen them
+  initializePreferences() {
+    this.favGenresSelected = this.shared.getFavGenres();
+    this.hatedGenresSelected = this.shared.getHatedGenres();
+  }
+
   // This function open Div of artist preference
   showFavGenresDiv() {
+    if (this.initUserPref) {
+      this.initializePreferences();
+      this.initUserPref = false;
+    }
     const favDiv = document.querySelector('#favDiv') as HTMLElement;
     if (favDiv.style.display !== 'block') {
       favDiv.style.display = 'block';
@@ -173,22 +258,27 @@ export class Tab2Page {
 
   // This function open Div of artist preference
   showHatedGenresDiv() {
+    if (this.initUserPref) {
+      this.initializePreferences();
+      this.initUserPref = false;
+    }
     const hatedDiv = document.querySelector('#hateDiv') as HTMLElement;
     if (hatedDiv.style.display !== 'block') {
       hatedDiv.style.display = 'block';
-      this.showHatedGeneres = 'Hide';
+      this.showHatedGenres = 'Hide';
     }
     else {
       hatedDiv.style.display = 'none';
-      this.showHatedGeneres = 'Show';
+      this.showHatedGenres = 'Show';
     }
   }
 
   // this function update the genres' preferences of the user
   updateGenresPref(whereSelected, genres) {
     let dataSelected = this.genresAvailable.find(genData => genData.key === genres);
+
     switch (whereSelected) {
-      // if user use "favorite" for adding or removing an genres preference
+      // if user use "favorite" for adding or removing a genres preference
       case 'favorite':
         if (dataSelected !== undefined) {
           dataSelected.checkedFav = !dataSelected.checkedFav;
@@ -200,7 +290,7 @@ export class Tab2Page {
           }
         }
         break;
-      // if user use "hated" for adding or removing an genres preference
+      // if user use "hated" for adding or removing a genres preference
       case 'hated':
         if (dataSelected !== undefined) {
           dataSelected.checkedHate = !dataSelected.checkedHate;
@@ -346,12 +436,7 @@ export class Tab2Page {
 
   // Logout form the website
   logout() {
-    this.shared.removeToken();
-    this.shared.removeRefreashToken();
-    this.shared.removeExpirationToken();
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
-    window.location.href = 'http://localhost:8100/login';
+    this.logoutService.logout();
   }
 
   /** ALERTS */
@@ -397,6 +482,30 @@ export class Tab2Page {
         {
           text: 'Cancel',
           cssClass: 'alertConfirm',
+        }
+      ],
+    });
+    await alert.present();
+  }
+
+  /* ALERT LOGOUT */
+  async alertAddPreferences(head: string, text: string) {
+    const alert = await this.alertController.create({
+      header: head,
+      cssClass: 'alertClassPrimary',
+      message: text,
+      buttons: [
+        {
+          text: 'Yes',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            this.waitUserPreferences = false;
+            this.onClickSubmit();
+          }
+        },
+        {
+          text: 'No',
+          cssClass: 'alertMedium',
         }
       ],
     });

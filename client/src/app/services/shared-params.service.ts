@@ -1,4 +1,7 @@
-import { keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken, keyPreviousDay } from './../../environments/environment';
+import {
+  keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken,
+  keyPreviousDay, keyFavGenres, keyHatedGenres, keyFavSinger, keyIDuser
+} from './../../environments/environment';
 import { Injectable } from '@angular/core';
 import { keyCurrentMood } from 'src/environments/environment';
 
@@ -33,6 +36,22 @@ export class SharedParamsService {
 
   public setTargetMood(targetMood) {
     localStorage.setItem(keyTargetMood, targetMood);
+  }
+
+  public setFavGenres(favGenres: string[]) {
+    localStorage.setItem(keyFavGenres, JSON.stringify(favGenres));
+  }
+
+  public setHatedGenres(hatedGenres: string[]) {
+    localStorage.setItem(keyHatedGenres, JSON.stringify(hatedGenres));
+  }
+
+  public setFavSinger(favSinger: string[]) {
+    localStorage.setItem(keyFavSinger, JSON.stringify(favSinger));
+  }
+
+  public setUserId(idUser) {
+    localStorage.setItem(keyIDuser, idUser);
   }
 
   /* GETTERS */
@@ -74,6 +93,22 @@ export class SharedParamsService {
     return localStorage.getItem(keyTargetMood);
   }
 
+  public getFavGenres() {
+    return JSON.parse(localStorage.getItem(keyFavGenres));
+  }
+
+  public getHatedGenres() {
+    return JSON.parse(localStorage.getItem(keyHatedGenres));
+  }
+
+  public getFavSinger() {
+    return JSON.parse(localStorage.getItem(keyFavSinger));
+  }
+
+  public getUserId() {
+    localStorage.getItem(keyIDuser);
+  }
+
   /* REMOVERS */
   public removeToken() {
     localStorage.removeItem(keyToken);
@@ -93,5 +128,21 @@ export class SharedParamsService {
 
   public removeTargetMood() {
     localStorage.removeItem(keyTargetMood);
+  }
+
+  public removeFavGenres() {
+    localStorage.removeItem(keyFavGenres);
+  }
+
+  public removeHatedGenres() {
+    localStorage.removeItem(keyHatedGenres);
+  }
+
+  public removeFavSinger() {
+    localStorage.removeItem(keyFavSinger);
+  }
+
+  public removeUserId() {
+    localStorage.removeItem(keyIDuser);
   }
 }

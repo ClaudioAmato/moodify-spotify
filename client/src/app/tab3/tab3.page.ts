@@ -1,3 +1,4 @@
+import { LogoutService } from './../services/logout.service';
 import { NavController, AlertController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -10,7 +11,7 @@ import { Component } from '@angular/core';
 export class Tab3Page {
 
   constructor(private shared: SharedParamsService, private navCtrl: NavController,
-    private alertController: AlertController) {
+    private alertController: AlertController, private logoutService: LogoutService) {
 
   }
 
@@ -23,12 +24,7 @@ export class Tab3Page {
 
   // Logout form the website
   logout() {
-    this.shared.removeToken();
-    this.shared.removeRefreashToken();
-    this.shared.removeExpirationToken();
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
-    window.location.href = 'http://localhost:8100/login';
+    this.logoutService.logout();
   }
 
   /** ALERTS */

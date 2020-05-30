@@ -1,23 +1,9 @@
-interface TrackData {
-    duration_ms: number,
-    key: number,
-    mode: number,
-    time_signature: number,
-    acousticness: number,
-    danceability: number,
-    energy: number,
-    instrumentalness: number,
-    liveness: number,
-    loudness: number,
-    speechiness: number,
-    valence: number,
-    tempo: number,
-}
+import { TrackDatas } from '../interfaces/TrackDatas';
 
 export class Tripla {
     previusMood: string;
     newMood: string;
-    spotifyData: TrackData;
+    spotifyData: TrackDatas;
     id: string;
 
     constructor(id: string) {
