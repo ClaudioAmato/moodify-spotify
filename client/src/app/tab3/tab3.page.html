@@ -24,14 +24,38 @@
       refreshingText="Refreshing..."
     ></ion-refresher-content>
   </ion-refresher>
-  <ion-card-header class="ion-text-center">
-    <ion-label style="font-weight: bold;" color="primary">
-      Change your starting and target mood
-    </ion-label>
-  </ion-card-header>
-  <div class="centerDiv">
-    <ion-button (click)="goToMoodSet()" class="changeButton"
-      >Change it</ion-button
-    >
-  </div>
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Change your starting and target mood
+      </ion-label>
+    </ion-card-header>
+    <div class="centerDiv">
+      <ion-card-header class="ion-text-center">
+        <ion-label style="font-weight: bold;" color="primary">
+          Current
+        </ion-label>
+      </ion-card-header>
+      <div class="emojiContainer">
+        <img src="{{this.currentEmotion.image}}" class="emojiImg" />
+        {{this.currentEmotion.name}}
+      </div>
+    </div>
+    <div class="centerDiv" style="margin-top: 20px;">
+      <ion-card-header class="ion-text-center">
+        <ion-label style="font-weight: bold;" color="primary">
+          Target
+        </ion-label>
+      </ion-card-header>
+      <div class="emojiContainer">
+        <img src="{{this.targetEmotion.image}}" class="emojiImg" />
+        {{this.targetEmotion.name}}
+      </div>
+    </div>
+    <div class="centerDiv">
+      <ion-button (click)="goToMoodSet()" class="changeButton"
+        >Change it</ion-button
+      >
+    </div>
+  </ion-card>
 </ion-content>

@@ -107,7 +107,9 @@
         <ion-row style="justify-content: space-between !important;">
           <ion-col *ngFor="let item of searchFavArtist">
             <ion-item lines="none">
-              <ion-avatar style="width: 40px; height: 40px;">
+              <ion-avatar
+                style="width: 40px; height: 40px; margin-right: 10px;"
+              >
                 <img src="{{item.image}}" />
               </ion-avatar>
               <ion-label>
@@ -115,7 +117,7 @@
               </ion-label>
               <ion-checkbox
                 [value]="item.name"
-                [disabled]="!item.checked && this.selectedFavArtist.length >= 5"
+                [disabled]="!item.checked && this.selectedFavArtist.length >= 5 || this.userExist"
                 slot="end"
                 [checked]="item.checked"
                 (ionChange)="updateSingerPref('search', item.key)"
@@ -157,12 +159,14 @@
       <ion-item
         color="primary"
         lines="full"
-        *ngIf="this.selectedFavArtist.length < 5"
+        *ngIf="this.selectedFavArtist.length < 5 && !this.userExist"
       >
         Suggests
       </ion-item>
       <ng-container *ngFor="let item of suggestfavArtist">
-        <ion-item *ngIf="!item.checked && this.selectedFavArtist.length < 5">
+        <ion-item
+          *ngIf="!item.checked && this.selectedFavArtist.length < 5 && !this.userExist"
+        >
           <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
             <img src="{{item.image}}" />
           </ion-avatar>
@@ -216,7 +220,7 @@
               [value]="item.key"
               slot="start"
               [checked]="item.checkedFav"
-              [disabled]="item.checkedHate"
+              [disabled]="item.checkedHate || this.userExist"
               (ionChange)="updateGenresPref('favorite', item.key)"
             ></ion-checkbox>
           </ion-item>
@@ -254,7 +258,7 @@
               [value]="item.key"
               slot="start"
               [checked]="item.checkedHate"
-              [disabled]="item.checkedFav"
+              [disabled]="item.checkedFav || this.userExist"
               (ionChange)="updateGenresPref('hated', item.key)"
             ></ion-checkbox>
           </ion-item>
@@ -271,8 +275,8 @@
     <ion-button
       (click)="onClickSubmit()"
       class="submit"
-      [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
-      [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
+      [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 || this.userExist"
+      [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 || this.userExist? 'medium':'primary'"
     >
       Confirm
     </ion-button>

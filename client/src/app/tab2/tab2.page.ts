@@ -1,9 +1,7 @@
 import { LogoutService } from './../services/logout.service';
-import { UserPreferences } from './../interfaces/UserPreferences';
 import { PreferencesServices } from '../services/preferences.service';
-import { Observable } from 'rxjs';
 import { SharedParamsService } from './../services/shared-params.service';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { AlertController } from '@ionic/angular';
 
@@ -12,7 +10,7 @@ import { AlertController } from '@ionic/angular';
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss']
 })
-export class Tab2Page {
+export class Tab2Page implements OnInit {
 
   // spotifyAPI
   spotifyApi = new SpotifyWebApi();
@@ -45,19 +43,15 @@ export class Tab2Page {
   showHatedGenres = 'Show';
 
   // User prefereces
-  userPreferences: Observable<UserPreferences[]>;
   waitUserPreferences = true;
   initUserPref = false;
-  userFirebaseData: UserPreferences = {
-    id: '',
-    email: '',
-    favoriteGenres: [],
-    favoriteSingers: [],
-    hatedGenres: [],
-  }
+  userExist = false;
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
     private prefService: PreferencesServices, private logoutService: LogoutService) {
+  }
+
+  ngOnInit() {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -75,36 +69,45 @@ export class Tab2Page {
       });
       this.initializeGenresSeeds();
       this.autoSearchFavGenres();
-      this.prefService.getAllUsersPreference().subscribe(data => {
-        let i;
-        for (i = 0; i < data.length; i++) {
-          if (data[i].email === this.email) {
-            this.favGenresSelected = data[i].favoriteGenres;
-            this.hatedGenresSelected = data[i].hatedGenres;
-            this.shared.setFavGenres(this.favGenresSelected);
-            this.shared.setHatedGenres(this.hatedGenresSelected);
-            this.userFirebaseData = {
-              id: data[i].id,
-              email: this.email,
-              favoriteGenres: this.shared.getFavGenres(),
-              favoriteSingers: [],
-              hatedGenres: this.shared.getHatedGenres(),
-            }
-            return;
-          }
-        }
-      });
     }
+    this.prefService.getAllUsersPreference().subscribe(data => {
+      let i;
+      for (i = 0; i < data.length; i++) {
+        if (data[i].email === this.email) {
+          this.favGenresSelected = data[i].favoriteGenres;
+          this.hatedGenresSelected = data[i].hatedGenres;
+          this.spotifyApi.getArtists(data[i].favoriteSingers).then((response) => {
+            if (response !== undefined) {
+              for (i = 0; i < response.artists.length; i++) {
+                let data = {
+                  key: response.artists[i].id,
+                  image: response.artists[i].images[0].url,
+                  name: response.artists[i].name,
+                  checked: true
+                };
+                this.selectedFavArtist.push(data);
+              }
+            }
+          });
+          this.shared.setFavGenres(this.favGenresSelected);
+          this.shared.setHatedGenres(this.hatedGenresSelected);
+          this.shared.setFavSinger(data[i].favoriteSingers);
+          this.userExist = true;
+          break;
+        }
+      }
+    });
   }
+
 
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
     if (this.waitUserPreferences) {
-      if (this.shared.getFavGenres() === null && this.shared.getHatedGenres() === null && this.shared.getFavSinger() === null) {
+      if (!this.userExist) {
         this.alertAddPreferences('Add preferences', 'Do you want to add this preferences?');
       }
       else {
-        this.alertAddPreferences('Update preferences', 'Do you want to update your preferences?');
+        this.alertDenied('Denied!', 'You can\'t update your preferences');
       }
     }
     else {
@@ -114,28 +117,20 @@ export class Tab2Page {
       }
       if ((this.favGenresSelected.length > 0 && this.hatedGenresSelected.length > 0) ||
         favArist.length > 0) {
-        let adduserPreferences: UserPreferences = {
+        const addUserFirebaseData = {
           email: this.email,
           favoriteGenres: this.favGenresSelected,
           favoriteSingers: favArist,
           hatedGenres: this.hatedGenresSelected
         }
-        if (this.shared.getFavGenres() === null && this.shared.getHatedGenres() === null && this.shared.getFavSinger() === null) {
-          this.prefService.addUserPreferences(adduserPreferences).then(() => {
-            console.log('list of fav artist: ' + favArist);
-          });
-        }
-        else {
-          this.prefService.deleteUserPreferences(this.userFirebaseData.id).then(() => {
-            this.prefService.addUserPreferences(adduserPreferences).then(() => {
-              console.log('list of fav artist: ' + favArist);
-            });
-          });
-        }
-        this.shared.setFavGenres(this.favGenresSelected);
-        this.shared.setHatedGenres(this.hatedGenresSelected);
-        this.shared.setFavSinger(favArist);
-        this.waitUserPreferences = true;
+        this.prefService.addUserPreferences(addUserFirebaseData).then(() => {
+          this.alertSuccess('Success', 'Your preferences has been added');
+          this.shared.setFavGenres(this.favGenresSelected);
+          this.shared.setHatedGenres(this.hatedGenresSelected);
+          this.shared.setFavSinger(favArist);
+          this.waitUserPreferences = true;
+          this.userExist = true;
+        });
       }
     }
   }
@@ -228,7 +223,11 @@ export class Tab2Page {
             this.genresAvailable.push(data);
           }
         }
-      });
+      })
+      if (this.initUserPref) {
+        this.initializePreferences();
+        this.initUserPref = false;
+      };
     }
   }
 
@@ -241,10 +240,6 @@ export class Tab2Page {
 
   // This function open Div of artist preference
   showFavGenresDiv() {
-    if (this.initUserPref) {
-      this.initializePreferences();
-      this.initUserPref = false;
-    }
     const favDiv = document.querySelector('#favDiv') as HTMLElement;
     if (favDiv.style.display !== 'block') {
       favDiv.style.display = 'block';
@@ -258,10 +253,6 @@ export class Tab2Page {
 
   // This function open Div of artist preference
   showHatedGenresDiv() {
-    if (this.initUserPref) {
-      this.initializePreferences();
-      this.initUserPref = false;
-    }
     const hatedDiv = document.querySelector('#hateDiv') as HTMLElement;
     if (hatedDiv.style.display !== 'block') {
       hatedDiv.style.display = 'block';
@@ -304,6 +295,7 @@ export class Tab2Page {
         break;
       default: break;
     }
+
   }
 
   /* SINGER PREFERENCES */
@@ -510,6 +502,51 @@ export class Tab2Page {
       ],
     });
     await alert.present();
+  }
+
+  /* ALERT LOGOUT */
+  async alertDenied(head: string, text: string) {
+    const alert = await this.alertController.create({
+      header: head,
+      cssClass: 'alertClassDanger',
+      message: text,
+      buttons: [
+        {
+          text: 'Ok',
+          cssClass: 'alertConfirm'
+        }
+      ],
+    });
+    await alert.present();
+
+    // timeout di 2 secondi per l'alert
+    setTimeout(() => {
+      alert.dismiss();
+    }, 2000);
+  }
+
+  /* ALERT SUCCESS */
+  async alertSuccess(head: string, text: string) {
+    const alert = await this.alertController.create({
+      header: head,
+      cssClass: 'alertClassSuccess',
+      message: text,
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            window.location.reload();
+          }
+        }
+      ],
+    });
+    await alert.present();
+
+    // timeout di 2 secondi per l'alert
+    setTimeout(() => {
+      alert.dismiss();
+    }, 10000);
   }
 
   /* REFRESH PAGE */

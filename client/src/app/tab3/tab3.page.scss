@@ -3,11 +3,24 @@ ion-content ion-toolbar {
 }
 
 .changeButton {
-  margin: 10px auto 20px auto;
+  margin: 80px auto 50px auto;
   width: 30%;
   min-width: 120px;
 }
 
 .centerDiv {
   text-align: center;
+}
+
+.emojiContainer {
+  min-width: 60px;
+  display: inline-grid;
+  margin: 0 auto;
+}
+
+ion-card {
+  height: 100%;
+  height: -moz-available; /* WebKit-based browsers will ignore this. */
+  height: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+  height: fill-available;
 }
