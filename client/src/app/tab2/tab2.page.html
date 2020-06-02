@@ -150,6 +150,7 @@
               [value]="item.name"
               slot="end"
               [checked]="item.checked"
+              [disabled]="this.userExist"
               (ionChange)="updateSingerPref('favorite', item.key)"
             ></ion-checkbox>
           </ion-item>

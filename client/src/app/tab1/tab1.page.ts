@@ -221,7 +221,7 @@ export class Tab1Page {
     if (this.current_preview !== undefined) {
       this.stop(this.current_preview.uriID);
     }
-    if (this.currentMusicplaying !== undefined) {
+    if (this.currentMusicplaying !== undefined || this.currentMusicplaying !== null) {
       this.current_playing = this.currentMusicplaying;
       if (this.currentMusicplaying.external_urls !== null) {
         this.currentMusicplaying.currentlyPlayingSong = true;

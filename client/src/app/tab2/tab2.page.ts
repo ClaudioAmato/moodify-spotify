@@ -76,6 +76,9 @@ export class Tab2Page implements OnInit {
         if (data[i].email === this.email) {
           this.favGenresSelected = data[i].favoriteGenres;
           this.hatedGenresSelected = data[i].hatedGenres;
+          this.shared.setFavGenres(this.favGenresSelected);
+          this.shared.setHatedGenres(this.hatedGenresSelected);
+          this.shared.setFavSinger(data[i].favoriteSingers);
           this.spotifyApi.getArtists(data[i].favoriteSingers).then((response) => {
             if (response !== undefined) {
               for (i = 0; i < response.artists.length; i++) {
@@ -89,9 +92,6 @@ export class Tab2Page implements OnInit {
               }
             }
           });
-          this.shared.setFavGenres(this.favGenresSelected);
-          this.shared.setHatedGenres(this.hatedGenresSelected);
-          this.shared.setFavSinger(data[i].favoriteSingers);
           this.userExist = true;
           break;
         }
