@@ -1,3 +1,4 @@
+import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
 import { Tripla } from '../classes/tripla';
@@ -33,12 +34,14 @@ export class Tab1Page {
     preview_url: string,
     external_urls: string
   } = null;
+  firstListen = true
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
   divEmoji = false;
   feedbackEmoji = true;
   waitNewFeedback = false;
+  feedback: string;
 
   // Player variables
   soundPlayer = new Audio();
@@ -56,10 +59,6 @@ export class Tab1Page {
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
       this.arrayEmoji = this.emoji.getArrayEmoji();
-    }
-    if (this.shared.getCurrentMood() != null && this.shared.getTargetMood !== null) {
-      console.log(this.shared.getCurrentMood());
-      console.log(this.shared.getTargetMood());
     }
   }
 
@@ -151,6 +150,49 @@ export class Tab1Page {
           };
         }
       }
+      this.feedbackEmoji = false;
+      this.divEmoji = true;
+      this.realizeTable();
+    }).catch(err => {
+      console.log(err);
+    });
+  }
+
+  // this function is used to set Triple for the table
+  realizeTable() {
+    const triple = new Tripla();
+    triple.setPreviusMood(this.feedback);
+    let prevSpotifyFeature: TrackDatas;
+    if (this.arrayTriple.length > 0) {
+      prevSpotifyFeature = this.arrayTriple[this.arrayTriple.length - 1].getCurrentSpotifyData();
+      triple.setPreviousSpotifyData(prevSpotifyFeature);
+    }
+    this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
+      const currentSpotifyFeature: TrackDatas = {
+        id: this.currentMusicplaying.idTrack,
+        duration_ms: response.duration_ms,
+        key: response.key,
+        mode: response.mode,
+        time_signature: response.time_signature,
+        acousticness: response.acousticness,
+        danceability: response.danceability,
+        energy: response.energy,
+        instrumentalness: response.instrumentalness,
+        liveness: response.liveness,
+        loudness: response.loudness,
+        speechiness: response.speechiness,
+        valence: response.valence,
+        tempo: response.tempo,
+      }
+      triple.setCurrentSpotifyData(currentSpotifyFeature);
+      if (this.firstListen && this.arrayTriple.length > 0) {
+        this.arrayTriple.pop();
+        this.firstListen = false;
+      }
+      this.arrayTriple.push(triple);
+      if (!this.firstListen) {
+        console.log(this.arrayTriple);
+      }
     }).catch(err => {
       console.log(err);
     });
@@ -176,39 +218,9 @@ export class Tab1Page {
           image.style.filter = 'none';
         }
       }
-      this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
-        let triple = new Tripla(this.currentMusicplaying.idTrack);
-        if (this.arrayTriple.length === 0) {
-          triple.setPreviusMood(this.shared.getCurrentMood());
-        }
-        else {
-          triple.setPreviusMood(
-            this.arrayTriple[this.arrayTriple.length - 1].getNewMood()
-          );
-        }
-        triple.setNewMood(feedback);
-        triple.setSpotifyData(
-          response.duration_ms,
-          response.key,
-          response.mode,
-          response.time_signature,
-          response.acousticness,
-          response.danceability,
-          response.energy,
-          response.instrumentalness,
-          response.liveness,
-          response.loudness,
-          response.speechiness,
-          response.valence,
-          response.tempo
-        );
-        this.arrayTriple.push(triple);
-        this.feedbackEmoji = true;
-        this.waitNewFeedback = true;
-        console.log(this.arrayTriple);
-      }).catch(err => {
-        console.log(err);
-      });;
+      this.feedbackEmoji = true;
+      this.waitNewFeedback = true;
+      this.feedback = feedback;
     }
   }
 
@@ -225,8 +237,6 @@ export class Tab1Page {
       this.current_playing = this.currentMusicplaying;
       if (this.currentMusicplaying.external_urls !== null) {
         this.currentMusicplaying.currentlyPlayingSong = true;
-        this.feedbackEmoji = false;
-        this.divEmoji = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
         this.clearInput();
         this.checkWindowClosed(this.currentMusicplaying);
@@ -356,14 +366,7 @@ export class Tab1Page {
             this.arrayTriple.pop();
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
-          }
-        },
-        {
-          text: 'No, add new one',
-          cssClass: 'alertYellow',
-          handler: () => {
-            this.waitNewFeedback = false;
-            this.onGivenFeedback(feedback);
+            this.realizeTable();
           }
         },
         {

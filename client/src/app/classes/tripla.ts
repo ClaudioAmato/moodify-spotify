@@ -2,12 +2,13 @@ import { TrackDatas } from '../interfaces/TrackDatas';
 
 export class Tripla {
     previusMood: string;
-    newMood: string;
-    spotifyData: TrackDatas;
-    id: string;
+    spotifyDataPrevious: TrackDatas;
+    spotifyDataCurrent: TrackDatas;
 
-    constructor(id: string) {
-        this.spotifyData = {
+    constructor() {
+        this.previusMood = null;
+        this.spotifyDataPrevious = {
+            id: null,
             duration_ms: null,
             key: null,
             mode: null,
@@ -22,52 +23,73 @@ export class Tripla {
             valence: null,
             tempo: null,
         };
-        this.previusMood = null;
-        this.newMood = null;
-        this.id = id;
+        this.spotifyDataCurrent = {
+            id: null,
+            duration_ms: null,
+            key: null,
+            mode: null,
+            time_signature: null,
+            acousticness: null,
+            danceability: null,
+            energy: null,
+            instrumentalness: null,
+            liveness: null,
+            loudness: null,
+            speechiness: null,
+            valence: null,
+            tempo: null,
+        };
     }
 
     setPreviusMood(mood: string) {
         this.previusMood = mood;
     }
-    setNewMood(mood: string) {
-        this.newMood = mood;
-    }
-    setSpotifyData(
-        duration_ms: number, key: number,
-        mode: number, time_signature: number,
-        acousticness: number, danceability: number,
-        energy: number, instrumentalness: number,
-        liveness: number, loudness: number,
-        speechiness: number, valence: number,
-        tempo: number
-    ) {
-        this.spotifyData.acousticness = acousticness;
-        this.spotifyData.duration_ms = duration_ms;
-        this.spotifyData.key = key;
-        this.spotifyData.mode = mode;
-        this.spotifyData.time_signature = time_signature;
-        this.spotifyData.acousticness = acousticness;
-        this.spotifyData.danceability = danceability;
-        this.spotifyData.energy = energy;
-        this.spotifyData.instrumentalness = instrumentalness;
-        this.spotifyData.liveness = liveness;
-        this.spotifyData.loudness = loudness;
-        this.spotifyData.speechiness = speechiness;
-        this.spotifyData.valence = valence;
-        this.spotifyData.tempo = tempo;
+
+    setPreviousSpotifyData(trackData: TrackDatas) {
+        this.spotifyDataPrevious.id = trackData.id
+        this.spotifyDataPrevious.acousticness = trackData.acousticness;
+        this.spotifyDataPrevious.duration_ms = trackData.duration_ms;
+        this.spotifyDataPrevious.key = trackData.key;
+        this.spotifyDataPrevious.mode = trackData.mode;
+        this.spotifyDataPrevious.time_signature = trackData.time_signature;
+        this.spotifyDataPrevious.acousticness = trackData.acousticness;
+        this.spotifyDataPrevious.danceability = trackData.danceability;
+        this.spotifyDataPrevious.energy = trackData.energy;
+        this.spotifyDataPrevious.instrumentalness = trackData.instrumentalness;
+        this.spotifyDataPrevious.liveness = trackData.liveness;
+        this.spotifyDataPrevious.loudness = trackData.loudness;
+        this.spotifyDataPrevious.speechiness = trackData.speechiness;
+        this.spotifyDataPrevious.valence = trackData.valence;
+        this.spotifyDataPrevious.tempo = trackData.tempo;
     }
 
-    getPreviusMood() {
+    setCurrentSpotifyData(trackData: TrackDatas) {
+        this.spotifyDataCurrent.id = trackData.id
+        this.spotifyDataCurrent.acousticness = trackData.acousticness;
+        this.spotifyDataCurrent.duration_ms = trackData.duration_ms;
+        this.spotifyDataCurrent.key = trackData.key;
+        this.spotifyDataCurrent.mode = trackData.mode;
+        this.spotifyDataCurrent.time_signature = trackData.time_signature;
+        this.spotifyDataCurrent.acousticness = trackData.acousticness;
+        this.spotifyDataCurrent.danceability = trackData.danceability;
+        this.spotifyDataCurrent.energy = trackData.energy;
+        this.spotifyDataCurrent.instrumentalness = trackData.instrumentalness;
+        this.spotifyDataCurrent.liveness = trackData.liveness;
+        this.spotifyDataCurrent.loudness = trackData.loudness;
+        this.spotifyDataCurrent.speechiness = trackData.speechiness;
+        this.spotifyDataCurrent.valence = trackData.valence;
+        this.spotifyDataCurrent.tempo = trackData.tempo;
+    }
+
+    getMood() {
         return this.previusMood;
     }
-    getNewMood() {
-        return this.newMood;
+
+    getPreviousSpotifyData() {
+        return this.spotifyDataPrevious;
     }
-    getSpotifyData() {
-        return this.setSpotifyData;
-    }
-    getId() {
-        return this.id;
+
+    getCurrentSpotifyData() {
+        return this.spotifyDataCurrent;
     }
 }

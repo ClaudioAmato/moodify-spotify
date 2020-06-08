@@ -67,7 +67,6 @@ export class Tab2Page implements OnInit {
         this.country = response.country;
         this.url = response.external_urls.spotify;
       });
-      this.initializeGenresSeeds();
       this.autoSearchFavGenres();
     }
     this.prefService.getAllUsersPreference().subscribe(data => {
@@ -96,6 +95,7 @@ export class Tab2Page implements OnInit {
           break;
         }
       }
+      this.initializeGenresSeeds();
     });
   }
 
