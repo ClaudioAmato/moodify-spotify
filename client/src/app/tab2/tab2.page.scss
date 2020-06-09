@@ -15,9 +15,13 @@ ion-toolbar {
   min-height: 100px;
 }
 
-.nameField {
+.field {
   color: var(--ion-color-primary);
   font-size: 12px;
+}
+
+.nameField {
+  overflow-wrap: anywhere;
 }
 
 .submit {
