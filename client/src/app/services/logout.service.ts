@@ -18,6 +18,11 @@ export class LogoutService {
     this.shared.removeFavSinger();
     this.shared.removeHatedGenres();
     this.shared.removeUserId();
-    window.location.href = 'http://localhost:8100/login';
+    if (window.location.href.includes('localhost')) {
+      window.location.href = 'http://localhost:8100/login';
+    }
+    else {
+      window.location.href = 'moodify-spotify.web.app/login';
+    }
   }
 }
