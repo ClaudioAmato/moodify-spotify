@@ -45,8 +45,8 @@ export class Tab1Page {
 
   // Player variables
   soundPlayer = new Audio();
-  current_preview: any = undefined;
-  current_playing: any = undefined;
+  currentPreview: any = undefined;
+  currentPlaying: any = undefined;
   spotifyWindow: Window;
   _previewIntervalHandler: any;
   _playIntervalHandler: any;
@@ -79,19 +79,19 @@ export class Tab1Page {
       else {
         this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
-            for (let i = 0; i < response.tracks.items.length; i++) {
-              if (response.tracks.items[i].album.images.length !== 0) {
+            for (const trackItem of response.tracks.items) {
+              if (trackItem.album.images.length !== 0) {
                 dataSearch = {
-                  key: response.tracks.items[i].id,
-                  image: response.tracks.items[i].album.images[1].url,
-                  name: response.tracks.items[i].name,
+                  key: trackItem.id,
+                  image: trackItem.album.images[1].url,
+                  name: trackItem.name,
                 };
               }
               else {
                 dataSearch = {
-                  key: response.tracks.items[i].id,
+                  key: trackItem.id,
                   image: 'assets/img/noImgAvailable.png',
-                  name: response.tracks.items[i].name,
+                  name: trackItem.name,
                 };
               }
               this.searchTrack.push(dataSearch);
@@ -124,7 +124,7 @@ export class Tab1Page {
         if (response.album.images[0].url !== undefined) {
           this.currentMusicplaying = {
             uriID: response.uri,
-            idTrack: idTrack,
+            idTrack,
             nomi_artisti: response.artists,
             image: response.album.images[1].url,
             currentlyPlayingPreview: false,
@@ -138,7 +138,7 @@ export class Tab1Page {
         else {
           this.currentMusicplaying = {
             uriID: response.uri,
-            idTrack: idTrack,
+            idTrack,
             nomi_artisti: response.artists,
             image: 'assets/img/noImgAvailable.png',
             currentlyPlayingPreview: false,
@@ -202,7 +202,7 @@ export class Tab1Page {
   onGivenFeedback(feedback: string) {
     const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === feedback);
     if (this.feedbackEmoji && this.waitNewFeedback) {
-      let image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
+      const image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
       if (image.style.filter !== 'none') {
         this.alertChangeFeedback(feedback);
       }
@@ -225,23 +225,24 @@ export class Tab1Page {
   }
 
   // this function open spotify browser and play the selected song/music
+  // tslint:disable-next-line: variable-name
   openSpotifyPlayer(external_urls: string) {
-    if (this.current_playing !== undefined) {
+    if (this.currentPlaying !== undefined) {
       this.currentMusicplaying.currentlyPlayingSong = false;
-      this.current_playing = undefined;
+      this.currentPlaying = undefined;
     }
-    if (this.current_preview !== undefined) {
-      this.stop(this.current_preview.uriID);
+    if (this.currentPreview !== undefined) {
+      this.stop(this.currentPreview.uriID);
     }
     if (this.currentMusicplaying !== undefined || this.currentMusicplaying !== null) {
-      this.current_playing = this.currentMusicplaying;
+      this.currentPlaying = this.currentMusicplaying;
       if (this.currentMusicplaying.external_urls !== null) {
         this.currentMusicplaying.currentlyPlayingSong = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
         this.clearInput();
         this.checkWindowClosed(this.currentMusicplaying);
       } setTimeout(() => {
-        this.current_playing = undefined;
+        this.currentPlaying = undefined;
         this.currentMusicplaying.currentlyPlayingSong = false;
       }, this.currentMusicplaying.duration);
     }
@@ -265,7 +266,7 @@ export class Tab1Page {
   playPreview(uri: string) {
     // if current playing
     if (this.soundPlayer.currentTime > 0) {
-      this.stop(this.current_preview.uriID);
+      this.stop(this.currentPreview.uriID);
     }
     if (this.currentMusicplaying !== undefined) {
       if (this.currentMusicplaying.preview_url !== null) {
@@ -296,8 +297,8 @@ export class Tab1Page {
     this.soundPlayer.pause();
     clearInterval(this._previewIntervalHandler);
     this.soundPlayer.currentTime = 0;
-    this.current_preview = undefined;
-    this.current_playing = undefined;
+    this.currentPreview = undefined;
+    this.currentPlaying = undefined;
     if (uri !== null) {
       if (this.currentMusicplaying !== undefined) {
         this.currentMusicplaying.currentlyPlayingPreview = false;

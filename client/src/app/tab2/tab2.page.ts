@@ -80,14 +80,14 @@ export class Tab2Page implements OnInit {
           this.shared.setFavSinger(data[i].favoriteSingers);
           this.spotifyApi.getArtists(data[i].favoriteSingers).then((response) => {
             if (response !== undefined) {
-              for (i = 0; i < response.artists.length; i++) {
-                let data = {
-                  key: response.artists[i].id,
-                  image: response.artists[i].images[0].url,
-                  name: response.artists[i].name,
+              for (const artist of response.artists) {
+                const dataArtist = {
+                  key: artist.id,
+                  image: artist.images[0].url,
+                  name: artist.name,
                   checked: true
                 };
-                this.selectedFavArtist.push(data);
+                this.selectedFavArtist.push(dataArtist);
               }
             }
           });
@@ -111,7 +111,7 @@ export class Tab2Page implements OnInit {
       }
     }
     else {
-      let favArist = [];
+      const favArist = [];
       for (let i = 0; i < this.selectedFavArtist.length; i++) {
         favArist[i] = this.selectedFavArtist[i].key;
       }
@@ -144,21 +144,21 @@ export class Tab2Page implements OnInit {
     else {
       this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
         if (response !== undefined) {
-          for (let i = 0; i < response.items.length; i++) {
+          for (const [index, item] of response.items.entries()) {
             // cycle on all the genres of the artist
-            for (let j = 0; j < response.items[i].genres.length; j++) {
-              if (this.topGenresMap[response.items[i].genres[j]] === undefined) {
-                this.topGenresMap[response.items[i].genres[j]] = 1;
+            for (const genres of item.genres) {
+              if (this.topGenresMap[genres] === undefined) {
+                this.topGenresMap[genres] = 1;
               }
               else {
-                this.topGenresMap[response.items[i].genres[j]] += 1;
+                this.topGenresMap[genres] += 1;
               }
             }
-            if (i < 10) {
-              let data = {
-                key: response.items[i].id,
-                image: response.items[i].images[0].url,
-                name: response.items[i].name,
+            if (index < 10) {
+              const data = {
+                key: item.id,
+                image: item.images[0].url,
+                name: item.name,
                 checked: false
               };
               this.suggestfavArtist.push(data);
@@ -174,8 +174,8 @@ export class Tab2Page implements OnInit {
   // genres" from the higher to the lower
   sortProperties(obj) {
     // convert object into array
-    let sortable = [];
-    for (let key in obj)
+    const sortable = [];
+    for (const key in obj)
       if (obj.hasOwnProperty(key))
         sortable.push([key, obj[key]]); // each item is an array in format [key, value]
 
@@ -196,27 +196,27 @@ export class Tab2Page implements OnInit {
       this.spotifyApi.getAvailableGenreSeeds().then((response) => {
         if (response !== undefined) {
           let data: { key: string, checkedFav: boolean, checkedHate: boolean };
-          for (let i = 0; i < response.genres.length; i++) {
+          for (const genres of response.genres) {
             let checkFav = false;
             let checkHate = false;
             if (this.shared.getFavGenres() !== null) {
-              for (let j = 0; j < this.shared.getFavGenres().length; j++) {
-                if (response.genres[i] === this.shared.getFavGenres()[j]) {
+              for (const favGen of this.shared.getFavGenres()) {
+                if (genres === favGen) {
                   checkFav = true;
                   break;
                 }
               }
             }
             if (this.shared.getHatedGenres() !== null) {
-              for (let j = 0; j < this.shared.getHatedGenres().length; j++) {
-                if (response.genres[i] === this.shared.getHatedGenres()[j]) {
+              for (const hateGen of this.shared.getHatedGenres()) {
+                if (genres === hateGen) {
                   checkHate = true;
                   break;
                 }
               }
             }
             data = {
-              key: response.genres[i],
+              key: genres,
               checkedFav: checkFav,
               checkedHate: checkHate
             }
@@ -266,7 +266,7 @@ export class Tab2Page implements OnInit {
 
   // this function update the genres' preferences of the user
   updateGenresPref(whereSelected, genres) {
-    let dataSelected = this.genresAvailable.find(genData => genData.key === genres);
+    const dataSelected = this.genresAvailable.find(genData => genData.key === genres);
 
     switch (whereSelected) {
       // if user use "favorite" for adding or removing a genres preference
@@ -387,27 +387,27 @@ export class Tab2Page implements OnInit {
       else {
         this.spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
           if (response !== undefined) {
-            for (let i = 0; i < response.artists.items.length; i++) {
-              dataSelected = this.selectedFavArtist.find(artist => artist.key === response.artists.items[i].id);
+            for (const itemArtist of response.artists.items) {
+              dataSelected = this.selectedFavArtist.find(artist => artist.key === itemArtist.id);
               if (dataSelected !== undefined) {
                 check = true;
               }
               else {
                 check = false;
               }
-              if (response.artists.items[i].images.length !== 0) {
+              if (itemArtist.images.length !== 0) {
                 dataSearch = {
-                  key: response.artists.items[i].id,
-                  image: response.artists.items[i].images[0].url,
-                  name: response.artists.items[i].name,
+                  key: itemArtist.id,
+                  image: itemArtist.images[0].url,
+                  name: itemArtist.name,
                   checked: check
                 };
               }
               else {
                 dataSearch = {
-                  key: response.artists.items[i].id,
+                  key: itemArtist.id,
                   image: 'assets/img/noImgAvailable.png',
-                  name: response.artists.items[i].name,
+                  name: itemArtist.name,
                   checked: check
                 };
               }

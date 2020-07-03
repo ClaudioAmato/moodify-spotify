@@ -46,9 +46,9 @@ export class EmojisService {
   }
 
   getEmojiImg(emoji: string) {
-    for (let i = 0; i < this.arrayImgEmoji.length; i++) {
-      if (this.arrayImgEmoji[i] === emoji) {
-        return this.arrayImgEmoji[i];
+    for (const imgEmoji in this.arrayImgEmoji) {
+      if (imgEmoji === emoji) {
+        return imgEmoji;
       }
     }
     return null;

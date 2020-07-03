@@ -3,10 +3,14 @@ import { TestBed } from '@angular/core/testing';
 import { SharedParamsService } from './shared-params.service';
 
 describe('SharedParamsService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  let service: SharedParamsService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(SharedParamsService);
+  });
 
   it('should be created', () => {
-    const service: SharedParamsService = TestBed.get(SharedParamsService);
     expect(service).toBeTruthy();
   });
 });
