@@ -21,7 +21,6 @@ export class Tab2Page implements OnInit {
   name: string;
   country: string;
   url: string;
-  id: string;
 
   // Artists variables
   topArtistsMap = {};
@@ -64,7 +63,6 @@ export class Tab2Page implements OnInit {
         }
         this.email = response.email;
         this.name = response.display_name;
-        this.country = response.country;
         this.url = response.external_urls.spotify;
       });
       this.autoSearchFavGenres();

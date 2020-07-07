@@ -35,6 +35,16 @@ export class Tab1Page {
     external_urls: string
   } = null;
   firstListen = true
+  idUser = '';
+  _dataHandler: any;
+
+  // file JSON in which is stored training set
+  trainingJSON: object = {
+    date: Date,
+    user: '',
+    triples: []
+  };
+  currentDay: string
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -59,9 +69,26 @@ export class Tab1Page {
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
       this.arrayEmoji = this.emoji.getArrayEmoji();
+      this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
+      this.spotifyApi.getMe().then(async (response) => {
+        const url = (await response.display_name);
+        this.idUser = (url.substring(url.lastIndexOf('/') + 1, url.length));
+      });
+      this.checkDatas();
     }
   }
 
+  async checkDatas() {
+    this._dataHandler = setInterval(() => {
+      if (this.idUser.length !== 0) {
+        this.shared.setUserId(this.idUser);
+        clearInterval(this._dataHandler);
+      }
+      else {
+        console.log("else");
+      }
+    }, 1000);
+  }
   // this function let user searching an artist
   searchMusic($event) {
     this.divEmoji = false;
@@ -191,7 +218,12 @@ export class Tab1Page {
       }
       this.arrayTriple.push(triple);
       if (!this.firstListen) {
-        console.log(this.arrayTriple);
+        this.trainingJSON = {
+          date: this.currentDay,
+          user: this.shared.getUserId(),
+          triples: this.arrayTriple
+        }
+        console.log(this.trainingJSON)
       }
     }).catch(err => {
       console.log(err);

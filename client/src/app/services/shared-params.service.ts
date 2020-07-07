@@ -106,7 +106,7 @@ export class SharedParamsService {
   }
 
   public getUserId() {
-    localStorage.getItem(keyIDuser);
+    return localStorage.getItem(keyIDuser);
   }
 
   /* REMOVERS */
