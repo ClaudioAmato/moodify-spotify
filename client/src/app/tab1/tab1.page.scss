@@ -79,6 +79,11 @@ ion-content ion-toolbar {
   }
 }
 
+.submit {
+  margin: 10px auto 20px auto;
+  width: 30%;
+}
+
 @media screen and (max-width: 900px) {
   .divPreview {
     text-align: center;

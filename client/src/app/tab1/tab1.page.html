@@ -175,4 +175,17 @@
       </ng-container>
     </div>
   </ion-card>
+  <div style="text-align: center; display: grid;">
+    <ion-label color="warning" *ngIf="this.numFeedback < 3"
+      >Listen at least {{3 - this.numFeedback}} songs</ion-label
+    >
+    <ion-button
+      (click)="onClickEndSession()"
+      class="submit"
+      [disabled]="this.numFeedback < 3"
+      [color]="this.numFeedback < 3 ? 'medium':'primary'"
+    >
+      End Session
+    </ion-button>
+  </div>
 </ion-content>

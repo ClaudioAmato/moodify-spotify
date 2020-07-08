@@ -1,3 +1,4 @@
+import { UploadJSONService } from './../services/upload-json.service';
 import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
@@ -36,15 +37,18 @@ export class Tab1Page {
   } = null;
   firstListen = true
   idUser = '';
+  idFirebase = '';
   _dataHandler: any;
 
   // file JSON in which is stored training set
-  trainingJSON: object = {
-    date: Date,
-    user: '',
-    triples: []
+  trainingJSON: {
+    user: string,
+    date: string,
+    moods: { startMood: string, targetMood: string },
+    triples: Array<Tripla>;
   };
   currentDay: string
+  userExist = false;
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -52,6 +56,7 @@ export class Tab1Page {
   feedbackEmoji = true;
   waitNewFeedback = false;
   feedback: string;
+  numFeedback = 0;
 
   // Player variables
   soundPlayer = new Audio();
@@ -62,7 +67,8 @@ export class Tab1Page {
   _playIntervalHandler: any;
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
-    private alertController: AlertController, private emoji: EmojisService) {
+    private alertController: AlertController, private emoji: EmojisService,
+    private jsonService: UploadJSONService) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -75,6 +81,29 @@ export class Tab1Page {
         this.idUser = (url.substring(url.lastIndexOf('/') + 1, url.length));
       });
       this.checkDatas();
+
+      this.jsonService.getAllUserJSON().subscribe(datas => {
+        if (datas !== undefined) {
+          for (const data of datas) {
+            if (data.user === this.idUser && this.currentDay === data.date &&
+              this.shared.getCurrentMood() === data.moods.startMood &&
+              this.shared.getTargetMood() === data.moods.targetMood) {
+              for (const values of data.triples) {
+                const tempTriple = new Tripla();
+                tempTriple.setPreviousSpotifyData(values.spotifyDataPrevious);
+                tempTriple.setCurrentSpotifyData(values.spotifyDataCurrent);
+                tempTriple.setPreviusMood(values.previusMood);
+                this.arrayTriple.push(tempTriple);
+                this.feedback = tempTriple.previusMood;
+              }
+              this.userExist = true;
+              this.firstListen = false;
+              this.idFirebase = data.id;
+              break;
+            }
+          }
+        }
+      });
     }
   }
 
@@ -83,9 +112,6 @@ export class Tab1Page {
       if (this.idUser.length !== 0) {
         this.shared.setUserId(this.idUser);
         clearInterval(this._dataHandler);
-      }
-      else {
-        console.log("else");
       }
     }, 1000);
   }
@@ -217,16 +243,27 @@ export class Tab1Page {
         this.firstListen = false;
       }
       this.arrayTriple.push(triple);
-      if (!this.firstListen) {
-        this.trainingJSON = {
-          date: this.currentDay,
-          user: this.shared.getUserId(),
-          triples: this.arrayTriple
-        }
-        console.log(this.trainingJSON)
-      }
+      console.log(this.arrayTriple);
     }).catch(err => {
       console.log(err);
+    });
+  }
+
+  // upload json to firebase
+  onClickEndSession() {
+    this.trainingJSON = {
+      user: this.shared.getUserId(),
+      date: this.currentDay,
+      moods: { startMood: this.shared.getCurrentMood(), targetMood: this.shared.getTargetMood() },
+      triples: this.arrayTriple.map((obj) => { return Object.assign({}, obj) })
+    }
+    console.log(this.trainingJSON)
+    if (this.idFirebase.length > 0) {
+      this.jsonService.deleteJsonData(this.idFirebase);
+    }
+    this.jsonService.addJsonData(this.trainingJSON).then(() => {
+      this.alertSuccess('Success', 'Your session has been added');
+      this.userExist = true;
     });
   }
 
@@ -253,6 +290,7 @@ export class Tab1Page {
       this.feedbackEmoji = true;
       this.waitNewFeedback = true;
       this.feedback = feedback;
+      this.numFeedback++;
     }
   }
 
@@ -432,6 +470,30 @@ export class Tab1Page {
       ],
     });
     await alert.present();
+  }
+
+  /* ALERT SUCCESS */
+  async alertSuccess(head: string, text: string) {
+    const alert = await this.alertController.create({
+      header: head,
+      cssClass: 'alertClassSuccess',
+      message: text,
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            window.location.reload();
+          }
+        }
+      ],
+    });
+    await alert.present();
+
+    // timeout di 2 secondi per l'alert
+    setTimeout(() => {
+      alert.dismiss();
+    }, 10000);
   }
 
   /* REFRESH PAGE */

@@ -67,30 +67,31 @@ export class Tab2Page implements OnInit {
       });
       this.autoSearchFavGenres();
     }
-    this.prefService.getAllUsersPreference().subscribe(data => {
-      let i;
-      for (i = 0; i < data.length; i++) {
-        if (data[i].email === this.email) {
-          this.favGenresSelected = data[i].favoriteGenres;
-          this.hatedGenresSelected = data[i].hatedGenres;
-          this.shared.setFavGenres(this.favGenresSelected);
-          this.shared.setHatedGenres(this.hatedGenresSelected);
-          this.shared.setFavSinger(data[i].favoriteSingers);
-          this.spotifyApi.getArtists(data[i].favoriteSingers).then((response) => {
-            if (response !== undefined) {
-              for (const artist of response.artists) {
-                const dataArtist = {
-                  key: artist.id,
-                  image: artist.images[0].url,
-                  name: artist.name,
-                  checked: true
-                };
-                this.selectedFavArtist.push(dataArtist);
+    this.prefService.getAllUsersPreference().subscribe(datas => {
+      if (datas !== undefined) {
+        for (const data of datas) {
+          if (data.email === this.email) {
+            this.favGenresSelected = data.favoriteGenres;
+            this.hatedGenresSelected = data.hatedGenres;
+            this.shared.setFavGenres(this.favGenresSelected);
+            this.shared.setHatedGenres(this.hatedGenresSelected);
+            this.shared.setFavSinger(data.favoriteSingers);
+            this.spotifyApi.getArtists(data.favoriteSingers).then((response) => {
+              if (response !== undefined) {
+                for (const artist of response.artists) {
+                  const dataArtist = {
+                    key: artist.id,
+                    image: artist.images[0].url,
+                    name: artist.name,
+                    checked: true
+                  };
+                  this.selectedFavArtist.push(dataArtist);
+                }
               }
-            }
-          });
-          this.userExist = true;
-          break;
+            });
+            this.userExist = true;
+            break;
+          }
         }
       }
       this.initializeGenresSeeds();
