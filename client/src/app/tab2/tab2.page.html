@@ -159,7 +159,7 @@
       <ion-item
         color="primary"
         lines="full"
-        *ngIf="this.selectedFavArtist.length < 5"
+        *ngIf="this.selectedFavArtist.length < 5 && this.suggestfavArtist.length > 0"
       >
         Suggests
       </ion-item>
@@ -267,14 +267,14 @@
   <div style="text-align: center; display: grid;">
     <ion-label
       color="warning"
-      *ngIf="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
+      *ngIf="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0"
       >Fill out one of the section above</ion-label
     >
     <ion-button
       (click)="onClickSubmit()"
       class="submit"
-      [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
-      [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
+      [disabled]="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0"
+      [color]="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
     >
       Confirm
     </ion-button>

@@ -20,6 +20,22 @@
         Login with Spotify
       </ion-button>
       <br />
+      <div style="padding: 2% 0; font-size: small; display: inline-flex;">
+        <div style="align-self: center;">Login with another account?&nbsp;</div>
+        <ion-button
+          (click)="changeAccount()"
+          fill="clear"
+          class="ion-no-padding"
+          style="
+            font-size: 12px !important;
+            text-transform: none !important;
+            margin: 0;
+          "
+          size="small"
+        >
+          <span style="text-decoration: underline;">Change</span>
+        </ion-button>
+      </div>
       <div style="padding: 2% 0; font-size: small;">
         No Spotify yet?
         <a href="https://www.spotify.com/">Join</a>

@@ -100,7 +100,7 @@ export class Tab1Page {
   // Asyncronous function to get userID from spotify
   async getUserId() {
     const response = await this.spotifyApi.getMe();
-    const url = await response.display_name;
+    const url = await response.id;
     return (url.substring(url.lastIndexOf('/') + 1, url.length));
   }
 

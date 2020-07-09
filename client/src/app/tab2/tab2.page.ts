@@ -258,8 +258,7 @@ export class Tab2Page implements OnInit {
 
   // this function update the genres' preferences of the user
   updateGenresPref(whereSelected, genres) {
-    const dataSelected = this.genresAvailable.find(genData => genData.key === genres);
-
+    const dataSelected = this.genresAvailable.find(genData => genData.key === genres)
     switch (whereSelected) {
       // if user use "favorite" for adding or removing a genres preference
       case 'favorite':
@@ -287,7 +286,6 @@ export class Tab2Page implements OnInit {
         break;
       default: break;
     }
-
   }
 
   /* SINGER PREFERENCES */
