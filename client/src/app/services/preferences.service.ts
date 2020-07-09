@@ -1,65 +1,99 @@
+import { UserPreferences } from './../interfaces/UserPreferences';
+import { LoadingController, AlertController } from '@ionic/angular';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { UserPreferences } from '../interfaces/UserPreferences';
-import { AngularFirestore, AngularFirestoreCollection, DocumentReference } from '@angular/fire/firestore';
-import { map, take } from 'rxjs/operators';
-
+import * as firebase from 'firebase/app';
+import 'firebase/database';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PreferencesServices {
-  UserPreferences: Observable<UserPreferences[]>;
-  UserPreferencesCollection: AngularFirestoreCollection<UserPreferences>;
+  database = firebase.database();
 
-  constructor(private afs: AngularFirestore) {
-    // define collection
-    this.UserPreferencesCollection = this.afs.collection<UserPreferences>('UserPreferences');
-    // get collection data
-    this.UserPreferences = this.UserPreferencesCollection.snapshotChanges().pipe(
-      map(actions => {
-        return actions.map(a => {
-          const data = a.payload.doc.data();
-          const id = a.payload.doc.id;
-          return { id, ...data };
-        });
-      })
-    );
+  constructor(private afs: AngularFirestore, private loadingCtrl: LoadingController,
+    private alertController: AlertController) {
+
   }
 
-  // getting all datas
-  getAllUsersPreference(): Observable<UserPreferences[]> {
-    return this.UserPreferences;
-  }
-
-  // getting specific data of a user
-  getSpecificUserPreference(id: string): Observable<UserPreferences> {
-    return this.UserPreferencesCollection.doc<UserPreferences>(id).valueChanges().pipe(
-      take(1),
-      map(data => {
-        data.id = id;
-        return data;
-      })
-    );
-  }
-
-  // create new user preferences
-  addUserPreferences(UserData: UserPreferences): Promise<DocumentReference> {
-    return this.UserPreferencesCollection.add(UserData);
-  }
-
-  // update user preferences
-  updatePreferences(UserData: UserPreferences, favGen: string[], hateGen: string[], favSing: string[]): Promise<void> {
-    return this.UserPreferencesCollection.doc(UserData.id).update(
-      {
-        favoriteGenres: favGen,
-        hatedGenres: hateGen,
-        favoriteSingers: favSing,
+  uploadPreferences(userPreferences: UserPreferences, id: string) {
+    this.presentLoading('Loading datas ...').then(() => {
+      firebase.database().ref('preferences/' + id).set({
+        favoriteGenres: userPreferences.favoriteGenres,
+        hatedGenres: userPreferences.hatedGenres,
+        favoriteSingers: userPreferences.favoriteSingers
+      }).then(() => {
+        this.loadingCtrl.dismiss();
+        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
+      }).catch(() => {
+        this.loadingCtrl.dismiss();
+        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassDanger');
       });
+    });
   }
 
-  // delete user preferences
-  deleteUserPreferences(id: string): Promise<void> {
-    return this.UserPreferencesCollection.doc(id).delete();
+  async getUserPreferences(userID: string) {
+    let pref: UserPreferences;
+    const db = firebase.database()
+    const ref = db.ref('/preferences/' + userID)
+
+    const snapshot = await ref.once('value');
+    const values = snapshot.val();
+    if (values === null) {
+      return undefined;
+    }
+    else {
+      pref = {
+        favoriteGenres: values.favoriteGenres,
+        hatedGenres: values.hatedGenres,
+        favoriteSingers: values.favoriteSingers
+      };
+      return pref;
+    }
+  }
+
+  updatePreferences(userPreferences: UserPreferences, id: string) {
+    this.presentLoading('Loading datas ...').then(() => {
+      firebase.database().ref('preferences/' + id).update({
+        favoriteGenres: userPreferences.favoriteGenres,
+        hatedGenres: userPreferences.hatedGenres,
+        favoriteSingers: userPreferences.favoriteSingers
+      }).then(() => {
+        this.loadingCtrl.dismiss();
+        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
+      }).catch(() => {
+        this.loadingCtrl.dismiss();
+        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassDanger');
+      });
+    });
+  }
+
+  // Loading data
+  private async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
+    });
+    return await loading.present();
+  }
+
+  /* ALERT SUCCESS */
+  private async alertSuccess(head: string, text: string, classeCSS: string) {
+    const alert = await this.alertController.create({
+      header: head,
+      cssClass: classeCSS,
+      message: text,
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+        }
+      ],
+    });
+    await alert.present();
+
+    // timeout di 2 secondi per l'alert
+    setTimeout(() => {
+      alert.dismiss();
+    }, 10000);
   }
 }

@@ -3,10 +3,11 @@ import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
 import { Tripla } from '../classes/tripla';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
+import { JsonData } from '../interfaces/JsonData';
 
 @Component({
   selector: 'app-tab1',
@@ -37,16 +38,7 @@ export class Tab1Page {
   } = null;
   firstListen = true
   idUser = '';
-  idFirebase = '';
   _dataHandler: any;
-
-  // file JSON in which is stored training set
-  trainingJSON: {
-    user: string,
-    date: string,
-    moods: { startMood: string, targetMood: string },
-    triples: Array<Tripla>;
-  };
   currentDay: string
   userExist = false;
 
@@ -68,53 +60,50 @@ export class Tab1Page {
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
-    private jsonService: UploadJSONService) {
+    private jsonService: UploadJSONService, private loadingCtrl: LoadingController) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
       this.arrayEmoji = this.emoji.getArrayEmoji();
-      this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear()
-      this.spotifyApi.getMe().then(async (response) => {
-        const url = (await response.display_name);
-        this.idUser = (url.substring(url.lastIndexOf('/') + 1, url.length));
-      });
-      this.checkDatas();
-
-      this.jsonService.getAllUserJSON().subscribe(datas => {
-        if (datas !== undefined) {
-          for (const data of datas) {
-            if (data.user === this.idUser && this.currentDay === data.date &&
-              this.shared.getCurrentMood() === data.moods.startMood &&
-              this.shared.getTargetMood() === data.moods.targetMood) {
-              for (const values of data.triples) {
-                const tempTriple = new Tripla();
-                tempTriple.setPreviousSpotifyData(values.spotifyDataPrevious);
-                tempTriple.setCurrentSpotifyData(values.spotifyDataCurrent);
-                tempTriple.setPreviusMood(values.previusMood);
-                this.arrayTriple.push(tempTriple);
-                this.feedback = tempTriple.previusMood;
-              }
-              this.userExist = true;
-              this.firstListen = false;
-              this.idFirebase = data.id;
-              break;
-            }
-          }
-        }
-      });
+      this.initializeSessionDB();
     }
   }
 
-  async checkDatas() {
-    this._dataHandler = setInterval(() => {
-      if (this.idUser.length !== 0) {
-        this.shared.setUserId(this.idUser);
-        clearInterval(this._dataHandler);
-      }
-    }, 1000);
+  // Initialize user's session from DB if it exist
+  initializeSessionDB() {
+    this.presentLoading('Loading datas ...').then(() => {
+      this.getUserId().then(id => {
+        this.idUser = id;
+        this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear();
+        this.jsonService.getUserSession(this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood())
+          .then(result => {
+            if (result !== undefined) {
+              for (const values of result.triples) {
+                const triple = new Tripla();
+                triple.setPreviusMood(values.previusMood);
+                triple.setCurrentSpotifyData(values.spotifyDataCurrent);
+                triple.setPreviousSpotifyData(values.spotifyDataPrevious);
+                this.arrayTriple.push(triple);
+                this.feedback = triple.previusMood;
+              }
+              this.userExist = true;
+              this.firstListen = false;
+            }
+            this.loadingCtrl.dismiss();
+          });
+      });
+    });
   }
+
+  // Asyncronous function to get userID from spotify
+  async getUserId() {
+    const response = await this.spotifyApi.getMe();
+    const url = await response.display_name;
+    return (url.substring(url.lastIndexOf('/') + 1, url.length));
+  }
+
   // this function let user searching an artist
   searchMusic($event) {
     this.divEmoji = false;
@@ -215,6 +204,7 @@ export class Tab1Page {
   realizeTable() {
     const triple = new Tripla();
     triple.setPreviusMood(this.feedback);
+
     let prevSpotifyFeature: TrackDatas;
     if (this.arrayTriple.length > 0) {
       prevSpotifyFeature = this.arrayTriple[this.arrayTriple.length - 1].getCurrentSpotifyData();
@@ -243,7 +233,6 @@ export class Tab1Page {
         this.firstListen = false;
       }
       this.arrayTriple.push(triple);
-      console.log(this.arrayTriple);
     }).catch(err => {
       console.log(err);
     });
@@ -251,20 +240,15 @@ export class Tab1Page {
 
   // upload json to firebase
   onClickEndSession() {
-    this.trainingJSON = {
-      user: this.shared.getUserId(),
-      date: this.currentDay,
-      moods: { startMood: this.shared.getCurrentMood(), targetMood: this.shared.getTargetMood() },
+    const trainingJSON: JsonData = {
       triples: this.arrayTriple.map((obj) => { return Object.assign({}, obj) })
     }
-    console.log(this.trainingJSON)
-    if (this.idFirebase.length > 0) {
-      this.jsonService.deleteJsonData(this.idFirebase);
+    if (this.userExist) {
+      this.jsonService.updateSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
     }
-    this.jsonService.addJsonData(this.trainingJSON).then(() => {
-      this.alertSuccess('Success', 'Your session has been added');
-      this.userExist = true;
-    });
+    else {
+      this.jsonService.uploadSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
+    }
   }
 
   // this function is used to get emotion feedback triple
@@ -427,12 +411,12 @@ export class Tab1Page {
   async alertChangeFeedback(feedback: string) {
     const alert = await this.alertController.create({
       header: 'Change Feedback',
-      cssClass: 'alertClassThreeOption',
+      cssClass: 'alertClassWarning',
       message: 'Do you want to change the previous feedback?',
       buttons: [
         {
           text: 'Yes',
-          cssClass: 'alertRed',
+          cssClass: 'alertMedium',
           handler: () => {
             this.arrayTriple.pop();
             this.waitNewFeedback = false;
@@ -441,8 +425,8 @@ export class Tab1Page {
           }
         },
         {
-          text: 'No, do nothing',
-          cssClass: 'alertGreen',
+          text: 'No',
+          cssClass: 'alertConfirm',
         }
       ],
     });
@@ -472,28 +456,12 @@ export class Tab1Page {
     await alert.present();
   }
 
-  /* ALERT SUCCESS */
-  async alertSuccess(head: string, text: string) {
-    const alert = await this.alertController.create({
-      header: head,
-      cssClass: 'alertClassSuccess',
-      message: text,
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alertConfirm',
-          handler: () => {
-            window.location.reload();
-          }
-        }
-      ],
+  // Loading data
+  async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
     });
-    await alert.present();
-
-    // timeout di 2 secondi per l'alert
-    setTimeout(() => {
-      alert.dismiss();
-    }, 10000);
+    return await loading.present();
   }
 
   /* REFRESH PAGE */

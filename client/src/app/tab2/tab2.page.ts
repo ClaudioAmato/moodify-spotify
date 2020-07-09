@@ -3,7 +3,8 @@ import { PreferencesServices } from '../services/preferences.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component, OnInit } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
+import { UserPreferences } from '../interfaces/UserPreferences';
 
 @Component({
   selector: 'app-tab2',
@@ -21,6 +22,7 @@ export class Tab2Page implements OnInit {
   name: string;
   country: string;
   url: string;
+  id: string;
 
   // Artists variables
   topArtistsMap = {};
@@ -42,12 +44,11 @@ export class Tab2Page implements OnInit {
   showHatedGenres = 'Show';
 
   // User prefereces
-  waitUserPreferences = true;
-  initUserPref = false;
   userExist = false;
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private prefService: PreferencesServices, private logoutService: LogoutService) {
+    private prefService: PreferencesServices, private logoutService: LogoutService,
+    private loadingCtrl: LoadingController) {
   }
 
   ngOnInit() {
@@ -56,6 +57,13 @@ export class Tab2Page implements OnInit {
     }
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
+      this.initializeSessionDB();
+    }
+  }
+
+  // Initialize user's session from DB if it exist
+  initializeSessionDB() {
+    this.presentLoading('Loading datas ...').then(() => {
       this.spotifyApi.getMe().then((response) => {
         this.userProfilePhoto = response.images[0].url;
         if (this.userProfilePhoto === undefined) {
@@ -64,72 +72,68 @@ export class Tab2Page implements OnInit {
         this.email = response.email;
         this.name = response.display_name;
         this.url = response.external_urls.spotify;
-      });
-      this.autoSearchFavGenres();
-    }
-    this.prefService.getAllUsersPreference().subscribe(datas => {
-      if (datas !== undefined) {
-        for (const data of datas) {
-          if (data.email === this.email) {
-            this.favGenresSelected = data.favoriteGenres;
-            this.hatedGenresSelected = data.hatedGenres;
-            this.shared.setFavGenres(this.favGenresSelected);
-            this.shared.setHatedGenres(this.hatedGenresSelected);
-            this.shared.setFavSinger(data.favoriteSingers);
-            this.spotifyApi.getArtists(data.favoriteSingers).then((response) => {
-              if (response !== undefined) {
-                for (const artist of response.artists) {
-                  const dataArtist = {
-                    key: artist.id,
-                    image: artist.images[0].url,
-                    name: artist.name,
-                    checked: true
-                  };
-                  this.selectedFavArtist.push(dataArtist);
+        this.country = response.country;
+        this.id = response.id;
+      }).then(() => {
+        this.prefService.getUserPreferences(this.id).then(result => {
+          if (result !== undefined) {
+            if (result.favoriteGenres !== undefined) {
+              this.favGenresSelected = result.favoriteGenres;
+              this.shared.setFavGenres(this.favGenresSelected);
+            }
+            if (result.hatedGenres !== undefined) {
+              this.hatedGenresSelected = result.hatedGenres;
+              this.shared.setHatedGenres(this.hatedGenresSelected);
+            }
+            if (result.favoriteSingers !== undefined) {
+              this.shared.setFavSinger(result.favoriteSingers);
+              this.spotifyApi.getArtists(result.favoriteSingers).then((response) => {
+                if (response !== undefined) {
+                  for (const artist of response.artists) {
+                    const dataArtist = {
+                      key: artist.id,
+                      image: artist.images[0].url,
+                      name: artist.name,
+                      checked: true
+                    };
+                    this.selectedFavArtist.push(dataArtist);
+                  }
                 }
-              }
-            });
+              });
+            }
             this.userExist = true;
-            break;
           }
-        }
-      }
-      this.initializeGenresSeeds();
+        }).then(() => {
+          this.initializeGenresSeeds();
+          this.autoSearchFavGenres();
+          this.loadingCtrl.dismiss();
+        });
+      });
     });
   }
 
-
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
-    if (this.waitUserPreferences) {
-      if (!this.userExist) {
-        this.alertAddPreferences('Add preferences', 'Do you want to add this preferences?');
+    const favArist = [];
+    for (let i = 0; i < this.selectedFavArtist.length; i++) {
+      favArist[i] = this.selectedFavArtist[i].key;
+    }
+    if ((this.favGenresSelected.length > 0 && this.hatedGenresSelected.length > 0) ||
+      favArist.length > 0) {
+      const pref: UserPreferences = {
+        favoriteGenres: this.favGenresSelected,
+        favoriteSingers: favArist,
+        hatedGenres: this.hatedGenresSelected
+      }
+      if (this.userExist) {
+        this.prefService.updatePreferences(pref, this.id);
       }
       else {
-        this.alertDenied('Denied!', 'You can\'t update your preferences');
-      }
-    }
-    else {
-      const favArist = [];
-      for (let i = 0; i < this.selectedFavArtist.length; i++) {
-        favArist[i] = this.selectedFavArtist[i].key;
-      }
-      if ((this.favGenresSelected.length > 0 && this.hatedGenresSelected.length > 0) ||
-        favArist.length > 0) {
-        const addUserFirebaseData = {
-          email: this.email,
-          favoriteGenres: this.favGenresSelected,
-          favoriteSingers: favArist,
-          hatedGenres: this.hatedGenresSelected
-        }
-        this.prefService.addUserPreferences(addUserFirebaseData).then(() => {
-          this.alertSuccess('Success', 'Your preferences has been added');
-          this.shared.setFavGenres(this.favGenresSelected);
-          this.shared.setHatedGenres(this.hatedGenresSelected);
-          this.shared.setFavSinger(favArist);
-          this.waitUserPreferences = true;
-          this.userExist = true;
-        });
+        this.prefService.uploadPreferences(pref, this.id);
+        this.userExist = true;
+        this.shared.setFavGenres(this.favGenresSelected);
+        this.shared.setHatedGenres(this.hatedGenresSelected);
+        this.shared.setFavSinger(favArist);
       }
     }
   }
@@ -223,18 +227,7 @@ export class Tab2Page implements OnInit {
           }
         }
       })
-      if (this.initUserPref) {
-        this.initializePreferences();
-        this.initUserPref = false;
-      };
     }
-  }
-
-  // This function initialize user preferences if he/she had
-  // previously choosen them
-  initializePreferences() {
-    this.favGenresSelected = this.shared.getFavGenres();
-    this.hatedGenresSelected = this.shared.getHatedGenres();
   }
 
   // This function open Div of artist preference
@@ -479,73 +472,12 @@ export class Tab2Page implements OnInit {
     await alert.present();
   }
 
-  /* ALERT LOGOUT */
-  async alertAddPreferences(head: string, text: string) {
-    const alert = await this.alertController.create({
-      header: head,
-      cssClass: 'alertClassPrimary',
-      message: text,
-      buttons: [
-        {
-          text: 'Yes',
-          cssClass: 'alertConfirm',
-          handler: () => {
-            this.waitUserPreferences = false;
-            this.onClickSubmit();
-          }
-        },
-        {
-          text: 'No',
-          cssClass: 'alertMedium',
-        }
-      ],
+  // Loading data
+  async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
     });
-    await alert.present();
-  }
-
-  /* ALERT LOGOUT */
-  async alertDenied(head: string, text: string) {
-    const alert = await this.alertController.create({
-      header: head,
-      cssClass: 'alertClassDanger',
-      message: text,
-      buttons: [
-        {
-          text: 'Ok',
-          cssClass: 'alertConfirm'
-        }
-      ],
-    });
-    await alert.present();
-
-    // timeout di 2 secondi per l'alert
-    setTimeout(() => {
-      alert.dismiss();
-    }, 2000);
-  }
-
-  /* ALERT SUCCESS */
-  async alertSuccess(head: string, text: string) {
-    const alert = await this.alertController.create({
-      header: head,
-      cssClass: 'alertClassSuccess',
-      message: text,
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alertConfirm',
-          handler: () => {
-            window.location.reload();
-          }
-        }
-      ],
-    });
-    await alert.present();
-
-    // timeout di 2 secondi per l'alert
-    setTimeout(() => {
-      alert.dismiss();
-    }, 10000);
+    return await loading.present();
   }
 
   /* REFRESH PAGE */

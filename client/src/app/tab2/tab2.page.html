@@ -117,7 +117,7 @@
               </ion-label>
               <ion-checkbox
                 [value]="item.name"
-                [disabled]="!item.checked && this.selectedFavArtist.length >= 5 || this.userExist"
+                [disabled]="!item.checked && this.selectedFavArtist.length >= 5"
                 slot="end"
                 [checked]="item.checked"
                 (ionChange)="updateSingerPref('search', item.key)"
@@ -150,7 +150,6 @@
               [value]="item.name"
               slot="end"
               [checked]="item.checked"
-              [disabled]="this.userExist"
               (ionChange)="updateSingerPref('favorite', item.key)"
             ></ion-checkbox>
           </ion-item>
@@ -160,14 +159,12 @@
       <ion-item
         color="primary"
         lines="full"
-        *ngIf="this.selectedFavArtist.length < 5 && !this.userExist"
+        *ngIf="this.selectedFavArtist.length < 5"
       >
         Suggests
       </ion-item>
       <ng-container *ngFor="let item of suggestfavArtist">
-        <ion-item
-          *ngIf="!item.checked && this.selectedFavArtist.length < 5 && !this.userExist"
-        >
+        <ion-item *ngIf="!item.checked && this.selectedFavArtist.length < 5">
           <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
             <img src="{{item.image}}" />
           </ion-avatar>
@@ -221,7 +218,7 @@
               [value]="item.key"
               slot="start"
               [checked]="item.checkedFav"
-              [disabled]="item.checkedHate || this.userExist"
+              [disabled]="item.checkedHate"
               (ionChange)="updateGenresPref('favorite', item.key)"
             ></ion-checkbox>
           </ion-item>
@@ -259,7 +256,7 @@
               [value]="item.key"
               slot="start"
               [checked]="item.checkedHate"
-              [disabled]="item.checkedFav || this.userExist"
+              [disabled]="item.checkedFav"
               (ionChange)="updateGenresPref('hated', item.key)"
             ></ion-checkbox>
           </ion-item>
@@ -276,8 +273,8 @@
     <ion-button
       (click)="onClickSubmit()"
       class="submit"
-      [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 || this.userExist"
-      [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 || this.userExist? 'medium':'primary'"
+      [disabled]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0"
+      [color]="(this.favGenresSelected.length === 0 || this.hatedGenresSelected.length === 0) && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
     >
       Confirm
     </ion-button>
