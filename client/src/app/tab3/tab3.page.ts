@@ -27,8 +27,8 @@ export class Tab3Page {
 
   // change your starting and target mood function
   goToMoodSet() {
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
+    this.logoutService.removeCurrentMood();
+    this.logoutService.removeTargetMood();
     this.navCtrl.navigateRoot('/mood');
   }
 

@@ -1,3 +1,5 @@
+import { ManumissionCheckService } from './../services/manumission-check.service';
+import { UserProfile } from './../interfaces/UserProfile';
 import { LogoutService } from './../services/logout.service';
 import { PreferencesServices } from '../services/preferences.service';
 import { SharedParamsService } from './../services/shared-params.service';
@@ -11,18 +13,13 @@ import { UserPreferences } from '../interfaces/UserPreferences';
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss']
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page {
 
   // spotifyAPI
   spotifyApi = new SpotifyWebApi();
 
   // User varialbes
-  userProfilePhoto: any;
-  email: string;
-  name: string;
-  country: string;
-  url: string;
-  id: string;
+  userProfile: UserProfile;
 
   // Artists variables
   topArtistsMap = {};
@@ -43,73 +40,43 @@ export class Tab2Page implements OnInit {
   showFavoritGenres = 'Show';
   showHatedGenres = 'Show';
 
-  // User prefereces
-  userExist = false;
-
   constructor(private shared: SharedParamsService, private alertController: AlertController,
     private prefService: PreferencesServices, private logoutService: LogoutService,
-    private loadingCtrl: LoadingController) {
-  }
-
-  ngOnInit() {
+    private loadingCtrl: LoadingController, private manumission: ManumissionCheckService) {
+    this.manumission.checkManumission();
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
-      this.initializeSessionDB();
-    }
-  }
-
-  // Initialize user's session from DB if it exist
-  initializeSessionDB() {
-    this.presentLoading('Loading datas ...').then(() => {
-      this.spotifyApi.getMe().then((response) => {
-        this.userProfilePhoto = response.images[0].url;
-        if (this.userProfilePhoto === undefined) {
-          this.userProfilePhoto = 'assets/img/noImgAvailable.png';
+      this.userProfile = this.shared.getUserProfile();
+      console.log(this.userProfile);
+      if (this.userProfile.preferences !== undefined) {
+        if (this.userProfile.preferences.favoriteGenres !== undefined) {
+          this.favGenresSelected = this.userProfile.preferences.favoriteGenres;
         }
-        this.email = response.email;
-        this.name = response.display_name;
-        this.url = response.external_urls.spotify;
-        this.country = response.country;
-        this.id = response.id;
-      }).then(() => {
-        this.prefService.getUserPreferences(this.id).then(result => {
-          if (result !== undefined) {
-            if (result.favoriteGenres !== undefined) {
-              this.favGenresSelected = result.favoriteGenres;
-              this.shared.setFavGenres(this.favGenresSelected);
+        if (this.userProfile.preferences.hatedGenres !== undefined) {
+          this.hatedGenresSelected = this.userProfile.preferences.hatedGenres;
+        }
+        if (this.userProfile.preferences.favoriteSingers !== undefined) {
+          this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
+            if (response !== undefined) {
+              for (const artist of response.artists) {
+                const dataArtist = {
+                  key: artist.id,
+                  image: artist.images[0].url,
+                  name: artist.name,
+                  checked: true
+                };
+                this.selectedFavArtist.push(dataArtist);
+              }
             }
-            if (result.hatedGenres !== undefined) {
-              this.hatedGenresSelected = result.hatedGenres;
-              this.shared.setHatedGenres(this.hatedGenresSelected);
-            }
-            if (result.favoriteSingers !== undefined) {
-              this.shared.setFavSinger(result.favoriteSingers);
-              this.spotifyApi.getArtists(result.favoriteSingers).then((response) => {
-                if (response !== undefined) {
-                  for (const artist of response.artists) {
-                    const dataArtist = {
-                      key: artist.id,
-                      image: artist.images[0].url,
-                      name: artist.name,
-                      checked: true
-                    };
-                    this.selectedFavArtist.push(dataArtist);
-                  }
-                }
-              });
-            }
-            this.userExist = true;
-          }
-        }).then(() => {
-          this.initializeGenresSeeds();
-          this.autoSearchFavGenres();
-          this.loadingCtrl.dismiss();
-        });
-      });
-    });
+          });
+        }
+      }
+      this.initializeGenresSeeds();
+      this.autoSearchFavGenres();
+    }
   }
 
   // Function that submit the user preferences (used for cold start)
@@ -118,23 +85,26 @@ export class Tab2Page implements OnInit {
     for (let i = 0; i < this.selectedFavArtist.length; i++) {
       favArist[i] = this.selectedFavArtist[i].key;
     }
-    if ((this.favGenresSelected.length > 0 && this.hatedGenresSelected.length > 0) ||
-      favArist.length > 0) {
-      const pref: UserPreferences = {
-        favoriteGenres: this.favGenresSelected,
-        favoriteSingers: favArist,
-        hatedGenres: this.hatedGenresSelected
+    const pref: UserPreferences = {
+      favoriteGenres: this.favGenresSelected,
+      favoriteSingers: favArist,
+      hatedGenres: this.hatedGenresSelected
+    }
+    if (this.userProfile.preferences !== undefined) {
+      this.prefService.updatePreferences(pref, this.userProfile.ID);
+    }
+    else {
+      this.prefService.uploadPreferences(pref, this.userProfile.ID);
+      this.userProfile = {
+        ID: this.userProfile.ID,
+        country: this.userProfile.country,
+        url: this.userProfile.url,
+        email: this.userProfile.email,
+        profilePhoto: this.userProfile.profilePhoto,
+        name: this.userProfile.name,
+        preferences: pref
       }
-      if (this.userExist) {
-        this.prefService.updatePreferences(pref, this.id);
-      }
-      else {
-        this.prefService.uploadPreferences(pref, this.id);
-        this.userExist = true;
-        this.shared.setFavGenres(this.favGenresSelected);
-        this.shared.setHatedGenres(this.hatedGenresSelected);
-        this.shared.setFavSinger(favArist);
-      }
+      this.shared.setUserProfile(this.userProfile);
     }
   }
 
@@ -149,6 +119,7 @@ export class Tab2Page implements OnInit {
         if (response !== undefined) {
           for (const [index, item] of response.items.entries()) {
             // cycle on all the genres of the artist
+            let checked = false;
             for (const genres of item.genres) {
               if (this.topGenresMap[genres] === undefined) {
                 this.topGenresMap[genres] = 1;
@@ -158,11 +129,19 @@ export class Tab2Page implements OnInit {
               }
             }
             if (index < 10) {
+              if (this.userProfile.preferences !== undefined) {
+                for (const pref of this.userProfile.preferences.favoriteSingers) {
+                  if (pref === item.id) {
+                    checked = true;
+                    break;
+                  }
+                }
+              }
               const data = {
                 key: item.id,
                 image: item.images[0].url,
                 name: item.name,
-                checked: false
+                checked
               };
               this.suggestfavArtist.push(data);
             }
@@ -202,19 +181,21 @@ export class Tab2Page implements OnInit {
           for (const genres of response.genres) {
             let checkFav = false;
             let checkHate = false;
-            if (this.shared.getFavGenres() !== null) {
-              for (const favGen of this.shared.getFavGenres()) {
-                if (genres === favGen) {
-                  checkFav = true;
-                  break;
+            if (this.userProfile.preferences !== undefined) {
+              if (this.userProfile.preferences.favoriteGenres !== undefined) {
+                for (const favGen of this.userProfile.preferences.favoriteGenres) {
+                  if (genres === favGen) {
+                    checkFav = true;
+                    break;
+                  }
                 }
               }
-            }
-            if (this.shared.getHatedGenres() !== null) {
-              for (const hateGen of this.shared.getHatedGenres()) {
-                if (genres === hateGen) {
-                  checkHate = true;
-                  break;
+              if (this.userProfile.preferences.hatedGenres !== undefined) {
+                for (const hateGen of this.userProfile.preferences.hatedGenres) {
+                  if (genres === hateGen) {
+                    checkHate = true;
+                    break;
+                  }
                 }
               }
             }
@@ -226,7 +207,7 @@ export class Tab2Page implements OnInit {
             this.genresAvailable.push(data);
           }
         }
-      })
+      });
     }
   }
 
@@ -447,6 +428,7 @@ export class Tab2Page implements OnInit {
     await alert.present();
   }
 
+  /** ALERTS */
   /* ALERT LOGOUT */
   async alertLogout() {
     const alert = await this.alertController.create({

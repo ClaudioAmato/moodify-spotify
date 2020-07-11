@@ -1,3 +1,5 @@
+import { ManumissionCheckService } from './../services/manumission-check.service';
+import { UserProfile } from './../interfaces/UserProfile';
 import { UploadJSONService } from './../services/upload-json.service';
 import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
@@ -60,7 +62,9 @@ export class Tab1Page {
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
-    private jsonService: UploadJSONService, private loadingCtrl: LoadingController) {
+    private jsonService: UploadJSONService, private loadingCtrl: LoadingController,
+    private manumission: ManumissionCheckService) {
+    this.manumission.checkManumission();
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -74,34 +78,26 @@ export class Tab1Page {
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
     this.presentLoading('Loading datas ...').then(() => {
-      this.getUserId().then(id => {
-        this.idUser = id;
-        this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear();
-        this.jsonService.getUserSession(this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood())
-          .then(result => {
-            if (result !== undefined) {
-              for (const values of result.triples) {
-                const triple = new Tripla();
-                triple.setPreviusMood(values.previusMood);
-                triple.setCurrentSpotifyData(values.spotifyDataCurrent);
-                triple.setPreviousSpotifyData(values.spotifyDataPrevious);
-                this.arrayTriple.push(triple);
-                this.feedback = triple.previusMood;
-              }
-              this.userExist = true;
-              this.firstListen = false;
+      const userProfile: UserProfile = this.shared.getUserProfile();
+      this.idUser = userProfile.ID;
+      this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear();
+      this.jsonService.getUserSession(this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood())
+        .then(result => {
+          if (result !== undefined) {
+            for (const values of result.triples) {
+              const triple = new Tripla();
+              triple.setPreviusMood(values.previusMood);
+              triple.setCurrentSpotifyData(values.spotifyDataCurrent);
+              triple.setPreviousSpotifyData(values.spotifyDataPrevious);
+              this.arrayTriple.push(triple);
+              this.feedback = triple.previusMood;
             }
-            this.loadingCtrl.dismiss();
-          });
-      });
+            this.userExist = true;
+            this.firstListen = false;
+          }
+          this.loadingCtrl.dismiss();
+        });
     });
-  }
-
-  // Asyncronous function to get userID from spotify
-  async getUserId() {
-    const response = await this.spotifyApi.getMe();
-    const url = await response.id;
-    return (url.substring(url.lastIndexOf('/') + 1, url.length));
   }
 
   // this function let user searching an artist
@@ -248,6 +244,7 @@ export class Tab1Page {
     }
     else {
       this.jsonService.uploadSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
+      this.userExist = true;
     }
   }
 
@@ -370,7 +367,7 @@ export class Tab1Page {
   async noPreview() {
     const alert = await this.alertController.create({
       header: 'Error',
-      cssClass: 'alertClassDanger',
+      cssClass: 'alertClassError',
       message: 'No preview is available for this song',
       buttons: [
         {
@@ -386,7 +383,7 @@ export class Tab1Page {
   async alertTokenExpired() {
     const alert = await this.alertController.create({
       header: 'Error',
-      cssClass: 'alertClassDanger',
+      cssClass: 'alertClassError',
       message: 'Your token is expired. Click ok to refresh it!',
       buttons: [
         {
@@ -418,10 +415,8 @@ export class Tab1Page {
           text: 'Yes',
           cssClass: 'alertMedium',
           handler: () => {
-            this.arrayTriple.pop();
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
-            this.realizeTable();
           }
         },
         {

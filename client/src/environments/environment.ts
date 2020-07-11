@@ -22,10 +22,7 @@ export const keyPreviousDay = 'previousDay';
 export const keyExpirationToken = 'expirationToken';
 export const keyCurrentMood = 'currentMood';
 export const keyTargetMood = 'targetMood';
-export const keyFavGenres = 'favGenres';
-export const keyHatedGenres = 'hatedGenres';
-export const keyFavSinger = 'favSinger';
-export const keyIDuser = 'IDuser';
+export const keyUserProfile = 'userProfile';
 
 /*
  * For easier debugging in development mode, you can import the following file

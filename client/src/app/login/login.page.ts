@@ -1,6 +1,10 @@
+import { UserPreferences } from './../interfaces/UserPreferences';
+import { PreferencesServices } from './../services/preferences.service';
+import { UserProfile } from './../interfaces/UserProfile';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import { NavController, LoadingController } from '@ionic/angular';
+import SpotifyWebApi from 'spotify-web-api-js';
 
 @Component({
   selector: 'app-login',
@@ -9,10 +13,13 @@ import { NavController, LoadingController } from '@ionic/angular';
 })
 export class LoginPage {
 
+  // spotifyAPI
+  spotifyApi = new SpotifyWebApi();
+
   params: any;
   href: string;
 
-  constructor(private shared: SharedParamsService,
+  constructor(private shared: SharedParamsService, private prefService: PreferencesServices,
     private navCtrl: NavController, private loadingCtrl: LoadingController) {
     this.params = this.getHashParams();
     // if already logged
@@ -22,7 +29,7 @@ export class LoginPage {
         this.onClickLogin();
       }
       else {
-        this.checkSettedMood();
+        this.initializeSessionDB();
       }
     }
     // if it's a redirect
@@ -38,7 +45,7 @@ export class LoginPage {
         this.shared.setExpirationToken(new Date());
         this.shared.setToken(this.params.access_token);
         this.shared.setRefreashToken(this.params.refresh_token);
-        this.checkSettedMood();
+        this.initializeSessionDB();
       }).finally(() => {
         this.loadingCtrl.dismiss();
       });
@@ -65,6 +72,48 @@ export class LoginPage {
       e = r.exec(q);
     }
     return hashParams;
+  }
+
+  // Initialize user's session from DB if it exist
+  initializeSessionDB() {
+    this.spotifyApi.setAccessToken(this.shared.getToken());
+    let userProfile: UserProfile;
+    this.presentLoading('Loading datas ...').then(() => {
+      this.spotifyApi.getMe().then((response) => {
+        userProfile = {
+          ID: response.id,
+          country: response.country,
+          url: response.external_urls.spotify,
+          email: response.email,
+          profilePhoto: undefined ? 'assets/img/noImgAvailable.png' : response.images[0].url,
+          name: response.display_name,
+          preferences: undefined
+        }
+      }).then(() => {
+        this.prefService.getUserPreferences(userProfile.ID).then(result => {
+          if (result !== undefined) {
+            const userPreferences: UserPreferences = {
+              favoriteGenres: result.favoriteGenres,
+              hatedGenres: result.hatedGenres,
+              favoriteSingers: result.favoriteSingers
+            }
+            userProfile = {
+              ID: userProfile.ID,
+              country: userProfile.country,
+              url: userProfile.url,
+              email: userProfile.email,
+              profilePhoto: userProfile.profilePhoto,
+              name: userProfile.name,
+              preferences: userPreferences
+            }
+          }
+        }).then(() => {
+          this.shared.setUserProfile(userProfile);
+          this.loadingCtrl.dismiss();
+          this.checkSettedMood();
+        });
+      });
+    });
   }
 
   checkSettedMood() {

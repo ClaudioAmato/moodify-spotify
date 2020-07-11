@@ -1,6 +1,7 @@
+import { UserProfile } from './../interfaces/UserProfile';
 import {
   keyTargetMood, keyExpirationToken, keyToken, keyRefreshToken,
-  keyPreviousDay, keyFavGenres, keyHatedGenres, keyFavSinger, keyIDuser
+  keyPreviousDay, keyUserProfile
 } from './../../environments/environment';
 import { Injectable } from '@angular/core';
 import { keyCurrentMood } from 'src/environments/environment';
@@ -13,7 +14,7 @@ export class SharedParamsService {
   constructor() {
   }
 
-  /* SETTERS */
+  /* SETTERS TOKEN*/
   public setToken(data) {
     localStorage.setItem(keyToken, data);
   }
@@ -30,31 +31,7 @@ export class SharedParamsService {
     localStorage.setItem(keyPreviousDay, time);
   }
 
-  public setCurrentMood(currentMood) {
-    localStorage.setItem(keyCurrentMood, currentMood);
-  }
-
-  public setTargetMood(targetMood) {
-    localStorage.setItem(keyTargetMood, targetMood);
-  }
-
-  public setFavGenres(favGenres: string[]) {
-    localStorage.setItem(keyFavGenres, JSON.stringify(favGenres));
-  }
-
-  public setHatedGenres(hatedGenres: string[]) {
-    localStorage.setItem(keyHatedGenres, JSON.stringify(hatedGenres));
-  }
-
-  public setFavSinger(favSinger: string[]) {
-    localStorage.setItem(keyFavSinger, JSON.stringify(favSinger));
-  }
-
-  public setUserId(idUser) {
-    localStorage.setItem(keyIDuser, idUser);
-  }
-
-  /* GETTERS */
+  /* GETTERS TOKEN */
   public getRefreashToken() {
     return localStorage.getItem(keyRefreshToken);
   }
@@ -85,6 +62,16 @@ export class SharedParamsService {
     }
   }
 
+  /* SETTERS MOOD*/
+  public setCurrentMood(currentMood) {
+    localStorage.setItem(keyCurrentMood, currentMood);
+  }
+
+  public setTargetMood(targetMood) {
+    localStorage.setItem(keyTargetMood, targetMood);
+  }
+
+  /* GETTERS MOOD */
   public getCurrentMood() {
     return localStorage.getItem(keyCurrentMood);
   }
@@ -93,56 +80,13 @@ export class SharedParamsService {
     return localStorage.getItem(keyTargetMood);
   }
 
-  public getFavGenres() {
-    return JSON.parse(localStorage.getItem(keyFavGenres));
+  /* SETTERS USER PROFILE */
+  public setUserProfile(userProfile: UserProfile) {
+    localStorage.setItem(keyUserProfile, JSON.stringify(userProfile));
   }
 
-  public getHatedGenres() {
-    return JSON.parse(localStorage.getItem(keyHatedGenres));
-  }
-
-  public getFavSinger() {
-    return JSON.parse(localStorage.getItem(keyFavSinger));
-  }
-
-  public getUserId() {
-    return localStorage.getItem(keyIDuser);
-  }
-
-  /* REMOVERS */
-  public removeToken() {
-    localStorage.removeItem(keyToken);
-  }
-
-  public removeRefreashToken() {
-    localStorage.removeItem(keyRefreshToken);
-  }
-
-  public removeExpirationToken() {
-    localStorage.removeItem(keyExpirationToken);
-  }
-
-  public removeCurrentMood() {
-    localStorage.removeItem(keyCurrentMood);
-  }
-
-  public removeTargetMood() {
-    localStorage.removeItem(keyTargetMood);
-  }
-
-  public removeFavGenres() {
-    localStorage.removeItem(keyFavGenres);
-  }
-
-  public removeHatedGenres() {
-    localStorage.removeItem(keyHatedGenres);
-  }
-
-  public removeFavSinger() {
-    localStorage.removeItem(keyFavSinger);
-  }
-
-  public removeUserId() {
-    localStorage.removeItem(keyIDuser);
+  /* GETTERS USER PROFILE */
+  public getUserProfile() {
+    return JSON.parse(localStorage.getItem(keyUserProfile));
   }
 }

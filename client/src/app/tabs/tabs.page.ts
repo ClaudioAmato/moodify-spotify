@@ -1,7 +1,8 @@
+import { LogoutService } from './../services/logout.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { MoodGuardService } from './../services/mood-guard.service';
 import { Component } from '@angular/core';
-import { Platform, NavController, AlertController } from '@ionic/angular';
+import { NavController, AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tabs',
@@ -15,31 +16,12 @@ export class TabsPage {
   height: number;
   i: number;
 
-  constructor(private platform: Platform, private shared: SharedParamsService,
+  constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private navCtrl: NavController, private alertController: AlertController,
     private moodGuard: MoodGuardService) {
     if (this.moodGuard.checkMood()) {
       if (!this.moodGuard.checkSameDay()) {
         this.alertNewDay();
-      }
-    }
-    if (platform.is('cordova')) {
-      this.width = window.innerWidth;
-      this.height = window.innerHeight;
-
-      if (this.width > this.height) {
-        const ratio = this.width / this.height;
-        // landscape
-        this.splashLandscape = true;
-      } else {
-        // portrait
-        const ratio = this.height / this.width;
-        this.splashPortrait = true;
-        if (ratio < 2) {
-          this.i = 1;
-        } else {
-          this.i = 2;
-        }
       }
     }
   }
@@ -53,8 +35,8 @@ export class TabsPage {
 
   // change your starting and target mood function
   goToMoodSet() {
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
+    this.logoutService.removeCurrentMood();
+    this.logoutService.removeTargetMood();
     this.shared.setPreviousDay(this.shared.getExpirationToken());
     this.navCtrl.navigateRoot('/mood');
   }

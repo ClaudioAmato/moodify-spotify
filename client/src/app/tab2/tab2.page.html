@@ -33,7 +33,7 @@
 
     <!-- PHOTO -->
     <ion-avatar class="myavatar">
-      <img src="{{this.userProfilePhoto}}" />
+      <img src="{{this.userProfile.profilePhoto}}" />
     </ion-avatar>
 
     <ion-list lines="full">
@@ -43,7 +43,7 @@
           <div class="field">
             Email
           </div>
-          <div class="nameField">{{this.email}}</div>
+          <div class="nameField">{{this.userProfile.email}}</div>
         </div>
       </ion-item>
 
@@ -53,7 +53,7 @@
           <div class="field">
             Name
           </div>
-          <div class="nameField">{{this.name}}</div>
+          <div class="nameField">{{this.userProfile.name}}</div>
         </div>
       </ion-item>
 
@@ -63,7 +63,7 @@
           <div class="field">
             Country
           </div>
-          <div class="nameField">{{this.country}}</div>
+          <div class="nameField">{{this.userProfile.country}}</div>
         </div>
       </ion-item>
 
@@ -73,7 +73,7 @@
           <div class="field">
             URL
           </div>
-          <div class="nameField">{{this.url}}</div>
+          <div class="nameField">{{this.userProfile.url}}</div>
         </div>
       </ion-item>
     </ion-list>
@@ -225,7 +225,7 @@
         </ng-container>
       </div>
     </ng-container>
-
+    <ion-item-divider> </ion-item-divider>
     <!-- HATED Genres -->
     <ion-item lines="full" class="itemLineButton">
       <div class="itemDivButton">

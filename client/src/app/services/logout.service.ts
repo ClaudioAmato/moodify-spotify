@@ -1,4 +1,5 @@
-import { SharedParamsService } from './shared-params.service';
+import { keyCurrentMood } from 'src/environments/environment';
+import { keyToken, keyRefreshToken, keyExpirationToken, keyTargetMood, keyUserProfile } from './../../environments/environment';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -6,18 +7,44 @@ import { Injectable } from '@angular/core';
 })
 export class LogoutService {
 
-  constructor(private shared: SharedParamsService) { }
+  constructor() { }
+
+  /* REMOVERS */
+  public removeToken() {
+    localStorage.removeItem(keyToken);
+  }
+
+  public removeRefreashToken() {
+    localStorage.removeItem(keyRefreshToken);
+  }
+
+  public removeExpirationToken() {
+    localStorage.removeItem(keyExpirationToken);
+  }
+
+  public removeCurrentMood() {
+    localStorage.removeItem(keyCurrentMood);
+  }
+
+  public removeTargetMood() {
+    localStorage.removeItem(keyTargetMood);
+  }
+
+  public removeUser() {
+    localStorage.removeItem(keyUserProfile);
+  }
+
+  public removeAllShared() {
+    this.removeToken();
+    this.removeRefreashToken();
+    this.removeExpirationToken();
+    this.removeCurrentMood();
+    this.removeTargetMood();
+    this.removeUser();
+  }
 
   logout() {
-    this.shared.removeToken();
-    this.shared.removeRefreashToken();
-    this.shared.removeExpirationToken();
-    this.shared.removeCurrentMood();
-    this.shared.removeTargetMood();
-    this.shared.removeFavGenres();
-    this.shared.removeFavSinger();
-    this.shared.removeHatedGenres();
-    this.shared.removeUserId();
+    this.removeAllShared();
     if (window.location.href.includes('localhost')) {
       window.location.href = 'http://localhost:8100/login';
     }

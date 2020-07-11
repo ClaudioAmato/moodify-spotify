@@ -27,7 +27,7 @@ export class PreferencesServices {
         this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
       }).catch(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassDanger');
+        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassError');
       });
     });
   }
@@ -63,7 +63,7 @@ export class PreferencesServices {
         this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
       }).catch(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassDanger');
+        this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassError');
       });
     });
   }

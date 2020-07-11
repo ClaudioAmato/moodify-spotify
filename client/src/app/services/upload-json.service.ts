@@ -25,7 +25,7 @@ export class UploadJSONService {
         this.alertSuccess('Session uploaded', 'Your session has been uploaded', 'alertClassSuccess');
       }).catch(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Error', 'Your session has not been uploaded', 'alertClassDanger');
+        this.alertSuccess('Error', 'Your session has not been uploaded', 'alertClassError');
       });
     });
   }
@@ -57,7 +57,7 @@ export class UploadJSONService {
         this.alertSuccess('Session updated', 'Your session has been updated', 'alertClassSuccess');
       }).catch(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Error', 'Your session has not been updated', 'alertClassDanger');
+        this.alertSuccess('Error', 'Your session has not been updated', 'alertClassError');
       });
     });
   }
