@@ -176,14 +176,24 @@
     </div>
   </ion-card>
   <div style="text-align: center; display: grid;">
-    <ion-label color="warning" *ngIf="this.numFeedback < 3"
-      >Listen at least {{3 - this.numFeedback}} songs</ion-label
+    <ion-label
+      color="warning"
+      *ngIf="this.numFeedback < 20 && this.userInDB.checked"
+      >Listen at least {{20 - this.numFeedback}} songs</ion-label
+    >
+    <ion-label
+      color="primary"
+      *ngIf="this.numFeedback >= 20 && this.numFeedback < 22"
+      >You can keep listening to the music before ending session</ion-label
+    >
+    <ion-label color="primary" *ngIf="this.numFeedback >= 22"
+      >When your are done click on "End Session"</ion-label
     >
     <ion-button
       (click)="onClickEndSession()"
       class="submit"
-      [disabled]="this.numFeedback < 3"
-      [color]="this.numFeedback < 3 ? 'medium':'primary'"
+      [disabled]="this.numFeedback < 20"
+      [color]="this.numFeedback < 20 ? 'medium':'primary'"
     >
       End Session
     </ion-button>

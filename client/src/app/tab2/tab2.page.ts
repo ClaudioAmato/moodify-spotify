@@ -50,7 +50,6 @@ export class Tab2Page {
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
       this.userProfile = this.shared.getUserProfile();
-      console.log(this.userProfile);
       if (this.userProfile.preferences !== undefined) {
         if (this.userProfile.preferences.favoriteGenres !== undefined) {
           this.favGenresSelected = this.userProfile.preferences.favoriteGenres;

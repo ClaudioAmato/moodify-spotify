@@ -18,7 +18,7 @@ export class UploadJSONService {
 
   uploadSession(UserData: JsonData, id: string, date: string, startingMood: string, targetMood: string) {
     this.presentLoading('Loading datas ...').then(() => {
-      firebase.database().ref('users/' + id + '/' + date + '/' + startingMood + '/' + targetMood).set({
+      firebase.database().ref('session/' + id + '/' + date + '/' + startingMood + '/' + targetMood).set({
         triples: UserData.triples
       }).then(() => {
         this.loadingCtrl.dismiss();
@@ -33,7 +33,7 @@ export class UploadJSONService {
   async getUserSession(userID: string, date: string, startingMood: string, targetMood: string) {
     let user: JsonData;
     const db = firebase.database()
-    const ref = db.ref('/users/' + userID + '/' + date + '/' + startingMood + '/' + targetMood)
+    const ref = db.ref('/session/' + userID + '/' + date + '/' + startingMood + '/' + targetMood)
 
     const snapshot = await ref.once('value');
     const values = snapshot.val();
@@ -50,7 +50,7 @@ export class UploadJSONService {
 
   updateSession(UserData: JsonData, id: string, date: string, startingMood: string, targetMood: string) {
     this.presentLoading('Loading datas ...').then(() => {
-      firebase.database().ref('users/' + id + '/' + date + '/' + startingMood + '/' + targetMood).update({
+      firebase.database().ref('session/' + id + '/' + date + '/' + startingMood + '/' + targetMood).update({
         triples: UserData.triples
       }).then(() => {
         this.loadingCtrl.dismiss();

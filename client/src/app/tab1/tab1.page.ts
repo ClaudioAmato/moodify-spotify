@@ -42,7 +42,7 @@ export class Tab1Page {
   idUser = '';
   _dataHandler: any;
   currentDay: string
-  userExist = false;
+  userInDB = { exist: false, checked: false };
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -80,7 +80,9 @@ export class Tab1Page {
     this.presentLoading('Loading datas ...').then(() => {
       const userProfile: UserProfile = this.shared.getUserProfile();
       this.idUser = userProfile.ID;
-      this.currentDay = new Date().getDay() + '-' + new Date().getMonth() + '-' + new Date().getFullYear();
+      this.currentDay = String(new Date().getDate()).padStart(2, '0') + '-'
+        + String(new Date().getMonth() + 1).padStart(2, '0') + '-'
+        + new Date().getFullYear();
       this.jsonService.getUserSession(this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
@@ -92,8 +94,18 @@ export class Tab1Page {
               this.arrayTriple.push(triple);
               this.feedback = triple.previusMood;
             }
-            this.userExist = true;
+            this.userInDB = {
+              exist: true,
+              checked: true
+            }
             this.firstListen = false;
+            this.numFeedback = 17;
+          }
+          else {
+            this.userInDB = {
+              exist: false,
+              checked: true
+            }
           }
           this.loadingCtrl.dismiss();
         });
@@ -239,12 +251,12 @@ export class Tab1Page {
     const trainingJSON: JsonData = {
       triples: this.arrayTriple.map((obj) => { return Object.assign({}, obj) })
     }
-    if (this.userExist) {
+    if (this.userInDB.exist) {
       this.jsonService.updateSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
     }
     else {
       this.jsonService.uploadSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
-      this.userExist = true;
+      this.userInDB.exist = true;
     }
   }
 
