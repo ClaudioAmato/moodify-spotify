@@ -4,7 +4,7 @@ import { UploadJSONService } from './../services/upload-json.service';
 import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
-import { Tripla } from '../classes/tripla';
+import { Triple } from '../classes/Triple';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -24,8 +24,8 @@ export class Tab1Page {
   // search variables
   searchTrack: Array<{ key: string, image: any, name: string }> = [];
 
-  // triple used for the reinforcement learning
-  arrayTriple: Array<Tripla> = [];
+  // pair used for the reinforcement learning
+  mapFeatureEmotion: Array<Triple> = [];
   currentMusicplaying: {
     uriID: string,
     idTrack: string,
@@ -38,11 +38,12 @@ export class Tab1Page {
     preview_url: string,
     external_urls: string
   } = null;
-  firstListen = true
   idUser = '';
   _dataHandler: any;
-  currentDay: string
-  userInDB = { exist: false, checked: false };
+  userInDB = { exist: true, checked: true };
+
+  // features desired
+  desiredFeature: TrackDatas;
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -80,26 +81,16 @@ export class Tab1Page {
     this.presentLoading('Loading datas ...').then(() => {
       const userProfile: UserProfile = this.shared.getUserProfile();
       this.idUser = userProfile.ID;
-      this.currentDay = String(new Date().getDate()).padStart(2, '0') + '-'
-        + String(new Date().getMonth() + 1).padStart(2, '0') + '-'
-        + new Date().getFullYear();
-      this.jsonService.getUserSession(this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood())
+      this.jsonService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
-            for (const values of result.triples) {
-              const triple = new Tripla();
-              triple.setPreviusMood(values.previusMood);
-              triple.setCurrentSpotifyData(values.spotifyDataCurrent);
-              triple.setPreviousSpotifyData(values.spotifyDataPrevious);
-              this.arrayTriple.push(triple);
-              this.feedback = triple.previusMood;
-            }
+            this.desiredFeature = result;
             this.userInDB = {
               exist: true,
               checked: true
             }
-            this.firstListen = false;
-            this.numFeedback = 17;
+            console.log(this.desiredFeature);
+
           }
           else {
             this.userInDB = {
@@ -202,7 +193,6 @@ export class Tab1Page {
       }
       this.feedbackEmoji = false;
       this.divEmoji = true;
-      this.realizeTable();
     }).catch(err => {
       console.log(err);
     });
@@ -210,18 +200,9 @@ export class Tab1Page {
 
   // this function is used to set Triple for the table
   realizeTable() {
-    const triple = new Tripla();
-    triple.setPreviusMood(this.feedback);
-
-    let prevSpotifyFeature: TrackDatas;
-    if (this.arrayTriple.length > 0) {
-      prevSpotifyFeature = this.arrayTriple[this.arrayTriple.length - 1].getCurrentSpotifyData();
-      triple.setPreviousSpotifyData(prevSpotifyFeature);
-    }
+    const triple = new Triple();
     this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
-      const currentSpotifyFeature: TrackDatas = {
-        id: this.currentMusicplaying.idTrack,
-        duration_ms: response.duration_ms,
+      let SpotifyFeature: TrackDatas = {
         key: response.key,
         mode: response.mode,
         time_signature: response.time_signature,
@@ -235,29 +216,66 @@ export class Tab1Page {
         valence: response.valence,
         tempo: response.tempo,
       }
-      triple.setCurrentSpotifyData(currentSpotifyFeature);
-      if (this.firstListen && this.arrayTriple.length > 0) {
-        this.arrayTriple.pop();
-        this.firstListen = false;
+      let found = false;
+      for (const item of this.mapFeatureEmotion) {
+        if (item.getMood() === this.feedback) {
+          const previous: TrackDatas = item.getSpotifyFeatures();
+          SpotifyFeature = {
+            key: (SpotifyFeature.key + previous.key),
+            mode: (SpotifyFeature.mode + previous.mode),
+            time_signature: (SpotifyFeature.time_signature + previous.time_signature),
+            acousticness: (SpotifyFeature.acousticness + previous.acousticness),
+            danceability: (SpotifyFeature.danceability + previous.danceability),
+            energy: (SpotifyFeature.energy + previous.energy),
+            instrumentalness: (SpotifyFeature.instrumentalness + previous.instrumentalness),
+            liveness: (SpotifyFeature.liveness + previous.liveness),
+            loudness: (SpotifyFeature.loudness + previous.loudness),
+            speechiness: (SpotifyFeature.speechiness + previous.speechiness),
+            valence: (SpotifyFeature.valence + previous.valence),
+            tempo: (SpotifyFeature.tempo + previous.tempo),
+          }
+          item.spotifyFeatures = SpotifyFeature;
+          item.numFeedback++;
+          found = true;
+          break;
+        }
       }
-      this.arrayTriple.push(triple);
+      if (!found) {
+        triple.mood = this.feedback;
+        triple.spotifyFeatures = SpotifyFeature;
+        triple.numFeedback = 1;
+        this.mapFeatureEmotion.push(triple);
+      }
+      console.log(this.mapFeatureEmotion);
     }).catch(err => {
       console.log(err);
     });
   }
 
-  // upload json to firebase
+  // train model to firebase
   onClickEndSession() {
-    const trainingJSON: JsonData = {
-      triples: this.arrayTriple.map((obj) => { return Object.assign({}, obj) })
+    for (const item of this.mapFeatureEmotion) {
+      if (item.numFeedback > 1) {
+        let features: TrackDatas = item.getSpotifyFeatures();
+        features = {
+          key: Math.round(features.key / item.numFeedback),
+          mode: Math.round(features.mode / item.numFeedback),
+          time_signature: Math.round(features.time_signature / item.numFeedback),
+          acousticness: (features.acousticness / item.numFeedback),
+          danceability: (features.danceability / item.numFeedback),
+          energy: (features.energy / item.numFeedback),
+          instrumentalness: (features.instrumentalness / item.numFeedback),
+          liveness: (features.liveness / item.numFeedback),
+          loudness: (features.loudness / item.numFeedback),
+          speechiness: (features.speechiness / item.numFeedback),
+          valence: (features.valence / item.numFeedback),
+          tempo: (features.tempo / item.numFeedback),
+        }
+        item.spotifyFeatures = features;
+        item.numFeedback = 1;
+      }
     }
-    if (this.userInDB.exist) {
-      this.jsonService.updateSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
-    }
-    else {
-      this.jsonService.uploadSession(trainingJSON, this.idUser, this.currentDay, this.shared.getCurrentMood(), this.shared.getTargetMood());
-      this.userInDB.exist = true;
-    }
+    this.jsonService.trainModel(this.mapFeatureEmotion, this.idUser, this.shared.getCurrentMood());
   }
 
   // this function is used to get emotion feedback triple
@@ -284,6 +302,7 @@ export class Tab1Page {
       this.waitNewFeedback = true;
       this.feedback = feedback;
       this.numFeedback++;
+      this.realizeTable();
     }
   }
 

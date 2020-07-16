@@ -451,14 +451,6 @@ export class Tab2Page {
     await alert.present();
   }
 
-  // Loading data
-  async presentLoading(str: string) {
-    const loading = await this.loadingCtrl.create({
-      message: str,
-    });
-    return await loading.present();
-  }
-
   /* REFRESH PAGE */
   doRefresh(event) {
     window.location.reload();
