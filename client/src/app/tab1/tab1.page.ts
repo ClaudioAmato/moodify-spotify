@@ -1,6 +1,6 @@
 import { ManumissionCheckService } from './../services/manumission-check.service';
 import { UserProfile } from './../interfaces/UserProfile';
-import { UploadJSONService } from './../services/upload-json.service';
+import { MachineLearningService } from '../services/machineLearning.service';
 import { TrackDatas } from './../interfaces/TrackDatas';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
@@ -9,7 +9,6 @@ import { AlertController, LoadingController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { JsonData } from '../interfaces/JsonData';
 
 @Component({
   selector: 'app-tab1',
@@ -39,7 +38,6 @@ export class Tab1Page {
     external_urls: string
   } = null;
   idUser = '';
-  _dataHandler: any;
   userInDB = { exist: true, checked: true };
 
   // features desired
@@ -63,16 +61,18 @@ export class Tab1Page {
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
-    private jsonService: UploadJSONService, private loadingCtrl: LoadingController,
+    private learningService: MachineLearningService, private loadingCtrl: LoadingController,
     private manumission: ManumissionCheckService) {
-    this.manumission.checkManumission();
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
+      console.log('Constructor');
     }
     else {
       this.spotifyApi.setAccessToken(this.shared.getToken());
       this.arrayEmoji = this.emoji.getArrayEmoji();
-      this.initializeSessionDB();
+      if (this.shared.getTargetMood() !== null) {
+        this.initializeSessionDB();
+      }
     }
   }
 
@@ -81,7 +81,7 @@ export class Tab1Page {
     this.presentLoading('Loading datas ...').then(() => {
       const userProfile: UserProfile = this.shared.getUserProfile();
       this.idUser = userProfile.ID;
-      this.jsonService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
+      this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
             this.desiredFeature = result;
@@ -89,10 +89,10 @@ export class Tab1Page {
               exist: true,
               checked: true
             }
-            console.log(this.desiredFeature);
-
+            // console.log(this.desiredFeature);
           }
           else {
+            // console.log('Nessun utente trovato');
             this.userInDB = {
               exist: false,
               checked: true
@@ -114,33 +114,37 @@ export class Tab1Page {
     }
     if ($event.detail.value.length > 0) {
       let dataSearch: { key: string, image: any, name: string };
-      if (this.shared.checkExpirationToken()) {
-        this.alertTokenExpired();
-      }
-      else {
-        this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 }).then((response) => {
-          if (response !== undefined) {
-            for (const trackItem of response.tracks.items) {
-              if (trackItem.album.images.length !== 0) {
-                dataSearch = {
-                  key: trackItem.id,
-                  image: trackItem.album.images[1].url,
-                  name: trackItem.name,
-                };
+      if (!this.manumission.isTampered()) {
+        if (this.shared.checkExpirationToken()) {
+          this.alertTokenExpired();
+          console.log('Search Music');
+        }
+        else {
+          this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 })
+            .then((response) => {
+              if (response !== undefined) {
+                for (const trackItem of response.tracks.items) {
+                  if (trackItem.album.images.length !== 0) {
+                    dataSearch = {
+                      key: trackItem.id,
+                      image: trackItem.album.images[1].url,
+                      name: trackItem.name,
+                    };
+                  }
+                  else {
+                    dataSearch = {
+                      key: trackItem.id,
+                      image: 'assets/img/noImgAvailable.png',
+                      name: trackItem.name,
+                    };
+                  }
+                  this.searchTrack.push(dataSearch);
+                }
               }
-              else {
-                dataSearch = {
-                  key: trackItem.id,
-                  image: 'assets/img/noImgAvailable.png',
-                  name: trackItem.name,
-                };
-              }
-              this.searchTrack.push(dataSearch);
-            }
-          }
-        }).catch(err => {
-          console.log(err);
-        });
+            }).catch(err => {
+              console.log(err);
+            });
+        }
       }
     }
   }
@@ -254,28 +258,30 @@ export class Tab1Page {
 
   // train model to firebase
   onClickEndSession() {
-    for (const item of this.mapFeatureEmotion) {
-      if (item.numFeedback > 1) {
-        let features: TrackDatas = item.getSpotifyFeatures();
-        features = {
-          key: Math.round(features.key / item.numFeedback),
-          mode: Math.round(features.mode / item.numFeedback),
-          time_signature: Math.round(features.time_signature / item.numFeedback),
-          acousticness: (features.acousticness / item.numFeedback),
-          danceability: (features.danceability / item.numFeedback),
-          energy: (features.energy / item.numFeedback),
-          instrumentalness: (features.instrumentalness / item.numFeedback),
-          liveness: (features.liveness / item.numFeedback),
-          loudness: (features.loudness / item.numFeedback),
-          speechiness: (features.speechiness / item.numFeedback),
-          valence: (features.valence / item.numFeedback),
-          tempo: (features.tempo / item.numFeedback),
+    if (!this.manumission.isTampered()) {
+      for (const item of this.mapFeatureEmotion) {
+        if (item.numFeedback > 1) {
+          let features: TrackDatas = item.getSpotifyFeatures();
+          features = {
+            key: Math.round(features.key / item.numFeedback),
+            mode: Math.round(features.mode / item.numFeedback),
+            time_signature: Math.round(features.time_signature / item.numFeedback),
+            acousticness: (features.acousticness / item.numFeedback),
+            danceability: (features.danceability / item.numFeedback),
+            energy: (features.energy / item.numFeedback),
+            instrumentalness: (features.instrumentalness / item.numFeedback),
+            liveness: (features.liveness / item.numFeedback),
+            loudness: (features.loudness / item.numFeedback),
+            speechiness: (features.speechiness / item.numFeedback),
+            valence: (features.valence / item.numFeedback),
+            tempo: (features.tempo / item.numFeedback),
+          }
+          item.spotifyFeatures = features;
+          item.numFeedback = 1;
         }
-        item.spotifyFeatures = features;
-        item.numFeedback = 1;
       }
+      this.learningService.trainModel(this.mapFeatureEmotion, this.idUser, this.shared.getCurrentMood());
     }
-    this.jsonService.trainModel(this.mapFeatureEmotion, this.idUser, this.shared.getCurrentMood());
   }
 
   // this function is used to get emotion feedback triple

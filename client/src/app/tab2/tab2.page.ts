@@ -3,9 +3,9 @@ import { UserProfile } from './../interfaces/UserProfile';
 import { LogoutService } from './../services/logout.service';
 import { PreferencesServices } from '../services/preferences.service';
 import { SharedParamsService } from './../services/shared-params.service';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { UserPreferences } from '../interfaces/UserPreferences';
 
 @Component({
@@ -41,9 +41,7 @@ export class Tab2Page {
   showHatedGenres = 'Show';
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private prefService: PreferencesServices, private logoutService: LogoutService,
-    private loadingCtrl: LoadingController, private manumission: ManumissionCheckService) {
-    this.manumission.checkManumission();
+    private prefService: PreferencesServices, private logoutService: LogoutService, private manumission: ManumissionCheckService) {
     if (this.shared.checkExpirationToken()) {
       this.alertTokenExpired();
     }
@@ -96,6 +94,7 @@ export class Tab2Page {
       this.prefService.uploadPreferences(pref, this.userProfile.ID);
       this.userProfile = {
         ID: this.userProfile.ID,
+        targetFeatures: this.userProfile.targetFeatures,
         country: this.userProfile.country,
         url: this.userProfile.url,
         email: this.userProfile.email,
@@ -110,44 +109,46 @@ export class Tab2Page {
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   autoSearchFavGenres() {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
-    }
-    else {
-      this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
-        if (response !== undefined) {
-          for (const [index, item] of response.items.entries()) {
-            // cycle on all the genres of the artist
-            let checked = false;
-            for (const genres of item.genres) {
-              if (this.topGenresMap[genres] === undefined) {
-                this.topGenresMap[genres] = 1;
-              }
-              else {
-                this.topGenresMap[genres] += 1;
-              }
-            }
-            if (index < 10) {
-              if (this.userProfile.preferences !== undefined) {
-                for (const pref of this.userProfile.preferences.favoriteSingers) {
-                  if (pref === item.id) {
-                    checked = true;
-                    break;
-                  }
+    if (!this.manumission.isTampered()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
+          if (response !== undefined) {
+            for (const [index, item] of response.items.entries()) {
+              // cycle on all the genres of the artist
+              let checked = false;
+              for (const genres of item.genres) {
+                if (this.topGenresMap[genres] === undefined) {
+                  this.topGenresMap[genres] = 1;
+                }
+                else {
+                  this.topGenresMap[genres] += 1;
                 }
               }
-              const data = {
-                key: item.id,
-                image: item.images[0].url,
-                name: item.name,
-                checked
-              };
-              this.suggestfavArtist.push(data);
+              if (index < 10) {
+                if (this.userProfile.preferences !== undefined) {
+                  for (const pref of this.userProfile.preferences.favoriteSingers) {
+                    if (pref === item.id) {
+                      checked = true;
+                      break;
+                    }
+                  }
+                }
+                const data = {
+                  key: item.id,
+                  image: item.images[0].url,
+                  name: item.name,
+                  checked
+                };
+                this.suggestfavArtist.push(data);
+              }
             }
+            this.topGenresMap = this.sortProperties(this.topGenresMap);
           }
-          this.topGenresMap = this.sortProperties(this.topGenresMap);
-        }
-      });
+        });
+      }
     }
   }
 
@@ -170,43 +171,45 @@ export class Tab2Page {
   /* FAVORITE AND HATED GENRES */
   // This function get all spotify's seed's genres available
   initializeGenresSeeds() {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
-    }
-    else {
-      this.spotifyApi.getAvailableGenreSeeds().then((response) => {
-        if (response !== undefined) {
-          let data: { key: string, checkedFav: boolean, checkedHate: boolean };
-          for (const genres of response.genres) {
-            let checkFav = false;
-            let checkHate = false;
-            if (this.userProfile.preferences !== undefined) {
-              if (this.userProfile.preferences.favoriteGenres !== undefined) {
-                for (const favGen of this.userProfile.preferences.favoriteGenres) {
-                  if (genres === favGen) {
-                    checkFav = true;
-                    break;
+    if (!this.manumission.isTampered()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        this.spotifyApi.getAvailableGenreSeeds().then((response) => {
+          if (response !== undefined) {
+            let data: { key: string, checkedFav: boolean, checkedHate: boolean };
+            for (const genres of response.genres) {
+              let checkFav = false;
+              let checkHate = false;
+              if (this.userProfile.preferences !== undefined) {
+                if (this.userProfile.preferences.favoriteGenres !== undefined) {
+                  for (const favGen of this.userProfile.preferences.favoriteGenres) {
+                    if (genres === favGen) {
+                      checkFav = true;
+                      break;
+                    }
+                  }
+                }
+                if (this.userProfile.preferences.hatedGenres !== undefined) {
+                  for (const hateGen of this.userProfile.preferences.hatedGenres) {
+                    if (genres === hateGen) {
+                      checkHate = true;
+                      break;
+                    }
                   }
                 }
               }
-              if (this.userProfile.preferences.hatedGenres !== undefined) {
-                for (const hateGen of this.userProfile.preferences.hatedGenres) {
-                  if (genres === hateGen) {
-                    checkHate = true;
-                    break;
-                  }
-                }
+              data = {
+                key: genres,
+                checkedFav: checkFav,
+                checkedHate: checkHate
               }
+              this.genresAvailable.push(data);
             }
-            data = {
-              key: genres,
-              checkedFav: checkFav,
-              checkedHate: checkHate
-            }
-            this.genresAvailable.push(data);
           }
-        }
-      });
+        });
+      }
     }
   }
 
@@ -351,40 +354,42 @@ export class Tab2Page {
       this.searchFavArtist = [];
     }
     if ($event.detail.value.length > 0) {
-      if (this.shared.checkExpirationToken()) {
-        this.alertTokenExpired();
-      }
-      else {
-        this.spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
-          if (response !== undefined) {
-            for (const itemArtist of response.artists.items) {
-              dataSelected = this.selectedFavArtist.find(artist => artist.key === itemArtist.id);
-              if (dataSelected !== undefined) {
-                check = true;
+      if (!this.manumission.isTampered()) {
+        if (this.shared.checkExpirationToken()) {
+          this.alertTokenExpired();
+        }
+        else {
+          this.spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
+            if (response !== undefined) {
+              for (const itemArtist of response.artists.items) {
+                dataSelected = this.selectedFavArtist.find(artist => artist.key === itemArtist.id);
+                if (dataSelected !== undefined) {
+                  check = true;
+                }
+                else {
+                  check = false;
+                }
+                if (itemArtist.images.length !== 0) {
+                  dataSearch = {
+                    key: itemArtist.id,
+                    image: itemArtist.images[0].url,
+                    name: itemArtist.name,
+                    checked: check
+                  };
+                }
+                else {
+                  dataSearch = {
+                    key: itemArtist.id,
+                    image: 'assets/img/noImgAvailable.png',
+                    name: itemArtist.name,
+                    checked: check
+                  };
+                }
+                this.searchFavArtist.push(dataSearch);
               }
-              else {
-                check = false;
-              }
-              if (itemArtist.images.length !== 0) {
-                dataSearch = {
-                  key: itemArtist.id,
-                  image: itemArtist.images[0].url,
-                  name: itemArtist.name,
-                  checked: check
-                };
-              }
-              else {
-                dataSearch = {
-                  key: itemArtist.id,
-                  image: 'assets/img/noImgAvailable.png',
-                  name: itemArtist.name,
-                  checked: check
-                };
-              }
-              this.searchFavArtist.push(dataSearch);
             }
-          }
-        });
+          });
+        }
       }
     }
   }

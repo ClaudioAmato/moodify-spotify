@@ -9,7 +9,7 @@ export class ManumissionCheckService {
 
   constructor(private sharedParamsService: SharedParamsService, private alertController: AlertController) { }
 
-  public checkManumission() {
+  public isTampered() {
     if (this.sharedParamsService.getUserProfile() === null ||
       this.sharedParamsService.getCurrentMood() === null ||
       this.sharedParamsService.getTargetMood() === null ||
@@ -19,6 +19,10 @@ export class ManumissionCheckService {
       this.sharedParamsService.getExpirationToken() === null
     ) {
       this.alertManumission();
+      return true;
+    }
+    else {
+      return false;
     }
   }
 

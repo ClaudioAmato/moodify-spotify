@@ -1,3 +1,5 @@
+import { UserProfile } from './../interfaces/UserProfile';
+import { MachineLearningService } from '../services/machineLearning.service';
 import { EmojisService } from './../services/emojis.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { NavController } from '@ionic/angular';
@@ -13,7 +15,8 @@ export class MoodSetPage {
   currentEmotion: string = undefined;
   targetEmotion: string = undefined;
 
-  constructor(private navCtrl: NavController, private shared: SharedParamsService, private emoji: EmojisService) {
+  constructor(private navCtrl: NavController, private shared: SharedParamsService,
+    private emoji: EmojisService, private learningService: MachineLearningService) {
     this.arrayEmoji = this.emoji.getArrayEmoji();
   }
 
@@ -54,7 +57,25 @@ export class MoodSetPage {
   confirmMood() {
     this.shared.setCurrentMood(this.currentEmotion);
     this.shared.setTargetMood(this.targetEmotion);
-    this.navCtrl.navigateRoot('/moodify/home');
+    const userProfile: UserProfile = this.shared.getUserProfile();
+    if (userProfile === undefined) {
+      this.learningService.getUserData(userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
+        .then(result2 => {
+          if (result2 !== undefined) {
+            userProfile.targetFeatures = result2;
+          }
+          else {
+            this.learningService.getModelData(this.shared.getCurrentMood(), this.shared.getTargetMood()).then(result3 => {
+              userProfile.targetFeatures = result3;
+            })
+          }
+        }).then(() => {
+          this.navCtrl.navigateRoot('/moodify/home');
+        });
+    }
+    else {
+      this.navCtrl.navigateRoot('/moodify/home');
+    }
   }
 
   /* REFRESH PAGE */

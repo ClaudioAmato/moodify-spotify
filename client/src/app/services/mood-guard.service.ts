@@ -1,4 +1,3 @@
-import { NavController } from '@ionic/angular';
 import { SharedParamsService } from './shared-params.service';
 import { Injectable } from '@angular/core';
 
@@ -7,15 +6,14 @@ import { Injectable } from '@angular/core';
 })
 export class MoodGuardService {
 
-  constructor(private shared: SharedParamsService, private navCtrl: NavController, ) { }
+  constructor(private shared: SharedParamsService) { }
 
   checkMood() {
     if (this.shared.getCurrentMood() == null || this.shared.getTargetMood() == null) {
-      this.navCtrl.navigateRoot('/mood');
-      return false;
+      return true;
     }
     else {
-      return true;
+      return false;
     }
   }
 

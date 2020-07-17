@@ -1,3 +1,4 @@
+import { ManumissionCheckService } from './../services/manumission-check.service';
 import { LogoutService } from './../services/logout.service';
 import { SharedParamsService } from './../services/shared-params.service';
 import { MoodGuardService } from './../services/mood-guard.service';
@@ -18,19 +19,21 @@ export class TabsPage {
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private navCtrl: NavController, private alertController: AlertController,
-    private moodGuard: MoodGuardService) {
+    private moodGuard: MoodGuardService, private manumission: ManumissionCheckService) {
     if (this.moodGuard.checkMood()) {
-      if (!this.moodGuard.checkSameDay()) {
-        this.alertNewDay();
+      if (window.location.href.includes('localhost')) {
+        window.location.href = 'http://localhost:8100/mood';
+      }
+      else {
+        window.location.href = 'https://moodify-spotify.web.app/mood';
+      }
+    } else {
+      if (!this.manumission.isTampered()) {
+        if (!this.moodGuard.checkSameDay()) {
+          this.alertNewDay();
+        }
       }
     }
-  }
-
-  ionViewDidEnter() {
-    setTimeout(() => {
-      this.splashPortrait = false;
-      this.splashLandscape = false;
-    }, 4500);
   }
 
   // change your starting and target mood function
