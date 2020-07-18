@@ -1,3 +1,4 @@
+import { ManumissionCheckService } from './../services/manumission-check.service';
 import { EmojisService } from './../services/emojis.service';
 import { LogoutService } from './../services/logout.service';
 import { NavController, AlertController } from '@ionic/angular';
@@ -15,8 +16,10 @@ export class Tab3Page {
 
   constructor(private shared: SharedParamsService, private navCtrl: NavController,
     private alertController: AlertController, private logoutService: LogoutService,
-    private emoji: EmojisService) {
-    this.initalizeImages();
+    private emoji: EmojisService, private manumission: ManumissionCheckService) {
+    if (!this.manumission.isTampered()) {
+      this.initalizeImages();
+    }
   }
 
   // initialize image

@@ -42,37 +42,39 @@ export class Tab2Page {
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
     private prefService: PreferencesServices, private logoutService: LogoutService, private manumission: ManumissionCheckService) {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
-    }
-    else {
-      this.spotifyApi.setAccessToken(this.shared.getToken());
-      this.userProfile = this.shared.getUserProfile();
-      if (this.userProfile.preferences !== undefined) {
-        if (this.userProfile.preferences.favoriteGenres !== undefined) {
-          this.favGenresSelected = this.userProfile.preferences.favoriteGenres;
-        }
-        if (this.userProfile.preferences.hatedGenres !== undefined) {
-          this.hatedGenresSelected = this.userProfile.preferences.hatedGenres;
-        }
-        if (this.userProfile.preferences.favoriteSingers !== undefined) {
-          this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
-            if (response !== undefined) {
-              for (const artist of response.artists) {
-                const dataArtist = {
-                  key: artist.id,
-                  image: artist.images[0].url,
-                  name: artist.name,
-                  checked: true
-                };
-                this.selectedFavArtist.push(dataArtist);
-              }
-            }
-          });
-        }
+    if (!this.manumission.isTampered()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
       }
-      this.initializeGenresSeeds();
-      this.autoSearchFavGenres();
+      else {
+        this.spotifyApi.setAccessToken(this.shared.getToken());
+        this.userProfile = this.shared.getUserProfile();
+        if (this.userProfile.preferences !== undefined) {
+          if (this.userProfile.preferences.favoriteGenres !== undefined) {
+            this.favGenresSelected = this.userProfile.preferences.favoriteGenres;
+          }
+          if (this.userProfile.preferences.hatedGenres !== undefined) {
+            this.hatedGenresSelected = this.userProfile.preferences.hatedGenres;
+          }
+          if (this.userProfile.preferences.favoriteSingers !== undefined) {
+            this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
+              if (response !== undefined) {
+                for (const artist of response.artists) {
+                  const dataArtist = {
+                    key: artist.id,
+                    image: artist.images[0].url,
+                    name: artist.name,
+                    checked: true
+                  };
+                  this.selectedFavArtist.push(dataArtist);
+                }
+              }
+            });
+          }
+        }
+        this.initializeGenresSeeds();
+        this.autoSearchFavGenres();
+      }
     }
   }
 

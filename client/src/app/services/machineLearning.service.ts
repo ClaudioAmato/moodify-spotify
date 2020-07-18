@@ -1,6 +1,5 @@
-import { TrackDatas } from '../interfaces/TrackDatas';
-import { Triple } from '../classes/Triple';
-import { LoadingController } from '@ionic/angular';
+import { TrackFeatures } from './../interfaces/TrackFeatures';
+import { Double } from '../classes/Double';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { Injectable } from '@angular/core';
 import * as firebase from 'firebase/app';
@@ -11,95 +10,116 @@ import 'firebase/database';
 })
 export class MachineLearningService {
   database = firebase.database();
+  bufferModelLength = 20;
+  bufferUserLength = 5;
 
-  constructor(private afs: AngularFirestore, private loadingCtrl: LoadingController) {
+  constructor(private afs: AngularFirestore) {
 
   }
 
   // This function upload or update model data mood
-  trainModel(triple: Array<Triple>, userID: string, startingMood: string) {
-    this.presentLoading('Loading datas ...').then(() => {
-      for (const [index, item] of triple.entries()) {
-        this.getModelData(startingMood, item.getMood()).then((featureStored) => {
-          if (featureStored !== undefined) {
-            item.spotifyFeatures = {
-              key: Math.round((item.spotifyFeatures.key + featureStored.key) / 2),
-              mode: Math.round((item.spotifyFeatures.mode + featureStored.mode) / 2),
-              time_signature: Math.round((item.spotifyFeatures.time_signature + featureStored.time_signature) / 2),
-              acousticness: this.roundTo(((item.spotifyFeatures.acousticness + featureStored.acousticness) / 2), 2),
-              danceability: this.roundTo(((item.spotifyFeatures.danceability + featureStored.danceability) / 2), 2),
-              energy: this.roundTo(((item.spotifyFeatures.energy + featureStored.energy) / 2), 2),
-              instrumentalness: this.roundTo(((item.spotifyFeatures.instrumentalness + featureStored.instrumentalness) / 2), 2),
-              liveness: this.roundTo(((item.spotifyFeatures.liveness + featureStored.liveness) / 2), 2),
-              loudness: this.roundTo(((item.spotifyFeatures.loudness + featureStored.loudness) / 2), 2),
-              speechiness: this.roundTo(((item.spotifyFeatures.speechiness + featureStored.speechiness) / 2), 2),
-              valence: this.roundTo(((item.spotifyFeatures.valence + featureStored.valence) / 2), 2),
-              tempo: this.roundTo(((item.spotifyFeatures.tempo + featureStored.tempo) / 2), 2),
-            }
-            firebase.database().ref('model/' + startingMood + '/' + item.getMood()).update({
-              features: item.getSpotifyFeatures()
-            }).catch(() => {
-              this.loadingCtrl.dismiss();
-            });
-          }
-          else {
-            firebase.database().ref('model/' + startingMood + '/' + item.getMood()).set({
-              features: item.getSpotifyFeatures()
-            }).catch(() => {
-              this.loadingCtrl.dismiss();
-            });
-          }
-        }).then(() => {
-          if (userID !== null) {
-            if (index === triple.length - 1) {
-              this.uploadPersonal(triple, userID, startingMood);
-              this.loadingCtrl.dismiss();
-            }
-          }
+  trainModel(double: Double, startingMood: string) {
+    this.getModelData(startingMood, double.getMood()).then((featureStored) => {
+      let tempFeat: TrackFeatures;
+      let tempBufFeat: TrackFeatures;
+      const buff: { feat: TrackFeatures, numFeed: number } = { feat: double.spotifyFeatures, numFeed: 1 };
+      if (featureStored.buff !== null && featureStored.features !== null) {
+        buff.numFeed = featureStored.buff.numFeed + 1;
+        tempBufFeat = this.addToBuff(double, featureStored.buff.feat);
+        tempFeat = featureStored.features;
+        buff.feat = tempBufFeat;
+        if (buff.numFeed >= this.bufferModelLength) {
+          tempFeat = this.doMean(buff.feat, this.bufferModelLength + 1);
+          buff.numFeed = 1;
+          buff.feat = tempFeat;
+        }
+        firebase.database().ref('model/' + startingMood + '/' + double.getMood()).update({
+          features: tempFeat,
+          buffer: buff
+        });
+      }
+      else {
+        firebase.database().ref('model/' + startingMood + '/' + double.getMood()).set({
+          features: double.spotifyFeatures,
+          buffer: buff
         });
       }
     });
   }
 
   // This function upload or update user data mood
-  uploadPersonal(triple: Array<Triple>, id: string, startingMood: string) {
-    for (const item of triple) {
-      this.getUserData(id, startingMood, item.getMood()).then((featureStored) => {
-        if (featureStored !== undefined) {
-          item.spotifyFeatures = {
-            key: Math.round((item.spotifyFeatures.key + featureStored.key) / 2),
-            mode: Math.round((item.spotifyFeatures.mode + featureStored.mode) / 2),
-            time_signature: Math.round((item.spotifyFeatures.time_signature + featureStored.time_signature) / 2),
-            acousticness: this.roundTo(((item.spotifyFeatures.acousticness + featureStored.acousticness) / 2), 2),
-            danceability: this.roundTo(((item.spotifyFeatures.danceability + featureStored.danceability) / 2), 2),
-            energy: this.roundTo(((item.spotifyFeatures.energy + featureStored.energy) / 2), 2),
-            instrumentalness: this.roundTo(((item.spotifyFeatures.instrumentalness + featureStored.instrumentalness) / 2), 2),
-            liveness: this.roundTo(((item.spotifyFeatures.liveness + featureStored.liveness) / 2), 2),
-            loudness: this.roundTo(((item.spotifyFeatures.loudness + featureStored.loudness) / 2), 2),
-            speechiness: this.roundTo(((item.spotifyFeatures.speechiness + featureStored.speechiness) / 2), 2),
-            valence: this.roundTo(((item.spotifyFeatures.valence + featureStored.valence) / 2), 2),
-            tempo: this.roundTo(((item.spotifyFeatures.tempo + featureStored.tempo) / 2), 2),
-          }
-          firebase.database().ref('user/' + id + '/' + startingMood + '/' + item.getMood()).update({
-            features: item.getSpotifyFeatures()
-          });
+  uploadPersonal(double: Double, id: string, startingMood: string, changeFeedback: boolean) {
+    this.getUserData(id, startingMood, double.getMood()).then((featureStored) => {
+      let tempFeat: TrackFeatures;
+      let tempBufFeat: TrackFeatures;
+      const buff: { feat: TrackFeatures, numFeed: number } = {
+        feat: double.spotifyFeatures,
+        numFeed: 1
+      };
+      if (featureStored.features !== null && featureStored.buff !== null) {
+        if (!changeFeedback) {
+          buff.numFeed = featureStored.buff.numFeed + 1;
         }
         else {
-          firebase.database().ref('user/' + id + '/' + startingMood + '/' + item.getMood()).set({
-            features: item.getSpotifyFeatures()
-          });
+          buff.numFeed = featureStored.buff.numFeed - 1;
         }
-      });
+        tempBufFeat = this.addToBuff(double, featureStored.buff.feat);
+        tempFeat = featureStored.features;
+        buff.feat = tempBufFeat;
+        if (buff.numFeed >= this.bufferUserLength) {
+          tempFeat = this.doMean(buff.feat, this.bufferUserLength);
+          buff.numFeed = 1;
+          buff.feat = tempFeat;
+        }
+        firebase.database().ref('user/' + id + '/' + startingMood + '/' + double.getMood()).update({
+          features: tempFeat,
+          buffer: buff
+        });
+      }
+      else {
+        firebase.database().ref('user/' + id + '/' + startingMood + '/' + double.getMood()).set({
+          features: double.spotifyFeatures,
+          buffer: buff
+        });
+      }
+    });
+  }
+
+  // This function return model data table
+  async getModelData(startingMood: string, targetMood: string) {
+    const db = firebase.database();
+    const ref1 = db.ref('/model/' + startingMood + '/' + targetMood + '/features');
+    const ref2 = db.ref('/model/' + startingMood + '/' + targetMood + '/buffer');
+
+    const snapshot1 = await ref1.once('value');
+    const snapshot2 = await ref2.once('value');
+
+    const values: { features: TrackFeatures, buff: { feat: TrackFeatures, numFeed: number } } = {
+      features: snapshot1.val(),
+      buff: snapshot2.val()
+    }
+
+    if (values === null) {
+      return undefined;
+    }
+    else {
+      return values;
     }
   }
 
   // This function return user data table
   async getUserData(userID: string, startingMood: string, targetMood: string) {
-    const db = firebase.database()
-    const ref = db.ref('/user/' + userID + '/' + startingMood + '/' + targetMood + '/features')
+    const db = firebase.database();
+    const ref1 = db.ref('/user/' + userID + '/' + startingMood + '/' + targetMood + '/features');
+    const ref2 = db.ref('/user/' + userID + '/' + startingMood + '/' + targetMood + '/buffer');
 
-    const snapshot = await ref.once('value');
-    const values: TrackDatas = snapshot.val();
+    const snapshot1 = await ref1.once('value');
+    const snapshot2 = await ref2.once('value');
+
+    const values: { features: TrackFeatures, buff: { feat: TrackFeatures, numFeed: number } } = {
+      features: snapshot1.val(),
+      buff: snapshot2.val()
+    }
     if (values === null) {
       return undefined;
     }
@@ -110,8 +130,8 @@ export class MachineLearningService {
 
   // This function tell if user exist
   async getUser(userID: string) {
-    const db = firebase.database()
-    const ref = db.ref('/user/' + userID)
+    const db = firebase.database();
+    const ref = db.ref('/user/' + userID);
 
     const snapshot = await ref.once('value');
     const values = snapshot.val();
@@ -123,32 +143,47 @@ export class MachineLearningService {
     }
   }
 
-  // This function return model data table
-  async getModelData(startingMood: string, targetMood: string) {
-    const db = firebase.database()
-    const ref = db.ref('/model/' + startingMood + '/' + targetMood + '/features')
-
-    const snapshot = await ref.once('value');
-    const values: TrackDatas = snapshot.val();
-    if (values === null) {
-      return undefined;
-    }
-    else {
-      return values;
-    }
-  }
-
   // Round features to 3rd decimal number
-  roundTo(value, places) {
+  private roundTo(value, places) {
     const power = Math.pow(10, places);
     return Math.round(value * power) / power;
   }
 
-  // Loading data
-  private async presentLoading(str: string) {
-    const loading = await this.loadingCtrl.create({
-      message: str,
-    });
-    return await loading.present();
+  private doMean(buffer: TrackFeatures, bufferLen: number) {
+    const MeanTrack: TrackFeatures = {
+      key: Math.round(buffer.key / bufferLen),
+      mode: Math.round(buffer.mode / bufferLen),
+      time_signature: Math.round(buffer.time_signature / bufferLen),
+      acousticness: this.roundTo((buffer.acousticness / bufferLen), 2),
+      danceability: this.roundTo((buffer.danceability / bufferLen), 2),
+      energy: this.roundTo((buffer.energy / bufferLen), 2),
+      instrumentalness: this.roundTo((buffer.instrumentalness / bufferLen), 2),
+      liveness: this.roundTo((buffer.liveness / bufferLen), 2),
+      loudness: this.roundTo((buffer.loudness / bufferLen), 2),
+      speechiness: this.roundTo((buffer.speechiness / bufferLen), 2),
+      valence: this.roundTo((buffer.valence / bufferLen), 2),
+      tempo: this.roundTo((buffer.tempo / bufferLen), 2),
+      popularity: Math.round(buffer.popularity / bufferLen),
+    }
+    return MeanTrack;
+  }
+
+  private addToBuff(double: Double, buffFeat: TrackFeatures) {
+    const Values: TrackFeatures = {
+      key: (double.spotifyFeatures.key + buffFeat.key),
+      mode: (double.spotifyFeatures.mode + buffFeat.mode),
+      time_signature: (double.spotifyFeatures.time_signature + buffFeat.time_signature),
+      acousticness: this.roundTo(((double.spotifyFeatures.acousticness + buffFeat.acousticness)), 5),
+      danceability: this.roundTo(((double.spotifyFeatures.danceability + buffFeat.danceability)), 5),
+      energy: this.roundTo(((double.spotifyFeatures.energy + buffFeat.energy)), 5),
+      instrumentalness: this.roundTo(((double.spotifyFeatures.instrumentalness + buffFeat.instrumentalness)), 5),
+      liveness: this.roundTo(((double.spotifyFeatures.liveness + buffFeat.liveness)), 5),
+      loudness: this.roundTo(((double.spotifyFeatures.loudness + buffFeat.loudness)), 5),
+      speechiness: this.roundTo(((double.spotifyFeatures.speechiness + buffFeat.speechiness)), 5),
+      valence: this.roundTo(((double.spotifyFeatures.valence + buffFeat.valence)), 5),
+      tempo: this.roundTo(((double.spotifyFeatures.tempo + buffFeat.tempo)), 5),
+      popularity: (double.spotifyFeatures.popularity + buffFeat.popularity),
+    }
+    return Values;
   }
 }

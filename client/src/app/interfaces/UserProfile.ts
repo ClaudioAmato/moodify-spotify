@@ -1,8 +1,8 @@
-import { TrackDatas } from './TrackDatas';
+import { TrackFeatures } from './TrackFeatures';
 import { UserPreferences } from './UserPreferences';
 export interface UserProfile {
     preferences: UserPreferences,
-    targetFeatures: TrackDatas,
+    targetFeatures: TrackFeatures,
     profilePhoto: any,
     email: string;
     name: string;

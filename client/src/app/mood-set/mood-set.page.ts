@@ -2,7 +2,7 @@ import { UserProfile } from './../interfaces/UserProfile';
 import { MachineLearningService } from '../services/machineLearning.service';
 import { EmojisService } from './../services/emojis.service';
 import { SharedParamsService } from './../services/shared-params.service';
-import { NavController } from '@ionic/angular';
+import { NavController, LoadingController } from '@ionic/angular';
 import { Component } from '@angular/core';
 
 @Component({
@@ -16,7 +16,8 @@ export class MoodSetPage {
   targetEmotion: string = undefined;
 
   constructor(private navCtrl: NavController, private shared: SharedParamsService,
-    private emoji: EmojisService, private learningService: MachineLearningService) {
+    private emoji: EmojisService, private learningService: MachineLearningService,
+    private loadingCtrl: LoadingController) {
     this.arrayEmoji = this.emoji.getArrayEmoji();
   }
 
@@ -58,20 +59,22 @@ export class MoodSetPage {
     this.shared.setCurrentMood(this.currentEmotion);
     this.shared.setTargetMood(this.targetEmotion);
     const userProfile: UserProfile = this.shared.getUserProfile();
-    if (userProfile === undefined) {
-      this.learningService.getUserData(userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
-        .then(result2 => {
-          if (result2 !== undefined) {
-            userProfile.targetFeatures = result2;
-          }
-          else {
-            this.learningService.getModelData(this.shared.getCurrentMood(), this.shared.getTargetMood()).then(result3 => {
-              userProfile.targetFeatures = result3;
-            })
-          }
-        }).then(() => {
-          this.navCtrl.navigateRoot('/moodify/home');
-        });
+    if (userProfile.targetFeatures === undefined) {
+      this.presentLoading('Loading datas ...').then(() => {
+        this.learningService.getUserData(userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
+          .then(result2 => {
+            if (result2 !== undefined) {
+              userProfile.targetFeatures = result2.features;
+              this.shared.setUserProfile(userProfile);
+            }
+            else {
+              console.log('Moodset error');
+            }
+          }).then(() => {
+            this.loadingCtrl.dismiss();
+            this.navCtrl.navigateRoot('/moodify/home');
+          });
+      });
     }
     else {
       this.navCtrl.navigateRoot('/moodify/home');
@@ -84,5 +87,13 @@ export class MoodSetPage {
     setTimeout(() => {
       event.target.complete();
     }, 5000);
+  }
+
+  // Loading data
+  async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
+    });
+    return await loading.present();
   }
 }

@@ -1,10 +1,11 @@
+import { TrackDatas } from './../interfaces/TrackDatas';
 import { ManumissionCheckService } from './../services/manumission-check.service';
 import { UserProfile } from './../interfaces/UserProfile';
 import { MachineLearningService } from '../services/machineLearning.service';
-import { TrackDatas } from './../interfaces/TrackDatas';
+import { TrackFeatures } from '../interfaces/TrackFeatures';
 import { LogoutService } from './../services/logout.service';
 import { EmojisService } from './../services/emojis.service';
-import { Triple } from '../classes/Triple';
+import { Double } from '../classes/Double';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { SharedParamsService } from './../services/shared-params.service';
 import { Component } from '@angular/core';
@@ -24,24 +25,13 @@ export class Tab1Page {
   searchTrack: Array<{ key: string, image: any, name: string }> = [];
 
   // pair used for the reinforcement learning
-  mapFeatureEmotion: Array<Triple> = [];
-  currentMusicplaying: {
-    uriID: string,
-    idTrack: string,
-    nomi_artisti: any[],
-    image: any,
-    currentlyPlayingPreview: boolean,
-    currentlyPlayingSong: boolean,
-    duration: number,
-    nome_album: string,
-    preview_url: string,
-    external_urls: string
-  } = null;
+  doubleToUpload: Double = new Double();
+  currentMusicplaying: TrackDatas = null;
   idUser = '';
   userInDB = { exist: true, checked: true };
 
   // features desired
-  desiredFeature: TrackDatas;
+  desiredFeature: TrackFeatures;
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -49,7 +39,6 @@ export class Tab1Page {
   feedbackEmoji = true;
   waitNewFeedback = false;
   feedback: string;
-  numFeedback = 0;
 
   // Player variables
   soundPlayer = new Audio();
@@ -63,15 +52,16 @@ export class Tab1Page {
     private alertController: AlertController, private emoji: EmojisService,
     private learningService: MachineLearningService, private loadingCtrl: LoadingController,
     private manumission: ManumissionCheckService) {
-    if (this.shared.checkExpirationToken()) {
-      this.alertTokenExpired();
-      console.log('Constructor');
-    }
-    else {
-      this.spotifyApi.setAccessToken(this.shared.getToken());
-      this.arrayEmoji = this.emoji.getArrayEmoji();
-      if (this.shared.getTargetMood() !== null) {
-        this.initializeSessionDB();
+    if (!this.manumission.isTampered()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        this.spotifyApi.setAccessToken(this.shared.getToken());
+        this.arrayEmoji = this.emoji.getArrayEmoji();
+        if (this.shared.getTargetMood() !== null) {
+          this.initializeSessionDB();
+        }
       }
     }
   }
@@ -84,15 +74,15 @@ export class Tab1Page {
       this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
-            this.desiredFeature = result;
+            this.desiredFeature = result.features;
             this.userInDB = {
               exist: true,
               checked: true
             }
-            // console.log(this.desiredFeature);
+            console.log('Desired Features: ', this.desiredFeature);
           }
           else {
-            // console.log('Nessun utente trovato');
+            console.log('Nessun utente trovato');
             this.userInDB = {
               exist: false,
               checked: true
@@ -117,7 +107,6 @@ export class Tab1Page {
       if (!this.manumission.isTampered()) {
         if (this.shared.checkExpirationToken()) {
           this.alertTokenExpired();
-          console.log('Search Music');
         }
         else {
           this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 })
@@ -164,128 +153,88 @@ export class Tab1Page {
     if (this.searchTrack.length > 0) {
       this.searchTrack = [];
     }
-    this.spotifyApi.getTrack(idTrack).then((response) => {
-      if (response !== undefined) {
-        if (response.album.images[0].url !== undefined) {
-          this.currentMusicplaying = {
-            uriID: response.uri,
-            idTrack,
-            nomi_artisti: response.artists,
-            image: response.album.images[1].url,
-            currentlyPlayingPreview: false,
-            currentlyPlayingSong: false,
-            duration: response.duration_ms,
-            nome_album: response.name,
-            preview_url: response.preview_url,
-            external_urls: response.external_urls.spotify
-          };
-        }
-        else {
-          this.currentMusicplaying = {
-            uriID: response.uri,
-            idTrack,
-            nomi_artisti: response.artists,
-            image: 'assets/img/noImgAvailable.png',
-            currentlyPlayingPreview: false,
-            currentlyPlayingSong: false,
-            duration: response.duration_ms,
-            nome_album: response.name,
-            preview_url: response.preview_url,
-            external_urls: response.external_urls.spotify
-          };
-        }
-      }
-      this.feedbackEmoji = false;
-      this.divEmoji = true;
-    }).catch(err => {
-      console.log(err);
-    });
-  }
-
-  // this function is used to set Triple for the table
-  realizeTable() {
-    const triple = new Triple();
-    this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response) => {
-      let SpotifyFeature: TrackDatas = {
-        key: response.key,
-        mode: response.mode,
-        time_signature: response.time_signature,
-        acousticness: response.acousticness,
-        danceability: response.danceability,
-        energy: response.energy,
-        instrumentalness: response.instrumentalness,
-        liveness: response.liveness,
-        loudness: response.loudness,
-        speechiness: response.speechiness,
-        valence: response.valence,
-        tempo: response.tempo,
-      }
-      let found = false;
-      for (const item of this.mapFeatureEmotion) {
-        if (item.getMood() === this.feedback) {
-          const previous: TrackDatas = item.getSpotifyFeatures();
-          SpotifyFeature = {
-            key: (SpotifyFeature.key + previous.key),
-            mode: (SpotifyFeature.mode + previous.mode),
-            time_signature: (SpotifyFeature.time_signature + previous.time_signature),
-            acousticness: (SpotifyFeature.acousticness + previous.acousticness),
-            danceability: (SpotifyFeature.danceability + previous.danceability),
-            energy: (SpotifyFeature.energy + previous.energy),
-            instrumentalness: (SpotifyFeature.instrumentalness + previous.instrumentalness),
-            liveness: (SpotifyFeature.liveness + previous.liveness),
-            loudness: (SpotifyFeature.loudness + previous.loudness),
-            speechiness: (SpotifyFeature.speechiness + previous.speechiness),
-            valence: (SpotifyFeature.valence + previous.valence),
-            tempo: (SpotifyFeature.tempo + previous.tempo),
+    let popularity;
+    this.presentLoading('Loading datas ...').then(() => {
+      this.spotifyApi.getTrack(idTrack).then((response) => {
+        if (response !== undefined) {
+          if (response.album.images[0].url !== undefined) {
+            this.currentMusicplaying = {
+              uriID: response.uri,
+              idTrack,
+              nomi_artisti: response.artists,
+              image: response.album.images[1].url,
+              currentlyPlayingPreview: false,
+              currentlyPlayingSong: false,
+              duration: response.duration_ms,
+              nome_album: response.name,
+              preview_url: response.preview_url,
+              external_urls: response.external_urls.spotify,
+              features: undefined
+            };
           }
-          item.spotifyFeatures = SpotifyFeature;
-          item.numFeedback++;
-          found = true;
-          break;
+          else {
+            this.currentMusicplaying = {
+              uriID: response.uri,
+              idTrack,
+              nomi_artisti: response.artists,
+              image: 'assets/img/noImgAvailable.png',
+              currentlyPlayingPreview: false,
+              currentlyPlayingSong: false,
+              duration: response.duration_ms,
+              nome_album: response.name,
+              preview_url: response.preview_url,
+              external_urls: response.external_urls.spotify,
+              features: undefined
+            };
+          }
+          popularity = response.popularity;
         }
-      }
-      if (!found) {
-        triple.mood = this.feedback;
-        triple.spotifyFeatures = SpotifyFeature;
-        triple.numFeedback = 1;
-        this.mapFeatureEmotion.push(triple);
-      }
-      console.log(this.mapFeatureEmotion);
-    }).catch(err => {
-      console.log(err);
+        this.feedbackEmoji = false;
+        this.divEmoji = true;
+      }).then(() => {
+        this.spotifyApi.getAudioFeaturesForTrack(this.currentMusicplaying.idTrack).then((response2) => {
+          if (response2 !== undefined) {
+            this.currentMusicplaying.features = {
+              key: response2.key,
+              mode: response2.mode,
+              time_signature: response2.time_signature,
+              acousticness: response2.acousticness,
+              danceability: response2.danceability,
+              energy: response2.energy,
+              instrumentalness: response2.instrumentalness,
+              liveness: response2.liveness,
+              loudness: response2.loudness,
+              speechiness: response2.speechiness,
+              valence: response2.valence,
+              tempo: response2.tempo,
+              popularity
+            }
+          }
+        }).then(() => {
+          this.loadingCtrl.dismiss();
+        }).catch(err => {
+          console.log(err);
+        });
+      }).catch(err => {
+        console.log(err);
+      });
     });
   }
 
-  // train model to firebase
-  onClickEndSession() {
+  // this function is used to initialize double to upload to the DB
+  uploadFeedbackToDB() {
+    this.doubleToUpload.mood = this.feedback;
+    this.doubleToUpload.spotifyFeatures = this.currentMusicplaying.features;
     if (!this.manumission.isTampered()) {
-      for (const item of this.mapFeatureEmotion) {
-        if (item.numFeedback > 1) {
-          let features: TrackDatas = item.getSpotifyFeatures();
-          features = {
-            key: Math.round(features.key / item.numFeedback),
-            mode: Math.round(features.mode / item.numFeedback),
-            time_signature: Math.round(features.time_signature / item.numFeedback),
-            acousticness: (features.acousticness / item.numFeedback),
-            danceability: (features.danceability / item.numFeedback),
-            energy: (features.energy / item.numFeedback),
-            instrumentalness: (features.instrumentalness / item.numFeedback),
-            liveness: (features.liveness / item.numFeedback),
-            loudness: (features.loudness / item.numFeedback),
-            speechiness: (features.speechiness / item.numFeedback),
-            valence: (features.valence / item.numFeedback),
-            tempo: (features.tempo / item.numFeedback),
-          }
-          item.spotifyFeatures = features;
-          item.numFeedback = 1;
-        }
-      }
-      this.learningService.trainModel(this.mapFeatureEmotion, this.idUser, this.shared.getCurrentMood());
+      this.learningService.trainModel(this.doubleToUpload, this.shared.getCurrentMood());
+      this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), false);
     }
   }
 
-  // this function is used to get emotion feedback triple
+  // this function is used to get emotion feedback double
   onGivenFeedback(feedback: string) {
+    console.log(this.currentMusicplaying.features);
+
     const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === feedback);
     if (this.feedbackEmoji && this.waitNewFeedback) {
       const image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
@@ -307,8 +256,7 @@ export class Tab1Page {
       this.feedbackEmoji = true;
       this.waitNewFeedback = true;
       this.feedback = feedback;
-      this.numFeedback++;
-      this.realizeTable();
+      this.uploadFeedbackToDB();
     }
   }
 
@@ -452,6 +400,7 @@ export class Tab1Page {
           text: 'Yes',
           cssClass: 'alertMedium',
           handler: () => {
+            this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), true);
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
           }
@@ -463,6 +412,12 @@ export class Tab1Page {
       ],
     });
     await alert.present();
+  }
+
+  // Round features to 3rd decimal number
+  roundTo(value, places) {
+    const power = Math.pow(10, places);
+    return Math.round(value * power) / power;
   }
 
   /* ALERT LOGOUT */

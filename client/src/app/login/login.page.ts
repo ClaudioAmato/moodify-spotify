@@ -1,6 +1,7 @@
+import { InitializeTrainService } from './../services/initialize-train.service';
 import { UserProfile } from './../interfaces/UserProfile';
 import { EmojisService } from './../services/emojis.service';
-import { Triple } from './../classes/Triple';
+import { Double } from '../classes/Double';
 import { MachineLearningService } from '../services/machineLearning.service';
 import { UserPreferences } from './../interfaces/UserPreferences';
 import { PreferencesServices } from './../services/preferences.service';
@@ -31,8 +32,10 @@ export class LoginPage {
 
   constructor(private shared: SharedParamsService, private prefService: PreferencesServices,
     private navCtrl: NavController, private loadingCtrl: LoadingController, private emoji: EmojisService,
+    private initialize: InitializeTrainService,
     private learningService: MachineLearningService) {
     this.params = this.getHashParams();
+    // this.initialize.initialize();
     // if already logged
     if (this.shared.getExpirationToken() !== null && this.params.access_token === undefined) {
       if (this.shared.checkExpirationToken()) {
@@ -111,28 +114,26 @@ export class LoginPage {
             }
             this.userProfile.preferences = userPreferences;
           }
-        }).then(() => {
-          this.learningService.getUser(this.userProfile.ID).then(result2 => {
-            if (result2 !== undefined) {
-              if (this.shared.getCurrentMood() !== undefined && this.shared.getTargetMood() !== undefined) {
-                this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
-                  .then(result3 => {
-                    this.userProfile.targetFeatures = result3;
-                  }).then(() => {
-                    this.shared.setUserProfile(this.userProfile);
-                    this.loadingCtrl.dismiss();
-                    this.checkSettedMood();
-                  });
-              }
-              else {
-                this.loadingCtrl.dismiss();
-              }
+        })
+      }).then(() => {
+        this.learningService.getUser(this.userProfile.ID).then(result2 => {
+          if (result2 !== undefined) {
+            if (this.shared.getCurrentMood() !== undefined && this.shared.getTargetMood() !== undefined) {
+              this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
+                .then(result3 => {
+                  this.userProfile.targetFeatures = result3.features;
+                }).then(() => {
+                  this.loadingCtrl.dismiss();
+                  this.checkSettedMood();
+                });
             }
             else {
-              this.copyModel();
-              this.checkDB();
+              this.loadingCtrl.dismiss();
             }
-          });
+          }
+          else {
+            this.copyModel();
+          }
         });
       });
     });
@@ -140,6 +141,8 @@ export class LoginPage {
 
   // this function redirect page if moods were already setted
   checkSettedMood() {
+    this.shared.setUserProfile(this.userProfile);
+    this.loadingCtrl.dismiss();
     if (
       this.shared.getCurrentMood() !== null &&
       this.shared.getTargetMood() !== null
@@ -181,43 +184,19 @@ export class LoginPage {
     const arrayEmoji = this.emoji.getArrayEmoji();
     for (const [index, emoji] of arrayEmoji.entries()) {
       for (const [index2, emoji2] of arrayEmoji.entries()) {
-        const arrayTrip: Array<Triple> = [];
-        let tempResult;
         this.learningService.getModelData(emoji.name, emoji2.name).then(result => {
           if (result !== undefined) {
-            if (emoji.name === this.shared.getCurrentMood() && emoji2.name === this.shared.getTargetMood()) {
-              this.userProfile.targetFeatures = result;
-            }
-            tempResult = result;
-          }
-        }).then(() => {
-          if (tempResult !== undefined) {
-            const triple = new Triple();
-            triple.mood = emoji2.name;
-            triple.numFeedback = 1;
-            triple.spotifyFeatures = tempResult;
-            arrayTrip.push(triple);
-            this.learningService.uploadPersonal(arrayTrip, this.userProfile.ID, emoji.name);
+            const double = new Double();
+            double.mood = emoji2.name;
+            double.spotifyFeatures = result.features;
+            this.learningService.uploadPersonal(double, this.userProfile.ID, emoji.name, false);
           }
         }).then(() => {
           if (index * index2 === Math.pow(arrayEmoji.length - 1, 2)) {
-            this.end = true;
+            this.checkSettedMood();
           }
         });
       }
     }
-  }
-
-  // this function checks every second if the model has been copied
-  // to the new user account
-  async checkDB() {
-    this._checkDB = setInterval(() => {
-      if (this.end === true) {
-        clearInterval(this._checkDB);
-        this.shared.setUserProfile(this.userProfile);
-        this.loadingCtrl.dismiss();
-        this.checkSettedMood();
-      }
-    }, 1000);
   }
 }

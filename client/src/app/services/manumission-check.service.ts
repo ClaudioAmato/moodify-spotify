@@ -19,6 +19,14 @@ export class ManumissionCheckService {
       this.sharedParamsService.getExpirationToken() === null
     ) {
       this.alertManumission();
+      console.log(this.sharedParamsService.getUserProfile() + ", " +
+        this.sharedParamsService.getCurrentMood() + ", " +
+        this.sharedParamsService.getTargetMood() + ", " +
+        this.sharedParamsService.getToken() + ", " +
+        this.sharedParamsService.getRefreashToken() + ", " +
+        this.sharedParamsService.getPreviousDay() + ", " +
+        this.sharedParamsService.getExpirationToken());
+
       return true;
     }
     else {
@@ -27,7 +35,7 @@ export class ManumissionCheckService {
   }
 
   /* ALERT CHECK EXPIRATION TOKEN */
-  async alertManumission() {
+  private async alertManumission() {
     const alert = await this.alertController.create({
       header: 'Error',
       cssClass: 'alertClassError',

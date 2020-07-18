@@ -1,6 +1,7 @@
+import { LoadingController } from '@ionic/angular';
 import { MachineLearningService } from './machineLearning.service';
-import { TrackDatas } from './../interfaces/TrackDatas';
-import { Triple } from './../classes/Triple';
+import { TrackFeatures } from '../interfaces/TrackFeatures';
+import { Double } from '../classes/Double';
 import { EmojisService } from './emojis.service';
 import { Injectable } from '@angular/core';
 
@@ -9,11 +10,12 @@ import { Injectable } from '@angular/core';
 })
 export class InitializeTrainService {
 
-  constructor(private emoji: EmojisService, private learningService: MachineLearningService) { }
+  constructor(private emoji: EmojisService, private learningService: MachineLearningService,
+    private loadingCtrl: LoadingController) { }
 
   initialize() {
     const arrayEmoji = this.emoji.getArrayEmoji();
-    const trackData: TrackDatas = {
+    const trackData: TrackFeatures = {
       key: 5,
       mode: 0,
       time_signature: 4,
@@ -26,17 +28,27 @@ export class InitializeTrainService {
       speechiness: 0.5,
       valence: 0.5,
       tempo: 120,
+      popularity: 50
     }
-    for (const emoji of arrayEmoji) {
-      const arrayTrip: Array<Triple> = [];
-      for (const emoji2 of arrayEmoji) {
-        const triple = new Triple();
-        triple.mood = emoji2.name;
-        triple.numFeedback = 1;
-        triple.spotifyFeatures = trackData;
-        arrayTrip.push(triple);
+    this.presentLoading('Loading datas ...').then(() => {
+      for (const emoji of arrayEmoji) {
+        for (const emoji2 of arrayEmoji) {
+          const double = new Double();
+          double.mood = emoji2.name;
+          double.spotifyFeatures = trackData;
+          this.learningService.trainModel(double, emoji.name);
+        }
       }
-      this.learningService.trainModel(arrayTrip, null, emoji.name);
-    }
+    }).then(() => {
+      this.loadingCtrl.dismiss();
+    });
+  }
+
+  // Loading data
+  private async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
+    });
+    return await loading.present();
   }
 }
