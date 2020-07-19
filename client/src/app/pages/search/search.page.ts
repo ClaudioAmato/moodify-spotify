@@ -1,22 +1,22 @@
-import { TrackDatas } from './../interfaces/TrackDatas';
-import { ManumissionCheckService } from './../services/manumission-check.service';
-import { UserProfile } from './../interfaces/UserProfile';
-import { MachineLearningService } from '../services/machineLearning.service';
-import { TrackFeatures } from '../interfaces/TrackFeatures';
-import { LogoutService } from './../services/logout.service';
-import { EmojisService } from './../services/emojis.service';
-import { Double } from '../classes/Double';
+import { TrackDatas } from './../../interfaces/TrackDatas';
+import { ManumissionCheckService } from './../../services/manumission-check.service';
+import { UserProfile } from './../../interfaces/UserProfile';
+import { MachineLearningService } from './../../services/machineLearning.service';
+import { TrackFeatures } from './../../interfaces/TrackFeatures';
+import { LogoutService } from './../../services/logout.service';
+import { EmojisService } from './../../services/emojis.service';
+import { Double } from '../../classes/Double';
 import { AlertController, LoadingController } from '@ionic/angular';
-import { SharedParamsService } from './../services/shared-params.service';
+import { SharedParamsService } from './../../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 
 @Component({
-  selector: 'app-tab1',
-  templateUrl: 'tab1.page.html',
-  styleUrls: ['tab1.page.scss'],
+  selector: 'app-search',
+  templateUrl: 'search.page.html',
+  styleUrls: ['search.page.scss'],
 })
-export class Tab1Page {
+export class SearchPage {
 
   // spotifyApi
   spotifyApi = new SpotifyWebApi();
@@ -400,7 +400,24 @@ export class Tab1Page {
           text: 'Yes',
           cssClass: 'alertMedium',
           handler: () => {
-            this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), true);
+            const doubleDelete = new Double();
+            doubleDelete.setMood(this.doubleToUpload.mood);
+            doubleDelete.spotifyFeatures = {
+              key: -this.doubleToUpload.spotifyFeatures.key,
+              mode: -this.doubleToUpload.spotifyFeatures.mode,
+              time_signature: -this.doubleToUpload.spotifyFeatures.time_signature,
+              acousticness: -this.doubleToUpload.spotifyFeatures.acousticness,
+              danceability: -this.doubleToUpload.spotifyFeatures.danceability,
+              energy: -this.doubleToUpload.spotifyFeatures.energy,
+              instrumentalness: -this.doubleToUpload.spotifyFeatures.instrumentalness,
+              liveness: -this.doubleToUpload.spotifyFeatures.liveness,
+              loudness: -this.doubleToUpload.spotifyFeatures.loudness,
+              speechiness: -this.doubleToUpload.spotifyFeatures.speechiness,
+              valence: -this.doubleToUpload.spotifyFeatures.valence,
+              tempo: -this.doubleToUpload.spotifyFeatures.tempo,
+              popularity: -this.doubleToUpload.spotifyFeatures.popularity
+            }
+            this.learningService.uploadPersonal(doubleDelete, this.idUser, this.shared.getCurrentMood(), true);
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
           }

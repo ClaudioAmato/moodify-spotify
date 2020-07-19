@@ -10,7 +10,7 @@ import 'firebase/database';
 })
 export class MachineLearningService {
   database = firebase.database();
-  bufferModelLength = 20;
+  bufferModelLength = 10;
   bufferUserLength = 5;
 
   constructor(private afs: AngularFirestore) {
@@ -29,7 +29,7 @@ export class MachineLearningService {
         tempFeat = featureStored.features;
         buff.feat = tempBufFeat;
         if (buff.numFeed >= this.bufferModelLength) {
-          tempFeat = this.doMean(buff.feat, this.bufferModelLength + 1);
+          tempFeat = this.doMean(buff.feat, this.bufferModelLength);
           buff.numFeed = 1;
           buff.feat = tempFeat;
         }
@@ -71,10 +71,12 @@ export class MachineLearningService {
           buff.numFeed = 1;
           buff.feat = tempFeat;
         }
-        firebase.database().ref('user/' + id + '/' + startingMood + '/' + double.getMood()).update({
-          features: tempFeat,
-          buffer: buff
-        });
+        if (buff.numFeed !== 0) {
+          firebase.database().ref('user/' + id + '/' + startingMood + '/' + double.getMood()).update({
+            features: tempFeat,
+            buffer: buff
+          });
+        }
       }
       else {
         firebase.database().ref('user/' + id + '/' + startingMood + '/' + double.getMood()).set({

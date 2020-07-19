@@ -72,12 +72,12 @@ export class MoodSetPage {
             }
           }).then(() => {
             this.loadingCtrl.dismiss();
-            this.navCtrl.navigateRoot('/moodify/home');
+            this.navCtrl.navigateRoot('/tab/search');
           });
       });
     }
     else {
-      this.navCtrl.navigateRoot('/moodify/home');
+      this.navCtrl.navigateRoot('/tab/search');
     }
   }
 

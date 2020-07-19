@@ -1,6 +1,6 @@
+import { TabsPage } from './tabs.page';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TabsPage } from './tabs.page';
 
 const routes: Routes = [
   {
@@ -8,12 +8,22 @@ const routes: Routes = [
     component: TabsPage,
     children: [
       {
-        path: 'home',
+        path: 'search',
         children: [
           {
             path: '',
             loadChildren: () =>
-              import('../tab1/tab1.module').then(m => m.Tab1PageModule)
+              import('../pages/search/search.module').then(m => m.SearchPageModule)
+          }
+        ]
+      },
+      {
+        path: 'suggest',
+        children: [
+          {
+            path: '',
+            loadChildren: () =>
+              import('../pages/suggest/suggest.module').then(m => m.SuggestPageModule)
           }
         ]
       },
@@ -23,7 +33,7 @@ const routes: Routes = [
           {
             path: '',
             loadChildren: () =>
-              import('../tab2/tab2.module').then(m => m.Tab2PageModule)
+              import('../pages/profile/profile.module').then(m => m.ProfilePageModule)
           }
         ]
       },
@@ -33,20 +43,20 @@ const routes: Routes = [
           {
             path: '',
             loadChildren: () =>
-              import('../tab3/tab3.module').then(m => m.Tab3PageModule)
+              import('../pages/change-mood/change-mood.module').then(m => m.ChangeMoodPageModule)
           }
         ]
       },
       {
         path: '',
-        redirectTo: '/moodify/home',
+        redirectTo: '/tab/search',
         pathMatch: 'full'
       }
     ]
   },
   {
     path: '',
-    redirectTo: '/moodify/home',
+    redirectTo: '/tab/search',
     pathMatch: 'full'
   }
 ];

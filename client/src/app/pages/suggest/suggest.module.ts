@@ -1,15 +1,17 @@
+import { SuggestPage } from './suggest.page';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Tab2Page } from './tab2.page';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   imports: [
     IonicModule,
     CommonModule,
-    RouterModule.forChild([{ path: '', component: Tab2Page }])
+    FormsModule,
+    RouterModule.forChild([{ path: '', component: SuggestPage }])
   ],
-  declarations: [Tab2Page]
+  declarations: [SuggestPage]
 })
-export class Tab2PageModule { }
+export class SuggestPageModule { }

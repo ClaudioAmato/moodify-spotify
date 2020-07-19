@@ -1,0 +1,206 @@
+ion-content ion-toolbar {
+  --background: translucent;
+}
+
+.nameField {
+  color: var(--ion-color-primary);
+  margin-right: 5px;
+}
+
+.wrapDiv {
+  display: flex;
+}
+.itemDiv {
+  display: inherit;
+  width: 100%;
+}
+.containerDatas {
+  align-self: center;
+}
+.verticalDivCenter {
+  display: flex;
+  flex-direction: column-reverse;
+}
+.divPreview {
+  margin-left: auto;
+}
+.listenMe {
+  margin: 10px 10px 10px 16px;
+  cursor: pointer;
+  .image-container {
+    -moz-box-shadow: 0 0 10px var(--ion-color-secondary);
+    -webkit-box-shadow: 0 0 10px var(--ion-color-secondary);
+    box-shadow: 0 0 10px var(--ion-color-secondary);
+    width: fit-content;
+    height: 200px;
+    margin: auto;
+  }
+  /* Zoom In #1 */
+  .image-container figure img {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    -webkit-transition: 0.3s ease-in-out;
+    transition: 0.3s ease-in-out;
+  }
+  .image-container figure:hover img {
+    -webkit-transform: scale(1.3);
+    transform: scale(1.3);
+  }
+  .album {
+    position: relative;
+    top: 0;
+    left: 0;
+  }
+  .listenMeLabel {
+    cursor: pointer;
+    text-align: center;
+    font-size: small;
+    margin-top: 5px;
+    color: var(--ion-color-primary);
+  }
+  figure {
+    width: 200px;
+    height: 200px;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    overflow: hidden;
+  }
+  figure:hover + span {
+    bottom: -36px;
+    opacity: 1;
+  }
+  .playing {
+    position: absolute;
+    top: 64px;
+    left: 66px;
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.submit {
+  margin: 10px auto 20px auto;
+  width: 30%;
+}
+
+@media screen and (max-width: 900px) {
+  .divPreview {
+    text-align: center;
+    display: inherit;
+    margin: 10px 0;
+  }
+  .itemDiv {
+    display: block;
+    margin: auto;
+  }
+  .listenMe {
+    margin: 10px 0;
+    .playing {
+      top: 45px;
+      left: calc(50% - 40px);
+      width: 80px;
+      height: 80px;
+    }
+  }
+  figure {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  .image-container {
+    height: 150px !important;
+  }
+  ion-item {
+    --padding-end: 0px;
+    --inner-padding-end: 0px;
+  }
+  .wrapDiv {
+    justify-content: center;
+    display: inherit;
+    text-align: center;
+  }
+  .nameField {
+    margin: 0;
+  }
+}
+
+.previewButton {
+  font-size: small !important;
+}
+
+.search-click {
+  transition: transform 0.25s;
+
+  &::after {
+    transition: opacity 1s;
+  }
+
+  &:active {
+    transform: scale(0.8);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &::before {
+    transition: opacity 0.5s;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+.emojiContainer {
+  min-width: 60px;
+  width: 5%;
+  margin: 15px;
+  display: inline-grid;
+  img {
+    margin: auto;
+  }
+}
+
+* {
+  outline: none;
+}
+
+.emojiImg:hover {
+  cursor: pointer;
+}
+
+.center-div {
+  text-align: center;
+}
+
+@media screen and (max-width: 744px) {
+  .emojiContainer {
+    margin: 10px;
+  }
+}
+
+@media screen and (max-width: 662px) {
+  .emojiContainer {
+    width: 10%;
+    margin: 10px 35px;
+  }
+}
+
+@media screen and (max-width: 538px) {
+  .emojiContainer {
+    margin: 10px 25px;
+  }
+}
+
+@media screen and (max-width: 458px) {
+  .emojiContainer {
+    margin: 10px 15px;
+  }
+}
+
+@media screen and (max-width: 384px) {
+  .emojiContainer {
+    margin: 10px 10px;
+  }
+}

@@ -1,5 +1,4 @@
 import { TrackFeatures } from './../interfaces/TrackFeatures';
-import { TrackFeatures } from '../interfaces/TrackFeatures';
 
 export class Double {
     mood: string;
@@ -20,6 +19,7 @@ export class Double {
             speechiness: null,
             valence: null,
             tempo: null,
+            popularity: null
         };
     }
 
@@ -41,6 +41,7 @@ export class Double {
         this.spotifyFeatures.speechiness = trackFeatures.speechiness;
         this.spotifyFeatures.valence = trackFeatures.valence;
         this.spotifyFeatures.tempo = trackFeatures.tempo;
+        this.spotifyFeatures.popularity = trackFeatures.popularity;
     }
 
     getMood() {

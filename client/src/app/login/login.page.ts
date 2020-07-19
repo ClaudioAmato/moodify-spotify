@@ -147,7 +147,7 @@ export class LoginPage {
       this.shared.getCurrentMood() !== null &&
       this.shared.getTargetMood() !== null
     ) {
-      this.navCtrl.navigateRoot('/moodify/home');
+      this.navCtrl.navigateRoot('/tab/search');
     }
     else {
       this.navCtrl.navigateRoot('/mood');

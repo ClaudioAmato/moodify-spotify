@@ -1,0 +1,178 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>
+      Home
+    </ion-title>
+    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear"
+      >Logout</ion-button
+    >
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher
+    (ionRefresh)="doRefresh($event)"
+    slot="fixed"
+    pullFactor="0.5"
+    pullMin="80"
+    pullMax="200"
+  >
+    <ion-refresher-content
+      pullingIcon="chevron-down"
+      refreshingSpinner="dots"
+      pullingText="Pull to refresh"
+      refreshingText="Refreshing..."
+    ></ion-refresher-content>
+  </ion-refresher>
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Search Music
+      </ion-label>
+    </ion-card-header>
+    <ion-searchbar
+      animated
+      placeholder="Search for a song"
+      showCancelButton="focus"
+      spellcheck="true"
+      disabled="{{!this.feedbackEmoji}}"
+      (ionChange)="searchMusic($event)"
+      (ionClear)="clearInput()"
+    ></ion-searchbar>
+
+    <ion-grid class="ion-no-padding">
+      <ion-row style="justify-content: space-between !important;">
+        <ion-col *ngFor="let item of searchTrack">
+          <ion-item
+            lines="none"
+            (click)="onClickTrack(item.key)"
+            class="search-click"
+          >
+            <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
+              <img src="{{item.image}}" />
+            </ion-avatar>
+            <ion-label>
+              {{item.name}}
+            </ion-label>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Your moody music
+      </ion-label>
+    </ion-card-header>
+    <ng-container>
+      <ion-item *ngIf="this.currentMusicplaying === null" lines="none">
+        Choose an song
+      </ion-item>
+      <ng-container *ngIf="this.currentMusicplaying !== null">
+        <ion-item lines="full" class="ion-no-padding">
+          <div class="itemDiv">
+            <div
+              (click)="openSpotifyPlayer(currentMusicplaying.external_urls)"
+              class="listenMe"
+              style="display: grid;"
+            >
+              <div class="image-container">
+                <figure>
+                  <img class="album" src="{{currentMusicplaying.image}}" />
+                  <img
+                    class="playing"
+                    src="assets/img/playing.png"
+                    *ngIf="currentMusicplaying.currentlyPlayingSong"
+                  />
+                </figure>
+              </div>
+              <div class="listenMeLabel">
+                Click on the cover to listen to me
+              </div>
+            </div>
+
+            <div class="containerDatas">
+              <div class="wrapDiv">
+                <div class="nameField">
+                  Album:
+                </div>
+                <div class="verticalDivCenter">
+                  {{currentMusicplaying.nome_album}}
+                </div>
+              </div>
+              <div class="wrapDiv">
+                <div class="nameField">
+                  Artisti:
+                </div>
+                <div
+                  class="verticalDivCenter"
+                  *ngFor="let artist of currentMusicplaying.nomi_artisti; last as isLast"
+                >
+                  <ng-container *ngIf="isLast">
+                    {{artist.name}}
+                  </ng-container>
+                  <ng-container *ngIf="!isLast">
+                    {{artist.name}},&nbsp;
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+
+            <div class="divPreview">
+              <ion-button
+                (click)="playPreview(currentMusicplaying.uriID)"
+                class="previewButton"
+                fill="clear"
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === false"
+              >
+                Preview
+              </ion-button>
+              <ion-button
+                (click)="stop(currentMusicplaying.uriID)"
+                class="previewButton"
+                fill="clear"
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true"
+                >Stop
+              </ion-button>
+              <ion-progress-bar
+                color="primary"
+                value="{{this.soundPlayer.currentTime / 30}} "
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true"
+              ></ion-progress-bar>
+              <ion-button
+                class="previewButton"
+                fill="clear"
+                *ngIf="currentMusicplaying.preview_url === null"
+                color="danger"
+                (click)="noPreview()"
+              >
+                No preview available
+              </ion-button>
+            </div>
+          </div>
+        </ion-item>
+      </ng-container>
+    </ng-container>
+  </ion-card>
+  <ion-card *ngIf="divEmoji">
+    <ion-card-header class="ion-text-center">
+      <ion-label style="font-weight: bold;" color="primary">
+        Feedback
+      </ion-label>
+    </ion-card-header>
+    <div class="center-div">
+      <ng-container *ngFor="let item of arrayEmoji; let i = index">
+        <div
+          class="emojiContainer"
+          tabindex="{{i+1}}"
+          (click)="onGivenFeedback(item.name)"
+        >
+          <img src="{{item.image}}" class="emojiImg" id="current{{i}}" />
+          <label style="text-align: center;">{{item.name}}</label>
+        </div>
+      </ng-container>
+    </div>
+  </ion-card>
+</ion-content>

@@ -1,16 +1,16 @@
-import { ManumissionCheckService } from './../services/manumission-check.service';
-import { EmojisService } from './../services/emojis.service';
-import { LogoutService } from './../services/logout.service';
+import { ManumissionCheckService } from './../../services/manumission-check.service';
+import { EmojisService } from './../../services/emojis.service';
+import { LogoutService } from './../../services/logout.service';
 import { NavController, AlertController } from '@ionic/angular';
-import { SharedParamsService } from './../services/shared-params.service';
+import { SharedParamsService } from './../../services/shared-params.service';
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-tab3',
-  templateUrl: 'tab3.page.html',
-  styleUrls: ['tab3.page.scss']
+  selector: 'app-change-mood',
+  templateUrl: 'change-mood.page.html',
+  styleUrls: ['change-mood.page.scss']
 })
-export class Tab3Page {
+export class ChangeMoodPage {
   currentEmotion: { name: string, image: string };
   targetEmotion: { name: string, image: string };
 

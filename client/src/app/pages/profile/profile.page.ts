@@ -1,19 +1,19 @@
-import { ManumissionCheckService } from './../services/manumission-check.service';
-import { UserProfile } from './../interfaces/UserProfile';
-import { LogoutService } from './../services/logout.service';
-import { PreferencesServices } from '../services/preferences.service';
-import { SharedParamsService } from './../services/shared-params.service';
+import { ManumissionCheckService } from './../../services/manumission-check.service';
+import { UserProfile } from './../../interfaces/UserProfile';
+import { LogoutService } from './../../services/logout.service';
+import { PreferencesServices } from '../../services/preferences.service';
+import { SharedParamsService } from './../../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { AlertController } from '@ionic/angular';
-import { UserPreferences } from '../interfaces/UserPreferences';
+import { UserPreferences } from '../../interfaces/UserPreferences';
 
 @Component({
-  selector: 'app-tab2',
-  templateUrl: 'tab2.page.html',
-  styleUrls: ['tab2.page.scss']
+  selector: 'app-profile',
+  templateUrl: 'profile.page.html',
+  styleUrls: ['profile.page.scss']
 })
-export class Tab2Page {
+export class ProfilePage {
 
   // spotifyAPI
   spotifyApi = new SpotifyWebApi();
