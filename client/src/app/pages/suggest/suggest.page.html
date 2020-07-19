@@ -24,52 +24,14 @@
       refreshingText="Refreshing..."
     ></ion-refresher-content>
   </ion-refresher>
-  <ion-card>
-    <ion-card-header class="ion-text-center">
-      <ion-label style="font-weight: bold;" color="primary">
-        Search Music
-      </ion-label>
-    </ion-card-header>
-    <ion-searchbar
-      animated
-      placeholder="Search for a song"
-      showCancelButton="focus"
-      spellcheck="true"
-      disabled="{{!this.feedbackEmoji}}"
-      (ionChange)="searchMusic($event)"
-      (ionClear)="clearInput()"
-    ></ion-searchbar>
-
-    <ion-grid class="ion-no-padding">
-      <ion-row style="justify-content: space-between !important;">
-        <ion-col *ngFor="let item of searchTrack">
-          <ion-item
-            lines="none"
-            (click)="onClickTrack(item.key)"
-            class="search-click"
-          >
-            <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
-              <img src="{{item.image}}" />
-            </ion-avatar>
-            <ion-label>
-              {{item.name}}
-            </ion-label>
-          </ion-item>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </ion-card>
 
   <ion-card>
     <ion-card-header class="ion-text-center">
       <ion-label style="font-weight: bold;" color="primary">
-        Your moody music
+        Suggested music
       </ion-label>
     </ion-card-header>
     <ng-container>
-      <ion-item *ngIf="this.currentMusicplaying === null" lines="none">
-        Choose an song
-      </ion-item>
       <ng-container *ngIf="this.currentMusicplaying !== null">
         <ion-item lines="full" class="ion-no-padding">
           <div class="itemDiv">

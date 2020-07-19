@@ -2,7 +2,6 @@ import { TrackDatas } from './../../interfaces/TrackDatas';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
 import { MachineLearningService } from './../../services/machineLearning.service';
-import { TrackFeatures } from './../../interfaces/TrackFeatures';
 import { LogoutService } from './../../services/logout.service';
 import { EmojisService } from './../../services/emojis.service';
 import { Double } from '../../classes/Double';
@@ -30,9 +29,6 @@ export class SearchPage {
   idUser = '';
   userInDB = { exist: true, checked: true };
 
-  // features desired
-  desiredFeature: TrackFeatures;
-
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
   divEmoji = false;
@@ -46,7 +42,9 @@ export class SearchPage {
   currentPlaying: any = undefined;
   spotifyWindow: Window;
   _previewIntervalHandler: any;
+  _previewTimeOut: any;
   _playIntervalHandler: any;
+  hasListened = false;
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
@@ -74,12 +72,10 @@ export class SearchPage {
       this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
-            this.desiredFeature = result.features;
             this.userInDB = {
               exist: true,
               checked: true
             }
-            console.log('Desired Features: ', this.desiredFeature);
           }
           else {
             console.log('Nessun utente trovato');
@@ -96,6 +92,7 @@ export class SearchPage {
   // this function let user searching an artist
   searchMusic($event) {
     this.divEmoji = false;
+    this.stop(null);
     if (this.searchTrack.length > 0) {
       this.searchTrack = [];
     }
@@ -149,7 +146,6 @@ export class SearchPage {
   onClickTrack(idTrack: string) {
     this.divEmoji = true;
     this.waitNewFeedback = false;
-    this.stop(null);
     if (this.searchTrack.length > 0) {
       this.searchTrack = [];
     }
@@ -211,6 +207,7 @@ export class SearchPage {
             }
           }
         }).then(() => {
+          console.log(this.currentMusicplaying.features);
           this.loadingCtrl.dismiss();
         }).catch(err => {
           console.log(err);
@@ -233,8 +230,6 @@ export class SearchPage {
 
   // this function is used to get emotion feedback double
   onGivenFeedback(feedback: string) {
-    console.log(this.currentMusicplaying.features);
-
     const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === feedback);
     if (this.feedbackEmoji && this.waitNewFeedback) {
       const image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
@@ -253,9 +248,9 @@ export class SearchPage {
           image.style.filter = 'none';
         }
       }
-      this.feedbackEmoji = true;
       this.waitNewFeedback = true;
       this.feedback = feedback;
+      this.feedbackEmoji = true;
       this.uploadFeedbackToDB();
     }
   }
@@ -302,7 +297,7 @@ export class SearchPage {
   playPreview(uri: string) {
     // if current playing
     if (this.soundPlayer.currentTime > 0) {
-      this.stop(this.currentPreview.uriID);
+      this.stop(uri);
     }
     if (this.currentMusicplaying !== undefined) {
       if (this.currentMusicplaying.preview_url !== null) {
@@ -310,12 +305,14 @@ export class SearchPage {
         this.soundPlayer.src = this.currentMusicplaying.preview_url;
         this.soundPlayer.play();
         this.progressBar();
-      } setTimeout(() => {
+      }
+      this._previewTimeOut = setTimeout(() => {
         this.soundPlayer.pause();
         this.soundPlayer.currentTime = 0;
-        this.currentMusicplaying = undefined;
         if (this.currentMusicplaying !== undefined) {
           this.currentMusicplaying.currentlyPlayingPreview = false;
+          this.hasListened = true;
+          console.log(this.hasListened);
         }
       }, 30000);
     }
@@ -332,6 +329,7 @@ export class SearchPage {
   stop(uri: string) {
     this.soundPlayer.pause();
     clearInterval(this._previewIntervalHandler);
+    clearTimeout(this._previewTimeOut);
     this.soundPlayer.currentTime = 0;
     this.currentPreview = undefined;
     this.currentPlaying = undefined;

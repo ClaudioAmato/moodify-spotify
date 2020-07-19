@@ -5,7 +5,7 @@ import { PreferencesServices } from '../../services/preferences.service';
 import { SharedParamsService } from './../../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { UserPreferences } from '../../interfaces/UserPreferences';
 
 @Component({
@@ -30,7 +30,7 @@ export class ProfilePage {
   preventSearchBug = false;
 
   // Genres variables
-  topGenresMap = {};
+  topGenresMap = [];
   genresAvailable: Array<{ key: string, checkedFav: boolean, checkedHate: boolean }> = [];
   favGenresSelected = [];
   hatedGenresSelected = [];
@@ -41,7 +41,8 @@ export class ProfilePage {
   showHatedGenres = 'Show';
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
-    private prefService: PreferencesServices, private logoutService: LogoutService, private manumission: ManumissionCheckService) {
+    private prefService: PreferencesServices, private logoutService: LogoutService,
+    private manumission: ManumissionCheckService, private loadingCtrl: LoadingController) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -57,25 +58,32 @@ export class ProfilePage {
             this.hatedGenresSelected = this.userProfile.preferences.hatedGenres;
           }
           if (this.userProfile.preferences.favoriteSingers !== undefined) {
-            this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
-              if (response !== undefined) {
-                for (const artist of response.artists) {
-                  const dataArtist = {
-                    key: artist.id,
-                    image: artist.images[0].url,
-                    name: artist.name,
-                    checked: true
-                  };
-                  this.selectedFavArtist.push(dataArtist);
+            this.presentLoading('Loading datas ...').then(() => {
+              this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
+                if (response !== undefined) {
+                  for (const artist of response.artists) {
+                    const dataArtist = {
+                      key: artist.id,
+                      image: artist.images[0].url,
+                      name: artist.name,
+                      checked: true
+                    };
+                    this.selectedFavArtist.push(dataArtist);
+                  }
                 }
-              }
+              }).then(() => {
+                this.loadingCtrl.dismiss();
+              });
             });
           }
         }
-        this.initializeGenresSeeds();
-        this.autoSearchFavGenres();
       }
     }
+  }
+
+  ionViewWillEnter() {
+    this.initializeGenresSeeds();
+    this.autoSearchFavGenres();
   }
 
   // Function that submit the user preferences (used for cold start)
@@ -111,6 +119,7 @@ export class ProfilePage {
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
   autoSearchFavGenres() {
+    const temTopGenresMap = {};
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -122,11 +131,11 @@ export class ProfilePage {
               // cycle on all the genres of the artist
               let checked = false;
               for (const genres of item.genres) {
-                if (this.topGenresMap[genres] === undefined) {
-                  this.topGenresMap[genres] = 1;
+                if (temTopGenresMap[genres] === undefined) {
+                  temTopGenresMap[genres] = 1;
                 }
                 else {
-                  this.topGenresMap[genres] += 1;
+                  temTopGenresMap[genres] += 1;
                 }
               }
               if (index < 10) {
@@ -147,8 +156,11 @@ export class ProfilePage {
                 this.suggestfavArtist.push(data);
               }
             }
-            this.topGenresMap = this.sortProperties(this.topGenresMap);
+            this.topGenresMap = this.sortProperties(temTopGenresMap);
           }
+        }).catch(err => {
+          this.loadingCtrl.dismiss();
+          console.log(err);
         });
       }
     }
@@ -456,6 +468,14 @@ export class ProfilePage {
       ],
     });
     await alert.present();
+  }
+
+  // Loading data
+  async presentLoading(str: string) {
+    const loading = await this.loadingCtrl.create({
+      message: str,
+    });
+    return await loading.present();
   }
 
   /* REFRESH PAGE */

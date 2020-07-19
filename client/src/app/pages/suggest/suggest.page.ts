@@ -1,8 +1,9 @@
+import { RecomendationParameterService } from './../../services/recomendation-parameter.service';
+import { TrackFeatures } from './../../interfaces/TrackFeatures';
 import { TrackDatas } from './../../interfaces/TrackDatas';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
 import { MachineLearningService } from './../../services/machineLearning.service';
-import { TrackFeatures } from './../../interfaces/TrackFeatures';
 import { LogoutService } from './../../services/logout.service';
 import { EmojisService } from './../../services/emojis.service';
 import { Double } from '../../classes/Double';
@@ -21,17 +22,18 @@ export class SuggestPage {
   // spotifyApi
   spotifyApi = new SpotifyWebApi();
 
-  // search variables
-  searchTrack: Array<{ key: string, image: any, name: string }> = [];
+  // search suggested music array
+  recommendationTrack: Array<{ key: string, image: any, name: string }> = [];
+
+  // features desired
+  desiredFeature: TrackFeatures;
+  dataRecommendation: any;
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
   currentMusicplaying: TrackDatas = null;
-  idUser = '';
   userInDB = { exist: true, checked: true };
-
-  // features desired
-  desiredFeature: TrackFeatures;
+  userProfile: UserProfile;
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -46,12 +48,14 @@ export class SuggestPage {
   currentPlaying: any = undefined;
   spotifyWindow: Window;
   _previewIntervalHandler: any;
+  _previewTimeOut: any;
   _playIntervalHandler: any;
+  hasListened = false;
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
     private learningService: MachineLearningService, private loadingCtrl: LoadingController,
-    private manumission: ManumissionCheckService) {
+    private manumission: ManumissionCheckService, private recommendation: RecomendationParameterService) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -59,9 +63,6 @@ export class SuggestPage {
       else {
         this.spotifyApi.setAccessToken(this.shared.getToken());
         this.arrayEmoji = this.emoji.getArrayEmoji();
-        if (this.shared.getTargetMood() !== null) {
-          this.initializeSessionDB();
-        }
       }
     }
   }
@@ -69,9 +70,8 @@ export class SuggestPage {
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
     this.presentLoading('Loading datas ...').then(() => {
-      const userProfile: UserProfile = this.shared.getUserProfile();
-      this.idUser = userProfile.ID;
-      this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
+      this.userProfile = this.shared.getUserProfile();
+      this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
             this.desiredFeature = result.features;
@@ -79,6 +79,7 @@ export class SuggestPage {
               exist: true,
               checked: true
             }
+            console.log(this.recommendation.getRecommendation(this.userProfile, this.desiredFeature));
             console.log('Desired Features: ', this.desiredFeature);
           }
           else {
@@ -93,23 +94,31 @@ export class SuggestPage {
     });
   }
 
+  ionViewWillEnter() {
+    if (this.shared.getTargetMood() !== null) {
+      this.initializeSessionDB();
+    }
+  }
+
   // this function let user searching an artist
-  searchMusic($event) {
+  recommendMusic() {
     this.divEmoji = false;
-    if (this.searchTrack.length > 0) {
-      this.searchTrack = [];
+    this.stop(null);
+    if (this.recommendationTrack.length > 0) {
+      this.recommendationTrack = [];
     }
     if (this.currentMusicplaying !== null) {
       this.currentMusicplaying = null;
     }
-    if ($event.detail.value.length > 0) {
-      let dataSearch: { key: string, image: any, name: string };
-      if (!this.manumission.isTampered()) {
-        if (this.shared.checkExpirationToken()) {
-          this.alertTokenExpired();
-        }
-        else {
-          this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 })
+    let dataSearch: { key: string, image: any, name: string };
+
+    if (!this.manumission.isTampered()) {
+      if (this.shared.checkExpirationToken()) {
+        this.alertTokenExpired();
+      }
+      else {
+        if (this.desiredFeature !== undefined) {
+          this.spotifyApi.getRecommendations({})
             .then((response) => {
               if (response !== undefined) {
                 for (const trackItem of response.tracks.items) {
@@ -127,7 +136,7 @@ export class SuggestPage {
                       name: trackItem.name,
                     };
                   }
-                  this.searchTrack.push(dataSearch);
+                  this.recommendationTrack.push(dataSearch);
                 }
               }
             }).catch(err => {
@@ -140,8 +149,8 @@ export class SuggestPage {
 
   // This function clear search input
   clearInput() {
-    if (this.searchTrack.length > 0) {
-      this.searchTrack = [];
+    if (this.recommendationTrack.length > 0) {
+      this.recommendationTrack = [];
     }
   }
 
@@ -149,9 +158,8 @@ export class SuggestPage {
   onClickTrack(idTrack: string) {
     this.divEmoji = true;
     this.waitNewFeedback = false;
-    this.stop(null);
-    if (this.searchTrack.length > 0) {
-      this.searchTrack = [];
+    if (this.recommendationTrack.length > 0) {
+      this.recommendationTrack = [];
     }
     let popularity;
     this.presentLoading('Loading datas ...').then(() => {
@@ -211,6 +219,7 @@ export class SuggestPage {
             }
           }
         }).then(() => {
+          console.log(this.currentMusicplaying.features);
           this.loadingCtrl.dismiss();
         }).catch(err => {
           console.log(err);
@@ -227,14 +236,12 @@ export class SuggestPage {
     this.doubleToUpload.spotifyFeatures = this.currentMusicplaying.features;
     if (!this.manumission.isTampered()) {
       this.learningService.trainModel(this.doubleToUpload, this.shared.getCurrentMood());
-      this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), false);
+      this.learningService.uploadPersonal(this.doubleToUpload, this.userProfile.ID, this.shared.getCurrentMood(), false);
     }
   }
 
   // this function is used to get emotion feedback double
   onGivenFeedback(feedback: string) {
-    console.log(this.currentMusicplaying.features);
-
     const data = this.arrayEmoji.find(currentEmotion => currentEmotion.name === feedback);
     if (this.feedbackEmoji && this.waitNewFeedback) {
       const image = document.querySelector('#current' + this.arrayEmoji.indexOf(data)) as HTMLElement;
@@ -253,9 +260,9 @@ export class SuggestPage {
           image.style.filter = 'none';
         }
       }
-      this.feedbackEmoji = true;
       this.waitNewFeedback = true;
       this.feedback = feedback;
+      this.feedbackEmoji = true;
       this.uploadFeedbackToDB();
     }
   }
@@ -302,7 +309,7 @@ export class SuggestPage {
   playPreview(uri: string) {
     // if current playing
     if (this.soundPlayer.currentTime > 0) {
-      this.stop(this.currentPreview.uriID);
+      this.stop(uri);
     }
     if (this.currentMusicplaying !== undefined) {
       if (this.currentMusicplaying.preview_url !== null) {
@@ -310,12 +317,14 @@ export class SuggestPage {
         this.soundPlayer.src = this.currentMusicplaying.preview_url;
         this.soundPlayer.play();
         this.progressBar();
-      } setTimeout(() => {
+      }
+      this._previewTimeOut = setTimeout(() => {
         this.soundPlayer.pause();
         this.soundPlayer.currentTime = 0;
-        this.currentMusicplaying = undefined;
         if (this.currentMusicplaying !== undefined) {
           this.currentMusicplaying.currentlyPlayingPreview = false;
+          this.hasListened = true;
+          console.log(this.hasListened);
         }
       }, 30000);
     }
@@ -332,6 +341,7 @@ export class SuggestPage {
   stop(uri: string) {
     this.soundPlayer.pause();
     clearInterval(this._previewIntervalHandler);
+    clearTimeout(this._previewTimeOut);
     this.soundPlayer.currentTime = 0;
     this.currentPreview = undefined;
     this.currentPlaying = undefined;
