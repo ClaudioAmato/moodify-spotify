@@ -22,130 +22,50 @@ export class RecomendationParameterService {
   constructor(private manumission: ManumissionCheckService, private shared: SharedParamsService,
     private alertController: AlertController) { }
 
-  getRecommendation(userProfile: UserProfile, desiredFeature: TrackFeatures) {
-    let dataRecommendation: any;
-    if (userProfile !== undefined) {
-      if (userProfile.preferences !== undefined) {
-        if (userProfile.preferences.favoriteGenres !== undefined &&
-          userProfile.preferences.favoriteSingers !== undefined) {
-          dataRecommendation = {
-            limit: 100,
-            target_acousticness: desiredFeature.acousticness,
-            target_key: desiredFeature.key,
-            target_mode: desiredFeature.mode,
-            target_time_signature: desiredFeature.time_signature,
-            target_danceability: desiredFeature.danceability,
-            target_energy: desiredFeature.energy,
-            target_instrumentalness: desiredFeature.instrumentalness,
-            target_liveness: desiredFeature.liveness,
-            target_loudness: desiredFeature.loudness,
-            target_speechiness: desiredFeature.speechiness,
-            target_valence: desiredFeature.valence,
-            target_tempo: desiredFeature.tempo,
-            target_popularity: desiredFeature.popularity,
-            seed_artists: userProfile.preferences.favoriteSingers,
-            seed_genres: userProfile.preferences.favoriteGenres,
-          }
-          console.log(dataRecommendation);
-          return dataRecommendation;
+  getRecommendation(userProfile: UserProfile): { seed_artists: string[], seed_genres: string[] } {
+    let dataRecommendation: { seed_artists: string[], seed_genres: string[] };
+    if (userProfile.preferences !== undefined) {
+      if (userProfile.preferences.favoriteGenres !== undefined &&
+        userProfile.preferences.favoriteSingers !== undefined) {
+        dataRecommendation = {
+          seed_artists: userProfile.preferences.favoriteSingers,
+          seed_genres: userProfile.preferences.favoriteGenres,
         }
+        return dataRecommendation;
       }
       else if (userProfile.preferences.favoriteGenres !== undefined &&
         userProfile.preferences.favoriteSingers === undefined) {
         dataRecommendation = {
-          limit: 100,
-          target_acousticness: desiredFeature.acousticness,
-          target_key: desiredFeature.key,
-          target_mode: desiredFeature.mode,
-          target_time_signature: desiredFeature.time_signature,
-          target_danceability: desiredFeature.danceability,
-          target_energy: desiredFeature.energy,
-          target_instrumentalness: desiredFeature.instrumentalness,
-          target_liveness: desiredFeature.liveness,
-          target_loudness: desiredFeature.loudness,
-          target_speechiness: desiredFeature.speechiness,
-          target_valence: desiredFeature.valence,
-          target_tempo: desiredFeature.tempo,
-          target_popularity: desiredFeature.popularity,
+          seed_artists: undefined,
           seed_genres: userProfile.preferences.favoriteGenres,
         }
-        console.log(dataRecommendation);
         return dataRecommendation;
       }
       else if (userProfile.preferences.favoriteGenres === undefined &&
         userProfile.preferences.favoriteSingers !== undefined) {
         dataRecommendation = {
-          limit: 100,
-          target_acousticness: desiredFeature.acousticness,
-          target_key: desiredFeature.key,
-          target_mode: desiredFeature.mode,
-          target_time_signature: desiredFeature.time_signature,
-          target_danceability: desiredFeature.danceability,
-          target_energy: desiredFeature.energy,
-          target_instrumentalness: desiredFeature.instrumentalness,
-          target_liveness: desiredFeature.liveness,
-          target_loudness: desiredFeature.loudness,
-          target_speechiness: desiredFeature.speechiness,
-          target_valence: desiredFeature.valence,
-          target_tempo: desiredFeature.tempo,
-          target_popularity: desiredFeature.popularity,
           seed_artists: userProfile.preferences.favoriteSingers,
+          seed_genres: undefined
         }
-        console.log(dataRecommendation);
         return dataRecommendation;
       }
       else {
-        this.autoSearchFavGenres(userProfile, desiredFeature).then((dataRecommendation2) => {
-          if (dataRecommendation2 !== undefined) {
-            console.log(dataRecommendation2);
-            return dataRecommendation2;
-          }
-          else {
-            if (this.topGenresMap === undefined) {
-              this.generateRandomGenresSeed(userProfile, desiredFeature).then(dataRecommendation3 => {
-                console.log(dataRecommendation3);
-                return dataRecommendation3;
-              });
-            }
-            else {
-              const tempGen = [];
-              for (let i = 0; i < 5; i++) {
-                tempGen.push(this.topGenresMap[i][0])
-              }
-              console.log("qUI");
-              return {
-                limit: 100,
-                target_acousticness: desiredFeature.acousticness,
-                target_key: desiredFeature.key,
-                target_mode: desiredFeature.mode,
-                target_time_signature: desiredFeature.time_signature,
-                target_danceability: desiredFeature.danceability,
-                target_energy: desiredFeature.energy,
-                target_instrumentalness: desiredFeature.instrumentalness,
-                target_liveness: desiredFeature.liveness,
-                target_loudness: desiredFeature.loudness,
-                target_speechiness: desiredFeature.speechiness,
-                target_valence: desiredFeature.valence,
-                target_tempo: desiredFeature.tempo,
-                target_popularity: desiredFeature.popularity,
-                seed_genres: tempGen
-              }
-            }
-          }
-        });
+        return undefined;
       }
     }
   }
 
+
   /* FAVORITE AND HATED GENRES */
   // This function get all spotify's seed's genres available
-  generateRandomGenresSeed(userProfile: UserProfile, desiredFeature: TrackFeatures) {
+  async generateRandomGenresSeed(userProfile: UserProfile) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
+        return undefined;
       }
       else {
-        this.spotifyApi.getAvailableGenreSeeds().then((response) => {
+        return await this.spotifyApi.getAvailableGenreSeeds().then((response) => {
           if (response !== undefined) {
             for (const genres of response.genres) {
               if (userProfile.preferences.hatedGenres !== undefined) {
@@ -159,47 +79,79 @@ export class RecomendationParameterService {
                 this.genresAvailable.push(genres);
               }
             }
+            for (let i = 0; i < 5 && i < this.genresAvailable.length; i++) {
+              const rand = Math.floor(Math.random() * this.genresAvailable.length);
+              this.randomGenres.push(this.genresAvailable[rand]);
+              this.genresAvailable.splice(rand, 1);
+            }
+            return this.randomGenres;
           }
-        }).then(() => {
-          for (let i = 0; i < 5; i++) {
-            const rand = Math.floor(Math.random() * this.genresAvailable.length);
-            this.randomGenres.push(this.genresAvailable[rand]);
-            this.genresAvailable.splice(rand, 1);
-          }
-          return this.randomGenres;
         });
       }
+    } else {
+      return undefined;
     }
   }
 
   // Function that search for your favorite musics' genres
   // based on your top artis's music genres
-  autoSearchFavGenres(userProfile: UserProfile, desiredFeature: TrackFeatures) {
+  async autoSearchFavGenres() {
     const temTopGenresMap = {};
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {
-        this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
+        return await this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
           if (response !== undefined) {
             for (const item of response.items) {
               // cycle on all the genres of the artist
-              for (const genres of item.genres) {
-                if (temTopGenresMap[genres] === undefined) {
-                  temTopGenresMap[genres] = 1;
+              for (const genres1 of item.genres) {
+                if (temTopGenresMap[genres1] === undefined) {
+                  temTopGenresMap[genres1] = 1;
                 }
                 else {
-                  temTopGenresMap[genres] += 1;
+                  temTopGenresMap[genres1] += 1;
                 }
               }
             }
             this.topGenresMap = this.sortProperties(temTopGenresMap);
+            const genres = [];
+            if (this.topGenresMap.length === 0) {
+              return undefined;
+            }
+            else {
+              for (let i = 0; i < 5 && i < this.topGenresMap.length; i++) {
+                const rand = this.myRandom(this.topGenresMap.length);
+                genres.push(this.topGenresMap[rand][0]);
+                this.topGenresMap.splice(rand, 1);
+              }
+            }
+            return genres;
           }
         }).catch(err => {
           console.log(err);
         });
       }
+    }
+  }
+
+  // this function return va
+  myRandom(maxLen: number) {
+    const rnd = Math.random(), rnd2 = Math.random();
+    const first = Math.floor(maxLen / 10), second = Math.floor(maxLen / 2);
+    let x: number;
+    if (rnd < 0.75) {
+      x = Math.floor(rnd2 * first);
+      return (x);
+    }
+    else if (rnd < 0.9) {
+      x = Math.floor(rnd2 * (second - first) + first);
+      return (x);
+    }
+    else {
+      x = Math.floor(rnd2 * (maxLen - second) + second);
+      return (x);
     }
   }
 

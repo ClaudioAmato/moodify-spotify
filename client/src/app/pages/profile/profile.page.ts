@@ -102,18 +102,9 @@ export class ProfilePage {
     }
     else {
       this.prefService.uploadPreferences(pref, this.userProfile.ID);
-      this.userProfile = {
-        ID: this.userProfile.ID,
-        targetFeatures: this.userProfile.targetFeatures,
-        country: this.userProfile.country,
-        url: this.userProfile.url,
-        email: this.userProfile.email,
-        profilePhoto: this.userProfile.profilePhoto,
-        name: this.userProfile.name,
-        preferences: pref
-      }
-      this.shared.setUserProfile(this.userProfile);
     }
+    this.userProfile.preferences = pref;
+    this.shared.setUserProfile(this.userProfile);
   }
 
   // Function that search for your favorite musics' genres
@@ -140,10 +131,12 @@ export class ProfilePage {
               }
               if (index < 10) {
                 if (this.userProfile.preferences !== undefined) {
-                  for (const pref of this.userProfile.preferences.favoriteSingers) {
-                    if (pref === item.id) {
-                      checked = true;
-                      break;
+                  if (this.userProfile.preferences.favoriteSingers !== undefined) {
+                    for (const pref of this.userProfile.preferences.favoriteSingers) {
+                      if (pref === item.id) {
+                        checked = true;
+                        break;
+                      }
                     }
                   }
                 }

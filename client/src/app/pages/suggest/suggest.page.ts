@@ -26,7 +26,7 @@ export class SuggestPage {
   recommendationTrack: Array<{ key: string, image: any, name: string }> = [];
 
   // features desired
-  desiredFeature: TrackFeatures;
+  desiredFeature: any;
   dataRecommendation: any;
 
   // pair used for the reinforcement learning
@@ -74,13 +74,64 @@ export class SuggestPage {
       this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
-            this.desiredFeature = result.features;
             this.userInDB = {
               exist: true,
               checked: true
             }
-            console.log(this.recommendation.getRecommendation(this.userProfile, this.desiredFeature));
-            console.log('Desired Features: ', this.desiredFeature);
+            this.desiredFeature = {
+              limit: 100,
+              target_acousticness: result.features.acousticness,
+              target_key: result.features.key,
+              target_mode: result.features.mode,
+              target_time_signature: result.features.time_signature,
+              target_danceability: result.features.danceability,
+              target_energy: result.features.energy,
+              target_instrumentalness: result.features.instrumentalness,
+              target_liveness: result.features.liveness,
+              target_loudness: result.features.loudness,
+              target_speechiness: result.features.speechiness,
+              target_valence: result.features.valence,
+              target_tempo: result.features.tempo,
+              target_popularity: result.features.popularity,
+            }
+            let pref1: { seed_artists: string[], seed_genres: string[] };
+            let pref2;
+            if (this.userProfile.preferences !== undefined) {
+              pref1 = this.recommendation.getRecommendation(this.userProfile);
+              if (pref1 === undefined) {
+                this.recommendation.autoSearchFavGenres().then(res => {
+                  pref2 = res;
+                  if (pref2 !== undefined) {
+                    this.desiredFeature.seed_genres = pref2;
+                  }
+                }).then(() => {
+                  if (pref2 !== undefined) {
+                    this.recommendation.generateRandomGenresSeed(this.userProfile).then(res2 => {
+                      pref2 = res2;
+                      this.loadingCtrl.dismiss();
+                      if (pref2 !== undefined) {
+                        this.desiredFeature.seed_genres = pref2;
+                      }
+                    });
+                  }
+                  this.loadingCtrl.dismiss();
+                });
+              }
+              else {
+                this.desiredFeature.seed_genres = pref1.seed_genres;
+                this.desiredFeature.seed_artists = pref1.seed_artists;
+                this.loadingCtrl.dismiss();
+              }
+            }
+            else {
+              this.recommendation.generateRandomGenresSeed(this.userProfile).then(res3 => {
+                pref2 = res3;
+                this.loadingCtrl.dismiss();
+                if (pref2 !== undefined) {
+                  this.desiredFeature.seed_genres = pref2;
+                }
+              });
+            }
           }
           else {
             console.log('Nessun utente trovato');
@@ -88,8 +139,10 @@ export class SuggestPage {
               exist: false,
               checked: true
             }
+            this.loadingCtrl.dismiss();
           }
-          this.loadingCtrl.dismiss();
+        }).then(() => {
+          console.log(this.desiredFeature);
         });
     });
   }
@@ -101,7 +154,7 @@ export class SuggestPage {
   }
 
   // this function let user searching an artist
-  recommendMusic() {
+  /*recommendMusic() {
     this.divEmoji = false;
     this.stop(null);
     if (this.recommendationTrack.length > 0) {
@@ -117,7 +170,7 @@ export class SuggestPage {
         this.alertTokenExpired();
       }
       else {
-        if (this.desiredFeature !== undefined) {
+        if (result.features !== undefined) {
           this.spotifyApi.getRecommendations({})
             .then((response) => {
               if (response !== undefined) {
@@ -145,7 +198,7 @@ export class SuggestPage {
         }
       }
     }
-  }
+  }*/
 
   // This function clear search input
   clearInput() {
@@ -427,7 +480,7 @@ export class SuggestPage {
               tempo: -this.doubleToUpload.spotifyFeatures.tempo,
               popularity: -this.doubleToUpload.spotifyFeatures.popularity
             }
-            this.learningService.uploadPersonal(doubleDelete, this.idUser, this.shared.getCurrentMood(), true);
+            this.learningService.uploadPersonal(doubleDelete, this.userProfile.ID, this.shared.getCurrentMood(), true);
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
           }
