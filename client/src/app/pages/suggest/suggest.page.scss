@@ -80,8 +80,9 @@ ion-content ion-toolbar {
 }
 
 .submit {
-  margin: 10px auto 20px auto;
-  width: 30%;
+  margin: 10px 20px 20px 20px;
+  width: 35%;
+  max-width: 300px;
 }
 
 @media screen and (max-width: 900px) {

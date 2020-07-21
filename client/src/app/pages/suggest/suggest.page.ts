@@ -24,10 +24,10 @@ export class SuggestPage {
 
   // search suggested music array
   recommendationTrack: Array<{ key: string, image: any, name: string }> = [];
+  currentIndexPlaying = 0;
 
   // features desired
   desiredFeature: any;
-  dataRecommendation: any;
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
@@ -71,6 +71,7 @@ export class SuggestPage {
   initializeSessionDB() {
     this.presentLoading('Loading datas ...').then(() => {
       this.userProfile = this.shared.getUserProfile();
+      let tempDesiredFeature: any;
       this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
           if (result !== undefined) {
@@ -78,7 +79,7 @@ export class SuggestPage {
               exist: true,
               checked: true
             }
-            this.desiredFeature = {
+            tempDesiredFeature = {
               limit: 100,
               target_acousticness: result.features.acousticness,
               target_key: result.features.key,
@@ -102,7 +103,7 @@ export class SuggestPage {
                 this.recommendation.autoSearchFavGenres().then(res => {
                   pref2 = res;
                   if (pref2 !== undefined) {
-                    this.desiredFeature.seed_genres = pref2;
+                    tempDesiredFeature.seed_genres = pref2;
                   }
                 }).then(() => {
                   if (pref2 !== undefined) {
@@ -110,7 +111,7 @@ export class SuggestPage {
                       pref2 = res2;
                       this.loadingCtrl.dismiss();
                       if (pref2 !== undefined) {
-                        this.desiredFeature.seed_genres = pref2;
+                        tempDesiredFeature.seed_genres = pref2;
                       }
                     });
                   }
@@ -118,8 +119,12 @@ export class SuggestPage {
                 });
               }
               else {
-                this.desiredFeature.seed_genres = pref1.seed_genres;
-                this.desiredFeature.seed_artists = pref1.seed_artists;
+                if (pref1.seed_artists.length > 0) {
+                  tempDesiredFeature.seed_artists = pref1.seed_artists;
+                }
+                if (pref1.seed_genres.length > 0) {
+                  tempDesiredFeature.seed_genres = pref1.seed_genres;
+                }
                 this.loadingCtrl.dismiss();
               }
             }
@@ -128,7 +133,7 @@ export class SuggestPage {
                 pref2 = res3;
                 this.loadingCtrl.dismiss();
                 if (pref2 !== undefined) {
-                  this.desiredFeature.seed_genres = pref2;
+                  tempDesiredFeature.seed_genres = pref2;
                 }
               });
             }
@@ -142,6 +147,8 @@ export class SuggestPage {
             this.loadingCtrl.dismiss();
           }
         }).then(() => {
+          this.desiredFeature = tempDesiredFeature;
+          this.recommendMusic();
           console.log(this.desiredFeature);
         });
     });
@@ -153,8 +160,9 @@ export class SuggestPage {
     }
   }
 
-  // this function let user searching an artist
-  /*recommendMusic() {
+  // this function search for a music based on user suggested features
+  // and seeds (genres and/or favorite artist)
+  recommendMusic() {
     this.divEmoji = false;
     this.stop(null);
     if (this.recommendationTrack.length > 0) {
@@ -164,56 +172,51 @@ export class SuggestPage {
       this.currentMusicplaying = null;
     }
     let dataSearch: { key: string, image: any, name: string };
-
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
       }
       else {
-        if (result.features !== undefined) {
-          this.spotifyApi.getRecommendations({})
-            .then((response) => {
-              if (response !== undefined) {
-                for (const trackItem of response.tracks.items) {
-                  if (trackItem.album.images.length !== 0) {
-                    dataSearch = {
-                      key: trackItem.id,
-                      image: trackItem.album.images[1].url,
-                      name: trackItem.name,
-                    };
-                  }
-                  else {
-                    dataSearch = {
-                      key: trackItem.id,
-                      image: 'assets/img/noImgAvailable.png',
-                      name: trackItem.name,
-                    };
-                  }
-                  this.recommendationTrack.push(dataSearch);
-                }
-              }
-            }).catch(err => {
-              console.log(err);
-            });
-        }
-      }
-    }
-  }*/
+        this.spotifyApi.getRecommendations(this.desiredFeature)
+          .then((response) => {
+            if (response !== undefined) {
+              console.log(response);
 
-  // This function clear search input
-  clearInput() {
-    if (this.recommendationTrack.length > 0) {
-      this.recommendationTrack = [];
+              for (const trackItem of response.tracks) {
+                if (trackItem.album.images.length !== 0) {
+                  dataSearch = {
+                    key: trackItem.id,
+                    image: trackItem.album.images[1].url,
+                    name: trackItem.name,
+                  };
+                }
+                else {
+                  dataSearch = {
+                    key: trackItem.id,
+                    image: 'assets/img/noImgAvailable.png',
+                    name: trackItem.name,
+                  };
+                }
+                this.recommendationTrack.push(dataSearch);
+              }
+              this.onClickTrack(this.currentIndexPlaying);
+            }
+          }).catch(err => {
+            console.log(err);
+          });
+      }
     }
   }
 
   // This function uses spotify API to get a specific track and load its information
-  onClickTrack(idTrack: string) {
+  onClickTrack(indexOfTrack: number) {
+    this.currentIndexPlaying = indexOfTrack;
+    const idTrack = this.recommendationTrack[indexOfTrack].key;
     this.divEmoji = true;
     this.waitNewFeedback = false;
-    if (this.recommendationTrack.length > 0) {
+    /*if (this.recommendationTrack.length > 0) {
       this.recommendationTrack = [];
-    }
+    }*/
     let popularity;
     this.presentLoading('Loading datas ...').then(() => {
       this.spotifyApi.getTrack(idTrack).then((response) => {
@@ -271,7 +274,6 @@ export class SuggestPage {
               popularity
             }
           }
-        }).then(() => {
           console.log(this.currentMusicplaying.features);
           this.loadingCtrl.dismiss();
         }).catch(err => {
@@ -335,7 +337,6 @@ export class SuggestPage {
       if (this.currentMusicplaying.external_urls !== null) {
         this.currentMusicplaying.currentlyPlayingSong = true;
         this.spotifyWindow = window.open(external_urls, '_blank');
-        this.clearInput();
         this.checkWindowClosed(this.currentMusicplaying);
       } setTimeout(() => {
         this.currentPlaying = undefined;

@@ -137,4 +137,23 @@
       </ng-container>
     </div>
   </ion-card>
+
+  <div style="text-align: center;">
+    <ion-button
+      (click)="onClickTrack(this.currentIndexPlaying-1)"
+      class="submit"
+      [disabled]="this.currentIndexPlaying === 0"
+      [color]="this.currentIndexPlaying === 0 ? 'medium':'primary'"
+    >
+      Prev Track
+    </ion-button>
+    <ion-button
+      (click)="onClickTrack(this.currentIndexPlaying+1)"
+      class="submit"
+      [disabled]="this.currentIndexPlaying === this.recommendationTrack.length-1"
+      [color]="this.currentIndexPlaying === this.recommendationTrack.length-1 ? 'medium':'primary'"
+    >
+      Next Track
+    </ion-button>
+  </div>
 </ion-content>

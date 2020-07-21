@@ -273,8 +273,8 @@
     <ion-button
       (click)="onClickSubmit()"
       class="submit"
-      [disabled]="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0"
-      [color]="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0 ? 'medium':'primary'"
+      [disabled]="!this.hasChange"
+      [color]="!this.hasChange ? 'medium':'primary'"
     >
       Confirm
     </ion-button>

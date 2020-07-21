@@ -15,9 +15,6 @@ export class RecomendationParameterService {
   spotifyApi = new SpotifyWebApi();
 
   // Genres variables
-  topGenresMap = [];
-  genresAvailable = [];
-  randomGenres = [];
 
   constructor(private manumission: ManumissionCheckService, private shared: SharedParamsService,
     private alertController: AlertController) { }
@@ -65,26 +62,28 @@ export class RecomendationParameterService {
         return undefined;
       }
       else {
+        const genresAvailable = [];
+        const randomGenres = [];
         return await this.spotifyApi.getAvailableGenreSeeds().then((response) => {
           if (response !== undefined) {
             for (const genres of response.genres) {
               if (userProfile.preferences.hatedGenres !== undefined) {
                 for (const hate of userProfile.preferences.hatedGenres) {
                   if (hate !== genres) {
-                    this.genresAvailable.push(genres);
+                    genresAvailable.push(genres);
                   }
                 }
               }
               else {
-                this.genresAvailable.push(genres);
+                genresAvailable.push(genres);
               }
             }
-            for (let i = 0; i < 5 && i < this.genresAvailable.length; i++) {
-              const rand = Math.floor(Math.random() * this.genresAvailable.length);
-              this.randomGenres.push(this.genresAvailable[rand]);
-              this.genresAvailable.splice(rand, 1);
+            for (let i = 0; i < 5 && i < genresAvailable.length; i++) {
+              const rand = Math.floor(Math.random() * genresAvailable.length);
+              randomGenres.push(genresAvailable[rand]);
+              genresAvailable.splice(rand, 1);
             }
-            return this.randomGenres;
+            return randomGenres;
           }
         });
       }
@@ -102,6 +101,7 @@ export class RecomendationParameterService {
         this.alertTokenExpired();
       }
       else {
+        let topGenresMap = [];
         return await this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
           if (response !== undefined) {
             for (const item of response.items) {
@@ -115,16 +115,16 @@ export class RecomendationParameterService {
                 }
               }
             }
-            this.topGenresMap = this.sortProperties(temTopGenresMap);
+            topGenresMap = this.sortProperties(temTopGenresMap);
             const genres = [];
-            if (this.topGenresMap.length === 0) {
+            if (topGenresMap.length === 0) {
               return undefined;
             }
             else {
-              for (let i = 0; i < 5 && i < this.topGenresMap.length; i++) {
-                const rand = this.myRandom(this.topGenresMap.length);
-                genres.push(this.topGenresMap[rand][0]);
-                this.topGenresMap.splice(rand, 1);
+              for (let i = 0; i < 5 && i < topGenresMap.length; i++) {
+                const rand = this.myRandom(topGenresMap.length);
+                genres.push(topGenresMap[rand][0]);
+                topGenresMap.splice(rand, 1);
               }
             }
             return genres;

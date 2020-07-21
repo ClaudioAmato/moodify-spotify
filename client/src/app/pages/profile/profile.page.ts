@@ -35,6 +35,12 @@ export class ProfilePage {
   favGenresSelected = [];
   hatedGenresSelected = [];
 
+  // preferences changes variable
+  backupselectedFavArtist: Array<{ key: string, image: any, name: string, checked: boolean }> = [];
+  backupfavGenresSelected = [];
+  backuphatedGenresSelected = [];
+  hasChange = false;
+
   // html variables
   showArtist = 'Show';
   showFavoritGenres = 'Show';
@@ -53,9 +59,11 @@ export class ProfilePage {
         if (this.userProfile.preferences !== undefined) {
           if (this.userProfile.preferences.favoriteGenres !== undefined) {
             this.favGenresSelected = this.userProfile.preferences.favoriteGenres;
+            this.backupfavGenresSelected = this.favGenresSelected.slice();
           }
           if (this.userProfile.preferences.hatedGenres !== undefined) {
             this.hatedGenresSelected = this.userProfile.preferences.hatedGenres;
+            this.backuphatedGenresSelected = this.hatedGenresSelected.slice();
           }
           if (this.userProfile.preferences.favoriteSingers !== undefined) {
             this.presentLoading('Loading datas ...').then(() => {
@@ -69,9 +77,12 @@ export class ProfilePage {
                       checked: true
                     };
                     this.selectedFavArtist.push(dataArtist);
+                    this.backupselectedFavArtist.push(dataArtist);
                   }
                 }
               }).then(() => {
+                this.initializeGenresSeeds();
+                this.autoSearchFavGenres();
                 this.loadingCtrl.dismiss();
               });
             });
@@ -79,11 +90,6 @@ export class ProfilePage {
         }
       }
     }
-  }
-
-  ionViewWillEnter() {
-    this.initializeGenresSeeds();
-    this.autoSearchFavGenres();
   }
 
   // Function that submit the user preferences (used for cold start)
@@ -105,6 +111,7 @@ export class ProfilePage {
     }
     this.userProfile.preferences = pref;
     this.shared.setUserProfile(this.userProfile);
+    this.hasChange = false;
   }
 
   // Function that search for your favorite musics' genres
@@ -117,6 +124,8 @@ export class ProfilePage {
       }
       else {
         this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
+          console.log(response);
+
           if (response !== undefined) {
             for (const [index, item] of response.items.entries()) {
               // cycle on all the genres of the artist
@@ -152,7 +161,6 @@ export class ProfilePage {
             this.topGenresMap = this.sortProperties(temTopGenresMap);
           }
         }).catch(err => {
-          this.loadingCtrl.dismiss();
           console.log(err);
         });
       }
@@ -276,6 +284,44 @@ export class ProfilePage {
         break;
       default: break;
     }
+    this.checkChangePreferences();
+  }
+
+  checkChangePreferences() {
+    console.log(this.backupselectedFavArtist.length);
+    console.log(this.selectedFavArtist.length);
+
+    if (this.backuphatedGenresSelected.length !== this.hatedGenresSelected.length) {
+      this.hasChange = true;
+      return;
+    }
+    for (let i = 0; i < this.hatedGenresSelected.length; i++) {
+      if (this.backuphatedGenresSelected[i] !== this.hatedGenresSelected[i]) {
+        this.hasChange = true;
+        return;
+      }
+    }
+    if (this.backupfavGenresSelected.length !== this.favGenresSelected.length) {
+      this.hasChange = true;
+      return;
+    }
+    for (let i = 0; i < this.favGenresSelected.length; i++) {
+      if (this.backupfavGenresSelected[i] !== this.favGenresSelected[i]) {
+        this.hasChange = true;
+        return;
+      }
+    }
+    if (this.backupselectedFavArtist.length !== this.selectedFavArtist.length) {
+      this.hasChange = true;
+      return;
+    }
+    for (let i = 0; i < this.selectedFavArtist.length; i++) {
+      if (this.backupselectedFavArtist[i].key !== this.selectedFavArtist[i].key) {
+        this.hasChange = true;
+        return;
+      }
+    }
+    this.hasChange = false;
   }
 
   /* SINGER PREFERENCES */
@@ -350,6 +396,8 @@ export class ProfilePage {
         break;
       default: break;
     }
+    this.checkChangePreferences();
+
   }
 
   /* This function let you search an artist */
