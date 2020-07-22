@@ -1,5 +1,4 @@
 import { RecommendationParameterService } from '../../services/recommendation-parameter.service';
-import { TrackFeatures } from './../../interfaces/TrackFeatures';
 import { TrackData } from './../../interfaces/TrackData';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
