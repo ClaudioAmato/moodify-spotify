@@ -30,7 +30,7 @@ export class InitializeTrainService {
       tempo: 120,
       popularity: 50
     }
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       for (const emoji of arrayEmoji) {
         for (const emoji2 of arrayEmoji) {
           const double = new Double();

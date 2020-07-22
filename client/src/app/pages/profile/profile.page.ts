@@ -18,7 +18,7 @@ export class ProfilePage {
   // spotifyAPI
   spotifyApi = new SpotifyWebApi();
 
-  // User varialbes
+  // User variables
   userProfile: UserProfile;
 
   // Artists variables
@@ -43,7 +43,7 @@ export class ProfilePage {
 
   // html variables
   showArtist = 'Show';
-  showFavoritGenres = 'Show';
+  showFavoriteGenres = 'Show';
   showHatedGenres = 'Show';
 
   constructor(private shared: SharedParamsService, private alertController: AlertController,
@@ -66,7 +66,7 @@ export class ProfilePage {
             this.backuphatedGenresSelected = this.hatedGenresSelected.slice();
           }
           if (this.userProfile.preferences.favoriteSingers !== undefined) {
-            this.presentLoading('Loading datas ...').then(() => {
+            this.presentLoading('Loading data ...').then(() => {
               this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
                 if (response !== undefined) {
                   for (const artist of response.artists) {
@@ -94,13 +94,13 @@ export class ProfilePage {
 
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
-    const favArist = [];
+    const favArtist = [];
     for (let i = 0; i < this.selectedFavArtist.length; i++) {
-      favArist[i] = this.selectedFavArtist[i].key;
+      favArtist[i] = this.selectedFavArtist[i].key;
     }
     const pref: UserPreferences = {
       favoriteGenres: this.favGenresSelected,
-      favoriteSingers: favArist,
+      favoriteSingers: favArtist,
       hatedGenres: this.hatedGenresSelected
     }
     if (this.userProfile.preferences !== undefined) {
@@ -115,7 +115,7 @@ export class ProfilePage {
   }
 
   // Function that search for your favorite musics' genres
-  // based on your top artis's music genres
+  // based on your top artist's music genres
   autoSearchFavGenres() {
     const temTopGenresMap = {};
     if (!this.manumission.isTampered()) {
@@ -233,11 +233,11 @@ export class ProfilePage {
     const favDiv = document.querySelector('#favDiv') as HTMLElement;
     if (favDiv.style.display !== 'block') {
       favDiv.style.display = 'block';
-      this.showFavoritGenres = 'Hide';
+      this.showFavoriteGenres = 'Hide';
     }
     else {
       favDiv.style.display = 'none';
-      this.showFavoritGenres = 'Show';
+      this.showFavoriteGenres = 'Show';
     }
   }
 

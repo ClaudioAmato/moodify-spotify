@@ -17,7 +17,7 @@ export class PreferencesServices {
   }
 
   uploadPreferences(userPreferences: UserPreferences, id: string) {
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       firebase.database().ref('preferences/' + id).set({
         favoriteGenres: userPreferences.favoriteGenres,
         hatedGenres: userPreferences.hatedGenres,
@@ -53,7 +53,7 @@ export class PreferencesServices {
   }
 
   updatePreferences(userPreferences: UserPreferences, id: string) {
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       firebase.database().ref('preferences/' + id).update({
         favoriteGenres: userPreferences.favoriteGenres,
         hatedGenres: userPreferences.hatedGenres,
@@ -77,10 +77,10 @@ export class PreferencesServices {
   }
 
   /* ALERT SUCCESS */
-  private async alertSuccess(head: string, text: string, classeCSS: string) {
+  private async alertSuccess(head: string, text: string, classCSS: string) {
     const alert = await this.alertController.create({
       header: head,
-      cssClass: classeCSS,
+      cssClass: classCSS,
       message: text,
       buttons: [
         {
@@ -91,7 +91,7 @@ export class PreferencesServices {
     });
     await alert.present();
 
-    // timeout di 2 secondi per l'alert
+    // timeout of 2 seconds for the alert
     setTimeout(() => {
       alert.dismiss();
     }, 10000);

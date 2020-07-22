@@ -19,7 +19,7 @@ export class SharedParamsService {
     localStorage.setItem(keyToken, data);
   }
 
-  public setRefreashToken(data) {
+  public setRefreshToken(data) {
     localStorage.setItem(keyRefreshToken, data);
   }
 
@@ -32,7 +32,7 @@ export class SharedParamsService {
   }
 
   /* GETTERS TOKEN */
-  public getRefreashToken() {
+  public getRefreshToken() {
     return localStorage.getItem(keyRefreshToken);
   }
 

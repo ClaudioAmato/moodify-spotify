@@ -14,7 +14,7 @@ export class LogoutService {
     localStorage.removeItem(keyToken);
   }
 
-  public removeRefreashToken() {
+  public removeRefreshToken() {
     localStorage.removeItem(keyRefreshToken);
   }
 
@@ -36,7 +36,7 @@ export class LogoutService {
 
   public removeAllShared() {
     this.removeToken();
-    this.removeRefreashToken();
+    this.removeRefreshToken();
     this.removeExpirationToken();
     this.removeCurrentMood();
     this.removeTargetMood();

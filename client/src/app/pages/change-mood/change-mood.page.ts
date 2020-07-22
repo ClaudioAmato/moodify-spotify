@@ -18,12 +18,12 @@ export class ChangeMoodPage {
     private alertController: AlertController, private logoutService: LogoutService,
     private emoji: EmojisService, private manumission: ManumissionCheckService) {
     if (!this.manumission.isTampered()) {
-      this.initalizeImages();
+      this.initializeImages();
     }
   }
 
   // initialize image
-  initalizeImages() {
+  initializeImages() {
     this.currentEmotion = this.emoji.getArrayEmoji().find(emotion => emotion.name === this.shared.getCurrentMood());
     this.targetEmotion = this.emoji.getArrayEmoji().find(emotion => emotion.name === this.shared.getTargetMood());
   }

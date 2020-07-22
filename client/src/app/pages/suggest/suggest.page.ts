@@ -1,6 +1,6 @@
-import { RecomendationParameterService } from './../../services/recomendation-parameter.service';
+import { RecommendationParameterService } from '../../services/recommendation-parameter.service';
 import { TrackFeatures } from './../../interfaces/TrackFeatures';
-import { TrackDatas } from './../../interfaces/TrackDatas';
+import { TrackData } from './../../interfaces/TrackData';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
 import { MachineLearningService } from './../../services/machineLearning.service';
@@ -31,7 +31,7 @@ export class SuggestPage {
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
-  currentMusicplaying: TrackDatas = null;
+  currentMusicplaying: TrackData = null;
   userInDB = { exist: true, checked: true };
   userProfile: UserProfile;
 
@@ -55,7 +55,7 @@ export class SuggestPage {
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
     private learningService: MachineLearningService, private loadingCtrl: LoadingController,
-    private manumission: ManumissionCheckService, private recommendation: RecomendationParameterService) {
+    private manumission: ManumissionCheckService, private recommendation: RecommendationParameterService) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -69,7 +69,7 @@ export class SuggestPage {
 
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.userProfile = this.shared.getUserProfile();
       let tempDesiredFeature: any;
       this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
@@ -139,7 +139,7 @@ export class SuggestPage {
             }
           }
           else {
-            console.log('Nessun utente trovato');
+            console.log('No user found');
             this.userInDB = {
               exist: false,
               checked: true
@@ -183,10 +183,10 @@ export class SuggestPage {
               console.log(response);
 
               for (const trackItem of response.tracks) {
-                if (trackItem.album.images.length !== 0) {
+                if (trackItem['album'].images.length !== 0) {
                   dataSearch = {
                     key: trackItem.id,
-                    image: trackItem.album.images[1].url,
+                    image: trackItem['album'].images[1].url,
                     name: trackItem.name,
                   };
                 }
@@ -218,38 +218,27 @@ export class SuggestPage {
       this.recommendationTrack = [];
     }*/
     let popularity;
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.spotifyApi.getTrack(idTrack).then((response) => {
         if (response !== undefined) {
+          this.currentMusicplaying = {
+            uriID: response.uri,
+            idTrack,
+            artists_name: response.artists,
+            image: undefined,
+            currentlyPlayingPreview: false,
+            currentlyPlayingSong: false,
+            duration: response.duration_ms,
+            album_name: response.name,
+            preview_url: response.preview_url,
+            external_urls: response.external_urls.spotify,
+            features: undefined
+          };
           if (response.album.images[0].url !== undefined) {
-            this.currentMusicplaying = {
-              uriID: response.uri,
-              idTrack,
-              nomi_artisti: response.artists,
-              image: response.album.images[1].url,
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.duration_ms,
-              nome_album: response.name,
-              preview_url: response.preview_url,
-              external_urls: response.external_urls.spotify,
-              features: undefined
-            };
+            this.currentMusicplaying.image = response.album.images[1].url;
           }
           else {
-            this.currentMusicplaying = {
-              uriID: response.uri,
-              idTrack,
-              nomi_artisti: response.artists,
-              image: 'assets/img/noImgAvailable.png',
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.duration_ms,
-              nome_album: response.name,
-              preview_url: response.preview_url,
-              external_urls: response.external_urls.spotify,
-              features: undefined
-            };
+            this.currentMusicplaying.image = 'assets/img/noImgAvailable.png';
           }
           popularity = response.popularity;
         }
