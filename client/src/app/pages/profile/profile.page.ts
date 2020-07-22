@@ -124,8 +124,6 @@ export class ProfilePage {
       }
       else {
         this.spotifyApi.getMyTopArtists({ limit: 50, time_range: 'long_term' }).then((response) => {
-          console.log(response);
-
           if (response !== undefined) {
             for (const [index, item] of response.items.entries()) {
               // cycle on all the genres of the artist
@@ -288,9 +286,6 @@ export class ProfilePage {
   }
 
   checkChangePreferences() {
-    console.log(this.backupselectedFavArtist.length);
-    console.log(this.selectedFavArtist.length);
-
     if (this.backuphatedGenresSelected.length !== this.hatedGenresSelected.length) {
       this.hasChange = true;
       return;

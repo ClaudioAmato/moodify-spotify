@@ -24,7 +24,7 @@ export class PreferencesServices {
         favoriteSingers: userPreferences.favoriteSingers
       }).then(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
+        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassPrimary');
       }).catch(() => {
         this.loadingCtrl.dismiss();
         this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassError');
@@ -60,7 +60,7 @@ export class PreferencesServices {
         favoriteSingers: userPreferences.favoriteSingers
       }).then(() => {
         this.loadingCtrl.dismiss();
-        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassSuccess');
+        this.alertSuccess('Preferences uploaded', 'Your preferences has been uploaded', 'alertClassPrimary');
       }).catch(() => {
         this.loadingCtrl.dismiss();
         this.alertSuccess('Error', 'Your preferences has not been uploaded', 'alertClassError');
