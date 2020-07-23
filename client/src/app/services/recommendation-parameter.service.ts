@@ -1,7 +1,7 @@
+import { UserProfile } from './../interfaces/UserProfile';
 import { AlertController } from '@ionic/angular';
 import { SharedParamsService } from './shared-params.service';
 import { ManumissionCheckService } from './manumission-check.service';
-import { UserProfile } from '../interfaces/UserProfile';
 import { Injectable } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 
@@ -14,28 +14,43 @@ export class RecommendationParameterService {
   spotifyApi = new SpotifyWebApi();
 
   // Genres variables
+  genresAvailable = [];
 
   constructor(private manumission: ManumissionCheckService, private shared: SharedParamsService,
-    private alertController: AlertController) { }
+    private alertController: AlertController) {
+    this.spotifyApi.setAccessToken(this.shared.getToken());
+    this.spotifyApi.getAvailableGenreSeeds().then((response1) => {
+      if (response1 !== undefined) {
+        const userProfile = this.shared.getUserProfile();
+        for (const genres of response1.genres) {
+          if (userProfile.preferences.hatedGenres !== undefined) {
+            for (const hate of userProfile.preferences.hatedGenres) {
+              if (hate !== genres) {
+                this.genresAvailable.push(genres);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
 
   getRecommendation(userProfile: UserProfile): { seed_artists: string[], seed_genres: string[] } {
     let dataRecommendation: { seed_artists: string[], seed_genres: string[] } = { seed_artists: [], seed_genres: [] };
     if (userProfile.preferences !== undefined) {
       if (userProfile.preferences.favoriteGenres !== undefined &&
         userProfile.preferences.favoriteSingers !== undefined) {
-        if (userProfile.preferences.favoriteSingers.length >= 2 * userProfile.preferences.favoriteGenres.length) {
-          for (let i = 0; i < 3; i++) {
-            dataRecommendation.seed_artists.push(userProfile.preferences.favoriteSingers[i]);
-          }
-          for (let i = 0; i < 2; i++) {
-            dataRecommendation.seed_genres.push(userProfile.preferences.favoriteGenres[i]);
-          }
+        let rand = Math.floor(Math.random() * 4) + 1;
+        if (userProfile.preferences.favoriteSingers.length < userProfile.preferences.favoriteGenres.length) {
+          rand = 5 - rand;
+          console.log(rand);
+
         }
-        else {
-          dataRecommendation.seed_artists.push(userProfile.preferences.favoriteSingers[0]);
-          for (let i = 0; i < 3; i++) {
-            dataRecommendation.seed_genres.push(userProfile.preferences.favoriteGenres[i]);
-          }
+        for (let i = 0; i < rand && i < userProfile.preferences.favoriteSingers.length; i++) {
+          dataRecommendation.seed_artists.push(userProfile.preferences.favoriteSingers[i]);
+        }
+        for (let i = 0; i < (5 - rand) && i < userProfile.preferences.favoriteGenres.length; i++) {
+          dataRecommendation.seed_genres.push(userProfile.preferences.favoriteGenres[i]);
         }
         return dataRecommendation;
       }
@@ -103,7 +118,7 @@ export class RecommendationParameterService {
 
   // Function that search for your favorite musics' genres
   // based on your top artist's music genres
-  async autoSearchFavGenres() {
+  async autoSearchFavGenres(userProfile) {
     const temTopGenresMap = {};
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
@@ -116,11 +131,15 @@ export class RecommendationParameterService {
             for (const item of response.items) {
               // cycle on all the genres of the artist
               for (const genres1 of item.genres) {
-                if (temTopGenresMap[genres1] === undefined) {
-                  temTopGenresMap[genres1] = 1;
-                }
-                else {
-                  temTopGenresMap[genres1] += 1;
+                for (const availabe of this.genresAvailable) {
+                  if (this.similarity(availabe, genres1) > 0.4) {
+                    if (temTopGenresMap[availabe] === undefined) {
+                      temTopGenresMap[availabe] = 1;
+                    }
+                    else {
+                      temTopGenresMap[availabe] += 1;
+                    }
+                  }
                 }
               }
             }
@@ -204,5 +223,46 @@ export class RecommendationParameterService {
       backdropDismiss: false
     });
     await alert.present
+  }
+
+  similarity(s1, s2) {
+    let longer = s1;
+    let shorter = s2;
+    if (s1.length < s2.length) {
+      longer = s2;
+      shorter = s1;
+    }
+    const longerLength = longer.length;
+    if (longerLength === 0) {
+      return 1.0;
+    }
+    return (longerLength - this.editDistance(longer, shorter)) / parseFloat(longerLength);
+  }
+
+  editDistance(s1, s2) {
+    s1 = s1.toLowerCase();
+    s2 = s2.toLowerCase();
+
+    const costs = new Array();
+    for (let i = 0; i <= s1.length; i++) {
+      let lastValue = i;
+      for (let j = 0; j <= s2.length; j++) {
+        if (i === 0)
+          costs[j] = j;
+        else {
+          if (j > 0) {
+            let newValue = costs[j - 1];
+            if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+              newValue = Math.min(Math.min(newValue, lastValue),
+                costs[j]) + 1;
+            costs[j - 1] = lastValue;
+            lastValue = newValue;
+          }
+        }
+      }
+      if (i > 0)
+        costs[s2.length] = lastValue;
+    }
+    return costs[s2.length];
   }
 }

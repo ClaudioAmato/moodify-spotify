@@ -1,3 +1,4 @@
+import { EmojiFeedback } from './../../interfaces/EmojiFeedback';
 import { TrackData } from './../../interfaces/TrackData';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
@@ -30,7 +31,7 @@ export class SearchPage {
   userInDB = { exist: true, checked: true };
 
   // emojis
-  arrayEmoji: Array<{ name: string, image: string }> = [];
+  arrayEmoji: Array<EmojiFeedback> = [];
   divEmoji = false;
   feedbackEmoji = true;
   waitNewFeedback = false;
@@ -44,7 +45,6 @@ export class SearchPage {
   _previewIntervalHandler: any;
   _previewTimeOut: any;
   _playIntervalHandler: any;
-  hasListened = false;
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
@@ -61,6 +61,15 @@ export class SearchPage {
           this.initializeSessionDB();
         }
       }
+    }
+  }
+
+  ionViewDidLeave() {
+    this.stop(null);
+    if (this.feedbackEmoji) {
+      this.divEmoji = false;
+      this.searchTrack = [];
+      this.currentMusicplaying = null;
     }
   }
 
@@ -311,8 +320,6 @@ export class SearchPage {
         this.soundPlayer.currentTime = 0;
         if (this.currentMusicplaying !== undefined) {
           this.currentMusicplaying.currentlyPlayingPreview = false;
-          this.hasListened = true;
-          console.log(this.hasListened);
         }
       }, 30000);
     }

@@ -22,6 +22,7 @@
     "@angular/router": "^10.0.2",
     "@ionic/angular": "^5.2.3",
     "firebase": "^7.15.5",
+    "lodash-es": "^4.17.15",
     "npm-check-updates": "^7.0.1",
     "spotify-web-api-js": "^1.4.0",
     "tslib": "^2.0.0",
