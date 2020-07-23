@@ -132,7 +132,9 @@ export class LoginPage {
             }
           }
           else {
-            this.copyModel();
+            // remove comment and delete this.checkSetMood() when model is ready
+            // this.copyModel();
+            this.checkSetMood();
           }
         });
       });

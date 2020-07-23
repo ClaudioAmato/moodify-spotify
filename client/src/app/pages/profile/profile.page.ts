@@ -97,6 +97,10 @@ export class ProfilePage {
             this.autoSearchFavGenres();
           }
         }
+        else {
+          this.initializeGenresSeeds();
+          this.autoSearchFavGenres();
+        }
       }
     }
   }

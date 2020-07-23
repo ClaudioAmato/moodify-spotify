@@ -161,8 +161,15 @@ export class SuggestPage {
   }
 
   ionViewWillEnter() {
-    if (this.shared.getTargetMood() !== null) {
-      this.initializeSessionDB();
+    // remove from line 164 to 169 (remove the alert) when the model is ready
+    const i = false;
+    if (!i) {
+      this.alertNotAvailable();
+    }
+    else {
+      if (this.shared.getTargetMood() !== null) {
+        this.initializeSessionDB();
+      }
     }
   }
 
@@ -591,6 +598,31 @@ export class SuggestPage {
       header: 'Oops',
       cssClass: 'alertClassError',
       message: 'It seems the algorithm is not working! Please search a song that makes you ' + this.shared.getTargetMood(),
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            if (window.location.href.includes('localhost')) {
+              window.location.href = 'http://localhost:8100/tab/search';
+            }
+            else {
+              window.location.href = 'moodify-spotify.web.app/tab/search';
+            }
+          }
+        }
+      ],
+      backdropDismiss: false
+    });
+    await alert.present();
+  }
+
+  /* ALERT BAD RECOMMENDATION */
+  private async alertNotAvailable() {
+    const alert = await this.alertController.create({
+      header: 'Not available ... for now :)',
+      cssClass: 'alertClassError',
+      message: 'This page is not available now ' + this.shared.getTargetMood(),
       buttons: [
         {
           text: 'OK',

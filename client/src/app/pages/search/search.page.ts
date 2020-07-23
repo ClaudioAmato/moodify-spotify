@@ -233,7 +233,8 @@ export class SearchPage {
     this.doubleToUpload.spotifyFeatures = this.currentMusicplaying.features;
     if (!this.manumission.isTampered()) {
       this.learningService.trainModel(this.doubleToUpload, this.shared.getCurrentMood());
-      this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), false);
+      // delete comment when model is ready
+      // this.learningService.uploadPersonal(this.doubleToUpload, this.idUser, this.shared.getCurrentMood(), false);
     }
   }
 
