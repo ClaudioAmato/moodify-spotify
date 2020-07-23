@@ -66,27 +66,30 @@ export class ProfilePage {
             this.backuphatedGenresSelected = this.hatedGenresSelected.slice();
           }
           if (this.userProfile.preferences.favoriteSingers !== undefined) {
-            this.presentLoading('Loading datas ...').then(() => {
-              this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
-                if (response !== undefined) {
-                  for (const artist of response.artists) {
-                    const dataArtist = {
-                      key: artist.id,
-                      image: artist.images[0].url,
-                      name: artist.name,
-                      checked: true
-                    };
-                    this.selectedFavArtist.push(dataArtist);
-                    this.backupselectedFavArtist.push(dataArtist);
+            if (this.userProfile.preferences.favoriteSingers.length > 0) {
+              this.presentLoading('Loading datas ...').then(() => {
+                this.spotifyApi.getArtists(this.userProfile.preferences.favoriteSingers).then((response) => {
+                  if (response !== undefined) {
+                    for (const artist of response.artists) {
+                      const dataArtist = {
+                        key: artist.id,
+                        image: artist.images[0].url,
+                        name: artist.name,
+                        checked: true
+                      };
+                      this.selectedFavArtist.push(dataArtist);
+                      this.backupselectedFavArtist.push(dataArtist);
+                    }
+                    this.loadingCtrl.dismiss();
                   }
-                }
-              }).then(() => {
-                this.initializeGenresSeeds();
-                this.autoSearchFavGenres();
-                this.loadingCtrl.dismiss();
+                }).catch(err => {
+                  console.log(err);
+                });
               });
-            });
+            }
           }
+          this.initializeGenresSeeds();
+          this.autoSearchFavGenres();
         }
       }
     }
