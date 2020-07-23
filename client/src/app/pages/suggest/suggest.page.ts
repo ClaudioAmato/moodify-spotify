@@ -1,6 +1,5 @@
-import { RecomendationParameterService } from './../../services/recomendation-parameter.service';
-import { TrackFeatures } from './../../interfaces/TrackFeatures';
-import { TrackDatas } from './../../interfaces/TrackDatas';
+import { RecommendationParameterService } from '../../services/recommendation-parameter.service';
+import { TrackData } from './../../interfaces/TrackData';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
 import { MachineLearningService } from './../../services/machineLearning.service';
@@ -31,9 +30,11 @@ export class SuggestPage {
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
-  currentMusicplaying: TrackDatas = null;
+  currentMusicplaying: TrackData = null;
   userInDB = { exist: true, checked: true };
   userProfile: UserProfile;
+  bufferLimit: number;
+  wrongFeedback = 0;
 
   // emojis
   arrayEmoji: Array<{ name: string, image: string }> = [];
@@ -50,12 +51,11 @@ export class SuggestPage {
   _previewIntervalHandler: any;
   _previewTimeOut: any;
   _playIntervalHandler: any;
-  hasListened = false;
 
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
     private learningService: MachineLearningService, private loadingCtrl: LoadingController,
-    private manumission: ManumissionCheckService, private recommendation: RecomendationParameterService) {
+    private manumission: ManumissionCheckService, private recommendation: RecommendationParameterService) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -69,7 +69,7 @@ export class SuggestPage {
 
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.userProfile = this.shared.getUserProfile();
       let tempDesiredFeature: any;
       this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
@@ -79,6 +79,7 @@ export class SuggestPage {
               exist: true,
               checked: true
             }
+            this.bufferLimit = result.buff.numFeed;
             tempDesiredFeature = {
               limit: 100,
               target_acousticness: result.features.acousticness,
@@ -106,7 +107,7 @@ export class SuggestPage {
                     tempDesiredFeature.seed_genres = pref2;
                   }
                 }).then(() => {
-                  if (pref2 !== undefined) {
+                  if (pref2 === undefined) {
                     this.recommendation.generateRandomGenresSeed(this.userProfile).then(res2 => {
                       pref2 = res2;
                       this.loadingCtrl.dismiss();
@@ -119,11 +120,25 @@ export class SuggestPage {
                 });
               }
               else {
-                if (pref1.seed_artists.length > 0) {
-                  tempDesiredFeature.seed_artists = pref1.seed_artists;
+                if (pref1.seed_genres.length + pref1.seed_artists.length > 5) {
+                  if (pref1.seed_artists.length >= 2 * pref1.seed_genres.length) {
+                    tempDesiredFeature.seed_artists = pref1.seed_artists[0 - 3];
+                    tempDesiredFeature.seed_genres = pref1.seed_genres[0 - 2];
+                  }
+                  else {
+                    tempDesiredFeature.seed_artists = pref1.seed_artists[0];
+                    tempDesiredFeature.seed_genres = pref1.seed_genres[0 - 3];
+                  }
+                  console.log(tempDesiredFeature);
+
                 }
-                if (pref1.seed_genres.length > 0) {
-                  tempDesiredFeature.seed_genres = pref1.seed_genres;
+                else {
+                  if (pref1.seed_artists.length > 0) {
+                    tempDesiredFeature.seed_artists = pref1.seed_artists;
+                  }
+                  if (pref1.seed_genres.length > 0) {
+                    tempDesiredFeature.seed_genres = pref1.seed_genres;
+                  }
                 }
                 this.loadingCtrl.dismiss();
               }
@@ -139,7 +154,7 @@ export class SuggestPage {
             }
           }
           else {
-            console.log('Nessun utente trovato');
+            console.log('No user found');
             this.userInDB = {
               exist: false,
               checked: true
@@ -149,7 +164,6 @@ export class SuggestPage {
         }).then(() => {
           this.desiredFeature = tempDesiredFeature;
           this.recommendMusic();
-          console.log(this.desiredFeature);
         });
     });
   }
@@ -180,13 +194,11 @@ export class SuggestPage {
         this.spotifyApi.getRecommendations(this.desiredFeature)
           .then((response) => {
             if (response !== undefined) {
-              console.log(response);
-
               for (const trackItem of response.tracks) {
-                if (trackItem.album.images.length !== 0) {
+                if (trackItem['album'].images.length !== 0) {
                   dataSearch = {
                     key: trackItem.id,
-                    image: trackItem.album.images[1].url,
+                    image: trackItem['album'].images[1].url,
                     name: trackItem.name,
                   };
                 }
@@ -218,38 +230,27 @@ export class SuggestPage {
       this.recommendationTrack = [];
     }*/
     let popularity;
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.spotifyApi.getTrack(idTrack).then((response) => {
         if (response !== undefined) {
+          this.currentMusicplaying = {
+            uriID: response.uri,
+            idTrack,
+            artists_name: response.artists,
+            image: undefined,
+            currentlyPlayingPreview: false,
+            currentlyPlayingSong: false,
+            duration: response.duration_ms,
+            album_name: response.name,
+            preview_url: response.preview_url,
+            external_urls: response.external_urls.spotify,
+            features: undefined
+          };
           if (response.album.images[0].url !== undefined) {
-            this.currentMusicplaying = {
-              uriID: response.uri,
-              idTrack,
-              nomi_artisti: response.artists,
-              image: response.album.images[1].url,
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.duration_ms,
-              nome_album: response.name,
-              preview_url: response.preview_url,
-              external_urls: response.external_urls.spotify,
-              features: undefined
-            };
+            this.currentMusicplaying.image = response.album.images[1].url;
           }
           else {
-            this.currentMusicplaying = {
-              uriID: response.uri,
-              idTrack,
-              nomi_artisti: response.artists,
-              image: 'assets/img/noImgAvailable.png',
-              currentlyPlayingPreview: false,
-              currentlyPlayingSong: false,
-              duration: response.duration_ms,
-              nome_album: response.name,
-              preview_url: response.preview_url,
-              external_urls: response.external_urls.spotify,
-              features: undefined
-            };
+            this.currentMusicplaying.image = 'assets/img/noImgAvailable.png';
           }
           popularity = response.popularity;
         }
@@ -274,7 +275,6 @@ export class SuggestPage {
               popularity
             }
           }
-          console.log(this.currentMusicplaying.features);
           this.loadingCtrl.dismiss();
         }).catch(err => {
           console.log(err);
@@ -292,6 +292,25 @@ export class SuggestPage {
     if (!this.manumission.isTampered()) {
       this.learningService.trainModel(this.doubleToUpload, this.shared.getCurrentMood());
       this.learningService.uploadPersonal(this.doubleToUpload, this.userProfile.ID, this.shared.getCurrentMood(), false);
+      if (this.doubleToUpload.mood === this.shared.getTargetMood()) {
+        this.bufferLimit++;
+        if (this.bufferLimit === 5) {
+          this.bufferLimit = 1;
+          this.currentIndexPlaying = 0;
+          this.initializeSessionDB();
+          if (this.wrongFeedback - 2 < 0) {
+            this.wrongFeedback = 0;
+          }
+          else {
+            this.wrongFeedback = this.wrongFeedback - 2;
+          }
+        }
+      }
+      else {
+        if (++this.wrongFeedback > 4) {
+          this.alertRecommendation();
+        }
+      }
     }
   }
 
@@ -377,8 +396,6 @@ export class SuggestPage {
         this.soundPlayer.currentTime = 0;
         if (this.currentMusicplaying !== undefined) {
           this.currentMusicplaying.currentlyPlayingPreview = false;
-          this.hasListened = true;
-          console.log(this.hasListened);
         }
       }, 30000);
     }
@@ -482,6 +499,9 @@ export class SuggestPage {
               popularity: -this.doubleToUpload.spotifyFeatures.popularity
             }
             this.learningService.uploadPersonal(doubleDelete, this.userProfile.ID, this.shared.getCurrentMood(), true);
+            if (doubleDelete.mood === this.shared.getTargetMood()) {
+              this.wrongFeedback = this.wrongFeedback + 2;
+            }
             this.waitNewFeedback = false;
             this.onGivenFeedback(feedback);
           }
@@ -520,6 +540,31 @@ export class SuggestPage {
           cssClass: 'alertConfirm',
         }
       ],
+    });
+    await alert.present();
+  }
+
+  /* ALERT BAD RECOMMENDATION */
+  private async alertRecommendation() {
+    const alert = await this.alertController.create({
+      header: 'Oops',
+      cssClass: 'alertClassError',
+      message: 'It seems the algorithm is not working! Please search a song that makes you ' + this.shared.getTargetMood(),
+      buttons: [
+        {
+          text: 'OK',
+          cssClass: 'alertConfirm',
+          handler: () => {
+            if (window.location.href.includes('localhost')) {
+              window.location.href = 'http://localhost/tab/search';
+            }
+            else {
+              window.location.href = 'moodify-spotify.web.app/tab/search';
+            }
+          }
+        }
+      ],
+      backdropDismiss: false
     });
     await alert.present();
   }

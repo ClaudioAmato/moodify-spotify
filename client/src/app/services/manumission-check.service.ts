@@ -14,17 +14,17 @@ export class ManumissionCheckService {
       this.sharedParamsService.getCurrentMood() === null ||
       this.sharedParamsService.getTargetMood() === null ||
       this.sharedParamsService.getToken() === null ||
-      this.sharedParamsService.getRefreashToken() === null ||
+      this.sharedParamsService.getRefreshToken() === null ||
       this.sharedParamsService.getPreviousDay() === null ||
       this.sharedParamsService.getExpirationToken() === null
     ) {
       this.alertManumission();
-      console.log(this.sharedParamsService.getUserProfile() + ", " +
-        this.sharedParamsService.getCurrentMood() + ", " +
-        this.sharedParamsService.getTargetMood() + ", " +
-        this.sharedParamsService.getToken() + ", " +
-        this.sharedParamsService.getRefreashToken() + ", " +
-        this.sharedParamsService.getPreviousDay() + ", " +
+      console.log(this.sharedParamsService.getUserProfile() + ', ' +
+        this.sharedParamsService.getCurrentMood() + ', ' +
+        this.sharedParamsService.getTargetMood() + ', ' +
+        this.sharedParamsService.getToken() + ', ' +
+        this.sharedParamsService.getRefreshToken() + ', ' +
+        this.sharedParamsService.getPreviousDay() + ', ' +
         this.sharedParamsService.getExpirationToken());
 
       return true;

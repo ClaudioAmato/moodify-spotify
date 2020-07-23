@@ -58,7 +58,7 @@ export class LoginPage {
         }
         this.shared.setExpirationToken(new Date());
         this.shared.setToken(this.params.access_token);
-        this.shared.setRefreashToken(this.params.refresh_token);
+        this.shared.setRefreshToken(this.params.refresh_token);
         this.initializeSessionDB();
       }).finally(() => {
         this.loadingCtrl.dismiss();
@@ -92,7 +92,7 @@ export class LoginPage {
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
     this.spotifyApi.setAccessToken(this.shared.getToken());
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.spotifyApi.getMe().then((response) => {
         this.userProfile = {
           ID: response.id,
@@ -124,7 +124,7 @@ export class LoginPage {
                   this.userProfile.targetFeatures = result3.features;
                 }).then(() => {
                   this.loadingCtrl.dismiss();
-                  this.checkSettedMood();
+                  this.checkSetMood();
                 });
             }
             else {
@@ -139,8 +139,8 @@ export class LoginPage {
     });
   }
 
-  // this function redirect page if moods were already setted
-  checkSettedMood() {
+  // this function redirect page if moods were already Set
+  checkSetMood() {
     this.shared.setUserProfile(this.userProfile);
     this.loadingCtrl.dismiss();
     if (
@@ -155,7 +155,7 @@ export class LoginPage {
   }
 
   // This function initialize the redirection page to the login
-  // besed if is localhost or web
+  // based if is localhost or web
   initializeHref() {
     if (window.location.href.includes('localhost')) {
       this.href = 'http://localhost:8888/login';
@@ -193,7 +193,7 @@ export class LoginPage {
           }
         }).then(() => {
           if (index * index2 === Math.pow(arrayEmoji.length - 1, 2)) {
-            this.checkSettedMood();
+            this.checkSetMood();
           }
         });
       }

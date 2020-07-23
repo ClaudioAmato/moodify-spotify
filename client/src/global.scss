@@ -46,8 +46,10 @@
     color: var(--ion-color-primary) !important;
     font-weight: bold;
   }
-  .alertMedium {
+  .alertMedium,
+  .alert-message {
     color: var(--ion-color-dark) !important;
+    text-align: center !important;
   }
 }
 
@@ -56,8 +58,10 @@
     color: var(--ion-color-danger) !important;
     text-align: center !important;
   }
-  .alertMedium {
+  .alertMedium,
+  .alert-message {
     color: var(--ion-color-dark) !important;
+    text-align: center !important;
   }
   .alertConfirm {
     color: var(--ion-color-danger) !important;
@@ -70,12 +74,14 @@
     color: var(--ion-color-warning) !important;
     text-align: center !important;
   }
+  .alert-message,
+  .alertMedium {
+    color: var(--ion-color-dark) !important;
+    text-align: center !important;
+  }
   .alertConfirm {
     color: var(--ion-color-warning) !important;
     font-weight: bold;
-  }
-  .alertMedium {
-    color: var(--ion-color-dark) !important;
   }
 }
 
@@ -84,15 +90,14 @@
     color: var(--ion-color-success) !important;
     text-align: center !important;
   }
+  .alertMedium,
+  .alert-message {
+    color: var(--ion-color-dark) !important;
+  }
   .alertConfirm {
     color: var(--ion-color-success) !important;
     font-weight: bold;
   }
-}
-
-.alert-message {
-  color: black !important;
-  text-align: center !important;
 }
 
 .logout {

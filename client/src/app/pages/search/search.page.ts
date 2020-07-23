@@ -1,4 +1,4 @@
-import { TrackDatas } from './../../interfaces/TrackDatas';
+import { TrackData } from './../../interfaces/TrackData';
 import { ManumissionCheckService } from './../../services/manumission-check.service';
 import { UserProfile } from './../../interfaces/UserProfile';
 import { MachineLearningService } from './../../services/machineLearning.service';
@@ -25,7 +25,7 @@ export class SearchPage {
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
-  currentMusicplaying: TrackDatas = null;
+  currentMusicplaying: TrackData = null;
   idUser = '';
   userInDB = { exist: true, checked: true };
 
@@ -66,7 +66,7 @@ export class SearchPage {
 
   // Initialize user's session from DB if it exist
   initializeSessionDB() {
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       const userProfile: UserProfile = this.shared.getUserProfile();
       this.idUser = userProfile.ID;
       this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
@@ -78,7 +78,7 @@ export class SearchPage {
             }
           }
           else {
-            console.log('Nessun utente trovato');
+            console.log('User not found');
             this.userInDB = {
               exist: false,
               checked: true
@@ -150,19 +150,19 @@ export class SearchPage {
       this.searchTrack = [];
     }
     let popularity;
-    this.presentLoading('Loading datas ...').then(() => {
+    this.presentLoading('Loading data ...').then(() => {
       this.spotifyApi.getTrack(idTrack).then((response) => {
         if (response !== undefined) {
           if (response.album.images[0].url !== undefined) {
             this.currentMusicplaying = {
               uriID: response.uri,
               idTrack,
-              nomi_artisti: response.artists,
+              artists_name: response.artists,
               image: response.album.images[1].url,
               currentlyPlayingPreview: false,
               currentlyPlayingSong: false,
               duration: response.duration_ms,
-              nome_album: response.name,
+              album_name: response.name,
               preview_url: response.preview_url,
               external_urls: response.external_urls.spotify,
               features: undefined
@@ -172,12 +172,12 @@ export class SearchPage {
             this.currentMusicplaying = {
               uriID: response.uri,
               idTrack,
-              nomi_artisti: response.artists,
+              artists_name: response.artists,
               image: 'assets/img/noImgAvailable.png',
               currentlyPlayingPreview: false,
               currentlyPlayingSong: false,
               duration: response.duration_ms,
-              nome_album: response.name,
+              album_name: response.name,
               preview_url: response.preview_url,
               external_urls: response.external_urls.spotify,
               features: undefined

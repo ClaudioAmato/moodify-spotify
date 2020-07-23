@@ -60,7 +60,7 @@ export class MoodSetPage {
     this.shared.setTargetMood(this.targetEmotion);
     const userProfile: UserProfile = this.shared.getUserProfile();
     if (userProfile.targetFeatures === undefined) {
-      this.presentLoading('Loading datas ...').then(() => {
+      this.presentLoading('Loading data ...').then(() => {
         this.learningService.getUserData(userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
           .then(result2 => {
             if (result2 !== undefined) {

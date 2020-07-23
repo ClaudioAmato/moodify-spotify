@@ -1,20 +1,3 @@
-<div id="custom-overlay" *ngIf="splashPortrait">
-  <img
-    class="imgPortrit"
-    src="../../assets/splashscreen/splashscreenPortrait{{i}}.gif"
-    height="{{height}}"
-    width="{{width}}"
-  />
-</div>
-<div id="custom-overlay" *ngIf="splashLandscape">
-  <img
-    class="imgLandscape"
-    src="../../assets/splashscreen/splashscreenLandscape.gif"
-    height="{{height}}"
-    width="{{width}}"
-  />
-</div>
-
 <ion-tabs *ngIf="!splashPortrait && !splashLandscape">
   <ion-tab-bar slot="bottom">
     <ion-tab-button tab="search">
