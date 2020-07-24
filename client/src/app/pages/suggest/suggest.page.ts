@@ -7,7 +7,7 @@ import { MachineLearningService } from './../../services/machineLearning.service
 import { LogoutService } from './../../services/logout.service';
 import { EmojisService } from './../../services/emojis.service';
 import { Double } from '../../classes/Double';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, NavController } from '@ionic/angular';
 import { SharedParamsService } from './../../services/shared-params.service';
 import { Component } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -55,7 +55,8 @@ export class SuggestPage {
   constructor(private shared: SharedParamsService, private logoutService: LogoutService,
     private alertController: AlertController, private emoji: EmojisService,
     private learningService: MachineLearningService, private loadingCtrl: LoadingController,
-    private manumission: ManumissionCheckService, private recommendation: RecommendationParameterService) {
+    private manumission: ManumissionCheckService, private recommendation: RecommendationParameterService,
+    private navCtrl: NavController) {
     if (!this.manumission.isTampered()) {
       if (this.shared.checkExpirationToken()) {
         this.alertTokenExpired();
@@ -603,12 +604,7 @@ export class SuggestPage {
           text: 'OK',
           cssClass: 'alertConfirm',
           handler: () => {
-            if (window.location.href.includes('localhost')) {
-              window.location.href = 'http://localhost:8100/tab/search';
-            }
-            else {
-              window.location.href = 'moodify-spotify.web.app/tab/search';
-            }
+            this.navCtrl.navigateRoot('/tab/search');
           }
         }
       ],
@@ -628,12 +624,7 @@ export class SuggestPage {
           text: 'OK',
           cssClass: 'alertConfirm',
           handler: () => {
-            if (window.location.href.includes('localhost')) {
-              window.location.href = 'http://localhost:8100/tab/search';
-            }
-            else {
-              window.location.href = 'moodify-spotify.web.app/tab/search';
-            }
+            this.navCtrl.navigateRoot('/tab/search');
           }
         }
       ],

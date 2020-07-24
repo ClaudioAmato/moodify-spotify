@@ -7,16 +7,29 @@
   min-width: 300px;
   margin: 0 auto;
 }
-
+.present {
+  color: #0c2314;
+  font-family: "Title";
+  font-size: xx-large;
+  margin-top: 40px;
+}
 .description {
-  padding: 5% 2%;
-  color: black;
-  font-weight: 600;
+  color: #0c2314;
+  font-family: "Description";
+  font-size: xx-large;
+  margin-bottom: 40px;
+}
+@font-face {
+  font-family: "Title";
+  src: url("../../assets/SF\ Sports\ Night.ttf");
+}
+@font-face {
+  font-family: "Description";
+  src: url("../../assets/Flamenco-Regular.ttf");
 }
 
 * {
   box-sizing: border-box;
-  font-weight: 300;
 }
 
 .wrapper {
@@ -167,5 +180,36 @@
   &:active {
     box-shadow: 0px 4px 8px #15843c;
     transform: scale(0.98);
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .description {
+    font-size: x-large;
+  }
+  .present {
+    font-size: x-large;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .description {
+    font-size: larger;
+    margin-bottom: 20px;
+  }
+  .present {
+    font-size: larger;
+    margin-top: 30px;
+  }
+  .divCenter {
+    margin: 0 20px;
+  }
+
+  .logo {
+    width: 80%;
+    margin: 0 auto;
+  }
+  .container {
+    padding-top: 30px;
   }
 }

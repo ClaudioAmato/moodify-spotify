@@ -1,3 +1,4 @@
+import { NavController } from '@ionic/angular';
 import { keyCurrentMood } from 'src/environments/environment';
 import { keyToken, keyRefreshToken, keyExpirationToken, keyTargetMood, keyUserProfile } from './../../environments/environment';
 import { Injectable } from '@angular/core';
@@ -7,7 +8,7 @@ import { Injectable } from '@angular/core';
 })
 export class LogoutService {
 
-  constructor() { }
+  constructor(private navCtrl: NavController) { }
 
   /* REMOVERS */
   public removeToken() {
@@ -45,11 +46,6 @@ export class LogoutService {
 
   logout() {
     this.removeAllShared();
-    if (window.location.href.includes('localhost')) {
-      window.location.href = 'http://localhost:8100/login';
-    }
-    else {
-      window.location.href = 'moodify-spotify.web.app/login';
-    }
+    this.navCtrl.navigateRoot('/login');
   }
 }

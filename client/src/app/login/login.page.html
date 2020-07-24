@@ -6,11 +6,16 @@
   <div class="container">
     <ion-img src="../../assets/img/login.png" class="logo"></ion-img>
     <div class="divCenter">
+      <div class="present">
+        Claudio Amato presents: Moodify<br />
+        <br />
+      </div>
       <div class="description">
-        Claudio Amato presents: Moodify. <br /><br />
-        Moodify can recommend music based on your current mood. <br /><br />
-        Based on your emotions and Spotify's personal music taste, Moodify finds
-        music that can change your desired mood state.
+        Moodify is a website that recommends music taking into account your
+        starting and target mood. <br />
+        <br />
+        Based on your emotions and personal musical preferences, Moodify is able
+        to recommend music that can change your mood.
       </div>
       <ion-button
         (click)="onClickLogin()"
@@ -21,7 +26,9 @@
       </ion-button>
       <br />
       <div style="margin: 2% 0; font-size: small; display: inline-flex;">
-        <div style="align-self: center;">Login with another account?&nbsp;</div>
+        <div style="align-self: center; font-weight: 600;">
+          Login with another account?&nbsp;
+        </div>
         <ion-button
           (click)="changeAccount()"
           fill="clear"
@@ -36,7 +43,7 @@
           <span style="text-decoration: underline;">Change</span>
         </ion-button>
       </div>
-      <div style="margin: 2% 0 10% 0; font-size: small;">
+      <div style="margin: 2% 0 10% 0; font-size: small; font-weight: 600;">
         No Spotify yet?
         <a href="https://www.spotify.com/">Join</a>
       </div>
