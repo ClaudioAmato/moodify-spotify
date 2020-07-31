@@ -28,7 +28,6 @@ export class SearchPage {
   doubleToUpload: Double = new Double();
   currentMusicplaying: TrackData = null;
   idUser = '';
-  userInDB = { exist: true, checked: true };
 
   // emojis
   arrayEmoji: Array<EmojiFeedback> = [];
@@ -80,18 +79,8 @@ export class SearchPage {
       this.idUser = userProfile.ID;
       this.learningService.getUserData(this.idUser, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
-          if (result !== undefined) {
-            this.userInDB = {
-              exist: true,
-              checked: true
-            }
-          }
-          else {
-            console.log('User not found');
-            this.userInDB = {
-              exist: false,
-              checked: true
-            }
+          if (result.buff === null && result.features === null) {
+            // console.log('User not found');
           }
           this.loadingCtrl.dismiss();
         });
@@ -216,7 +205,6 @@ export class SearchPage {
             }
           }
         }).then(() => {
-          console.log(this.currentMusicplaying.features);
           this.loadingCtrl.dismiss();
         }).catch(err => {
           console.log(err);

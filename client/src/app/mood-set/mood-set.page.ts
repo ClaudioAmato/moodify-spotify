@@ -63,12 +63,12 @@ export class MoodSetPage {
       this.presentLoading('Loading data ...').then(() => {
         this.learningService.getUserData(userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
           .then(result2 => {
-            if (result2 !== undefined) {
+            if (result2.buff !== null && result2.features !== null) {
               userProfile.targetFeatures = result2.features;
               this.shared.setUserProfile(userProfile);
             }
             else {
-              console.log('Moodset error');
+              // console.log('User not found in DB');
             }
           }).then(() => {
             this.loadingCtrl.dismiss();

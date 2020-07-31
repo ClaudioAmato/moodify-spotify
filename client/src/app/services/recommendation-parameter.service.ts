@@ -43,8 +43,6 @@ export class RecommendationParameterService {
         let rand = Math.floor(Math.random() * 4) + 1;
         if (userProfile.preferences.favoriteSingers.length < userProfile.preferences.favoriteGenres.length) {
           rand = 5 - rand;
-          console.log(rand);
-
         }
         for (let i = 0; i < rand && i < userProfile.preferences.favoriteSingers.length; i++) {
           dataRecommendation.seed_artists.push(userProfile.preferences.favoriteSingers[i]);

@@ -33,7 +33,6 @@ export class SuggestPage {
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
   currentMusicplaying: TrackData = null;
-  userInDB = { exist: true, checked: true };
   userProfile: UserProfile;
   bufferLimit: number;
   wrongFeedback = 0;
@@ -78,11 +77,7 @@ export class SuggestPage {
       let tempDesiredFeature: any;
       this.learningService.getUserData(this.userProfile.ID, this.shared.getCurrentMood(), this.shared.getTargetMood())
         .then(result => {
-          if (result !== undefined) {
-            this.userInDB = {
-              exist: true,
-              checked: true
-            }
+          if (result.buff !== null && result.features !== null) {
             this.bufferLimit = result.buff.numFeed;
             tempDesiredFeature = {
               limit: 100,
@@ -149,13 +144,10 @@ export class SuggestPage {
             }
           }
           else {
-            this.userInDB = {
-              exist: false,
-              checked: true
-            }
+            // console.log('User not found');
             this.loadingCtrl.dismiss();
-            this.desiredFeature = tempDesiredFeature;
-            this.recommendMusic();
+            // this.desiredFeature = tempDesiredFeature;
+            // this.recommendMusic();
           }
         });
     });
@@ -191,7 +183,6 @@ export class SuggestPage {
       }
       else {
         const arrayEmoji = this.emoji.getArrayEmoji();
-        console.log(this.desiredFeature);
         this.spotifyApi.getRecommendations(this.desiredFeature)
           .then((response) => {
             if (response !== undefined) {
