@@ -23,10 +23,12 @@ export class RecommendationParameterService {
       if (response1 !== undefined) {
         const userProfile = this.shared.getUserProfile();
         for (const genres of response1.genres) {
-          if (userProfile.preferences.hatedGenres !== undefined) {
-            for (const hate of userProfile.preferences.hatedGenres) {
-              if (hate !== genres) {
-                this.genresAvailable.push(genres);
+          if (userProfile.preferences !== undefined) {
+            if (userProfile.preferences.hatedGenres !== undefined) {
+              for (const hate of userProfile.preferences.hatedGenres) {
+                if (hate !== genres) {
+                  this.genresAvailable.push(genres);
+                }
               }
             }
           }
@@ -89,10 +91,12 @@ export class RecommendationParameterService {
         return await this.spotifyApi.getAvailableGenreSeeds().then((response) => {
           if (response !== undefined) {
             for (const genres of response.genres) {
-              if (userProfile.preferences.hatedGenres !== undefined) {
-                for (const hate of userProfile.preferences.hatedGenres) {
-                  if (hate !== genres) {
-                    genresAvailable.push(genres);
+              if (userProfile.preferences !== undefined) {
+                if (userProfile.preferences.hatedGenres !== undefined) {
+                  for (const hate of userProfile.preferences.hatedGenres) {
+                    if (hate !== genres) {
+                      genresAvailable.push(genres);
+                    }
                   }
                 }
               }

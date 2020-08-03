@@ -100,7 +100,7 @@ export class LoginPage {
           targetFeatures: undefined,
           url: response.external_urls.spotify,
           email: response.email,
-          profilePhoto: undefined ? 'assets/img/noImgAvailable.png' : response.images[0].url,
+          profilePhoto: (undefined || response.images.length === 0) ? 'assets/img/noImgAvailable.png' : response.images[0].url,
           name: response.display_name,
           preferences: undefined
         }
