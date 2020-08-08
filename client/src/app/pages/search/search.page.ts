@@ -91,9 +91,6 @@ export class SearchPage {
   searchMusic($event) {
     this.divEmoji = false;
     this.stop(null);
-    if (this.searchTrack.length > 0) {
-      this.searchTrack = [];
-    }
     if (this.currentMusicplaying !== null) {
       this.currentMusicplaying = null;
     }
@@ -106,6 +103,9 @@ export class SearchPage {
         else {
           this.spotifyApi.search($event.detail.value, ['track'], { /*market: this.country_code,*/ limit: 5, offset: 0 })
             .then((response) => {
+              if (this.searchTrack.length > 0) {
+                this.searchTrack = [];
+              }
               if (response !== undefined) {
                 for (const trackItem of response.tracks.items) {
                   if (trackItem.album.images.length !== 0) {
@@ -129,6 +129,10 @@ export class SearchPage {
               console.log(err);
             });
         }
+      }
+    } else {
+      if (this.searchTrack.length > 0) {
+        this.searchTrack = [];
       }
     }
   }

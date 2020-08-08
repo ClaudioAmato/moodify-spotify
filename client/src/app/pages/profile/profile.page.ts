@@ -413,9 +413,6 @@ export class ProfilePage {
     let dataSearch: { key: string, image: any, name: string, checked: boolean };
     let dataSelected: { key: string, image: any, name: string, checked: boolean };
     let check: boolean;
-    if (this.searchFavArtist.length > 0) {
-      this.searchFavArtist = [];
-    }
     if ($event.detail.value.length > 0) {
       if (!this.manumission.isTampered()) {
         if (this.shared.checkExpirationToken()) {
@@ -423,6 +420,9 @@ export class ProfilePage {
         }
         else {
           this.spotifyApi.search($event.detail.value, ['artist'], { market: 'US', limit: 5, offset: 0 }).then((response) => {
+            if (this.searchFavArtist.length > 0) {
+              this.searchFavArtist = [];
+            }
             if (response !== undefined) {
               for (const itemArtist of response.artists.items) {
                 dataSelected = this.selectedFavArtist.find(artist => artist.key === itemArtist.id);
@@ -453,6 +453,10 @@ export class ProfilePage {
             }
           });
         }
+      }
+    } else {
+      if (this.searchFavArtist.length > 0) {
+        this.searchFavArtist = [];
       }
     }
   }

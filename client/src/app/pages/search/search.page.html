@@ -19,7 +19,7 @@
       </ion-label>
     </ion-card-header>
     <ion-searchbar animated placeholder="Search for a song" showCancelButton="focus" spellcheck="true"
-      disabled="{{!this.feedbackEmoji}}" (ionChange)="searchMusic($event)" (ionClear)="clearInput()"></ion-searchbar>
+      (ionChange)="searchMusic($event)" (ionClear)="clearInput()"></ion-searchbar>
 
     <ion-grid class="ion-no-padding">
       <ion-row style="justify-content: space-between !important;">
@@ -87,15 +87,15 @@
             </div>
 
             <div class="divPreview">
-              <ion-button (click)="playPreview(currentMusicplaying.uriID)" class="previewButton" fill="clear"
+              <ion-button (click)="playPreview(currentMusicplaying.uriID)" class="previewButton" fill="outline"
                 *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === false">
                 Preview
               </ion-button>
-              <ion-button (click)="stop(currentMusicplaying.uriID)" class="previewButton" fill="clear"
+              <ion-button (click)="stop(currentMusicplaying.uriID)" class="previewButton" fill="outline"
                 *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true">
                 Stop
               </ion-button>
-              <ion-progress-bar color="primary" value="{{this.soundPlayer.currentTime / 30}} "
+              <ion-progress-bar value="{{this.soundPlayer.currentTime / 30}} " color="tertiary"
                 *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true">
               </ion-progress-bar>
               <ion-button class="previewButton" fill="clear" *ngIf="currentMusicplaying.preview_url === null"

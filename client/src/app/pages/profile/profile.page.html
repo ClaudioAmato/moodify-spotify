@@ -3,26 +3,14 @@
     <ion-title>
       Profile
     </ion-title>
-    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear"
-      >Logout</ion-button
-    >
+    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear">Logout</ion-button>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-refresher
-    (ionRefresh)="doRefresh($event)"
-    slot="fixed"
-    pullFactor="0.5"
-    pullMin="80"
-    pullMax="200"
-  >
-    <ion-refresher-content
-      pullingIcon="chevron-down"
-      refreshingSpinner="dots"
-      pullingText="Pull to refresh"
-      refreshingText="Refreshing..."
-    ></ion-refresher-content>
+  <ion-refresher (ionRefresh)="doRefresh($event)" slot="fixed" pullFactor="0.5" pullMin="80" pullMax="200">
+    <ion-refresher-content pullingIcon="chevron-down" refreshingSpinner="dots" pullingText="Pull to refresh"
+      refreshingText="Refreshing..."></ion-refresher-content>
   </ion-refresher>
   <ion-card>
     <ion-card-header class="ion-text-center">
@@ -89,39 +77,25 @@
     <ion-item lines="none" class="itemLineButton">
       <div class="itemDivButton">
         <ion-label color="primary"> Favorite Artists </ion-label>
-        <ion-button (click)="showSingerPref()" fill="outline" color="secondary"
-          >{{showArtist}} Artists</ion-button
-        >
+        <ion-button (click)="showSingerPref()" fill="outline">{{showArtist}} Artists</ion-button>
       </div>
     </ion-item>
     <ng-container *ngIf="this.singerDiv">
       <!--SEARCH ARTIST-->
-      <ion-searchbar
-        animated
-        placeholder="Search for an artist"
-        showCancelButton="focus"
-        spellcheck="true"
-        (ionChange)="searchArtist($event)"
-      ></ion-searchbar>
+      <ion-searchbar animated placeholder="Search for an artist" showCancelButton="focus" spellcheck="true"
+        (ionChange)="searchArtist($event)"></ion-searchbar>
       <ion-grid class="ion-no-padding">
         <ion-row style="justify-content: space-between !important;">
           <ion-col *ngFor="let item of searchFavArtist">
             <ion-item lines="none">
-              <ion-avatar
-                style="width: 40px; height: 40px; margin-right: 10px;"
-              >
+              <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
                 <img src="{{item.image}}" />
               </ion-avatar>
               <ion-label>
                 {{item.name}}
               </ion-label>
-              <ion-checkbox
-                [value]="item.name"
-                [disabled]="!item.checked && this.selectedFavArtist.length >= 5"
-                slot="end"
-                [checked]="item.checked"
-                (ionChange)="updateSingerPref('search', item.key)"
-              ></ion-checkbox>
+              <ion-checkbox [value]="item.name" [disabled]="!item.checked && this.selectedFavArtist.length >= 5"
+                slot="end" [checked]="item.checked" (ionChange)="updateSingerPref('search', item.key)"></ion-checkbox>
             </ion-item>
           </ion-col>
         </ion-row>
@@ -131,11 +105,7 @@
         Your Preferences
       </ion-item>
       <ng-container>
-        <ion-item
-          *ngIf="this.selectedFavArtist.length == 0"
-          style="color: var(--ion-color-warning);"
-          lines="none"
-        >
+        <ion-item *ngIf="this.selectedFavArtist.length == 0" style="color: var(--ion-color-warning);" lines="none">
           You don't have any preferences (choose at most five)
         </ion-item>
         <ng-container *ngFor="let item of selectedFavArtist">
@@ -146,21 +116,14 @@
             <ion-label>
               {{item.name}}
             </ion-label>
-            <ion-checkbox
-              [value]="item.name"
-              slot="end"
-              [checked]="item.checked"
-              (ionChange)="updateSingerPref('favorite', item.key)"
-            ></ion-checkbox>
+            <ion-checkbox [value]="item.name" slot="end" [checked]="item.checked"
+              (ionChange)="updateSingerPref('favorite', item.key)"></ion-checkbox>
           </ion-item>
         </ng-container>
       </ng-container>
       <!--SUGGEST ARTIST-->
-      <ion-item
-        color="primary"
-        lines="full"
-        *ngIf="this.selectedFavArtist.length < 5 && this.suggestfavArtist.length > 0"
-      >
+      <ion-item color="primary" lines="full"
+        *ngIf="this.selectedFavArtist.length < 5 && this.suggestfavArtist.length > 0">
         Suggests
       </ion-item>
       <ng-container *ngFor="let item of suggestfavArtist">
@@ -171,12 +134,8 @@
           <ion-label>
             {{item.name}}
           </ion-label>
-          <ion-checkbox
-            [value]="item.name"
-            slot="end"
-            [checked]="item.checked"
-            (ionChange)="updateSingerPref('suggest', item.key)"
-          ></ion-checkbox>
+          <ion-checkbox [value]="item.name" slot="end" [checked]="item.checked"
+            (ionChange)="updateSingerPref('suggest', item.key)"></ion-checkbox>
         </ion-item>
       </ng-container>
     </ng-container>
@@ -192,21 +151,13 @@
     <ion-item lines="full" class="itemLineButton">
       <div class="itemDivButton">
         <ion-label color="primary"> Favorite genres </ion-label>
-        <ion-button
-          (click)="showFavGenresDiv()"
-          fill="outline"
-          color="secondary"
-          >{{showFavoriteGenres}} Favorite Genres
+        <ion-button (click)="showFavGenresDiv()" fill="outline">{{showFavoriteGenres}} Favorite Genres
         </ion-button>
       </div>
     </ion-item>
     <ng-container>
       <div scrolly="true" id="favDiv">
-        <ion-item
-          *ngIf="favGenresSelected.length == 0"
-          style="color: var(--ion-color-warning);"
-          lines="none"
-        >
+        <ion-item *ngIf="favGenresSelected.length == 0" style="color: var(--ion-color-warning);" lines="none">
           You don't have any preferences (choose at most 5)
         </ion-item>
         <ng-container *ngFor="let item of genresAvailable">
@@ -214,13 +165,8 @@
             <ion-label>
               {{item.key}}
             </ion-label>
-            <ion-checkbox
-              [value]="item.key"
-              slot="start"
-              [checked]="item.checkedFav"
-              [disabled]="item.checkedHate"
-              (ionChange)="updateGenresPref('favorite', item.key)"
-            ></ion-checkbox>
+            <ion-checkbox [value]="item.key" slot="start" [checked]="item.checkedFav" [disabled]="item.checkedHate"
+              (ionChange)="updateGenresPref('favorite', item.key)"></ion-checkbox>
           </ion-item>
         </ng-container>
       </div>
@@ -230,21 +176,13 @@
     <ion-item lines="full" class="itemLineButton">
       <div class="itemDivButton">
         <ion-label color="primary"> Hated genres </ion-label>
-        <ion-button
-          (click)="showHatedGenresDiv()"
-          fill="outline"
-          color="secondary"
-          >{{showHatedGenres}} Hated Genres
+        <ion-button (click)="showHatedGenresDiv()" fill="outline">{{showHatedGenres}} Hated Genres
         </ion-button>
       </div>
     </ion-item>
     <ng-container>
       <div scrolly="true" id="hateDiv">
-        <ion-item
-          *ngIf="hatedGenresSelected.length == 0"
-          style="color: var(--ion-color-warning);"
-          lines="none"
-        >
+        <ion-item *ngIf="hatedGenresSelected.length == 0" style="color: var(--ion-color-warning);" lines="none">
           You don't have any preferences (choose at most 5)
         </ion-item>
         <ng-container *ngFor="let item of genresAvailable">
@@ -252,31 +190,19 @@
             <ion-label>
               {{item.key}}
             </ion-label>
-            <ion-checkbox
-              [value]="item.key"
-              slot="start"
-              [checked]="item.checkedHate"
-              [disabled]="item.checkedFav"
-              (ionChange)="updateGenresPref('hated', item.key)"
-            ></ion-checkbox>
+            <ion-checkbox [value]="item.key" slot="start" [checked]="item.checkedHate" [disabled]="item.checkedFav"
+              (ionChange)="updateGenresPref('hated', item.key)"></ion-checkbox>
           </ion-item>
         </ng-container>
       </div>
     </ng-container>
   </ion-card>
   <div style="text-align: center; display: grid;">
-    <ion-label
-      color="warning"
-      *ngIf="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0"
-    >
-      Fill out one of the section above</ion-label
-    >
-    <ion-button
-      (click)="onClickSubmit()"
-      class="submit"
-      [disabled]="!this.hasChange"
-      [color]="!this.hasChange ? 'medium':'primary'"
-    >
+    <ion-label color="warning"
+      *ngIf="this.favGenresSelected.length === 0 && this.hatedGenresSelected.length === 0 && this.selectedFavArtist.length === 0">
+      Fill out one of the section above</ion-label>
+    <ion-button (click)="onClickSubmit()" class="submit" [disabled]="!this.hasChange"
+      [color]="!this.hasChange ? 'medium':'primary'">
       Confirm
     </ion-button>
   </div>
