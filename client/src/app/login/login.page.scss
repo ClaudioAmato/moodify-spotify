@@ -13,6 +13,15 @@
   font-size: xx-large;
   margin-top: 40px;
 }
+.social {
+  display: inline-flex;
+  margin-bottom: 10%;
+}
+.iconSocial {
+  width: 50px;
+  margin: 10px 10px;
+  text-align: center;
+}
 .description {
   color: #0c2314;
   font-family: "Description";
@@ -34,13 +43,7 @@
 
 .wrapper {
   background: #80ff72;
-  background: -webkit-gradient(
-    linear,
-    left top,
-    right bottom,
-    from(#80ff72),
-    to(#7ee8fa)
-  );
+  background: -webkit-gradient(linear, left top, right bottom, from(#80ff72), to(#7ee8fa));
   background: linear-gradient(to bottom right, #80ff72 0%, #7ee8fa 100%);
   overflow: auto;
   width: 100%;
