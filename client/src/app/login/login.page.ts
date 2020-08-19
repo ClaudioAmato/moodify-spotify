@@ -35,7 +35,6 @@ export class LoginPage {
     private initialize: InitializeTrainService,
     private learningService: MachineLearningService) {
     this.params = this.getHashParams();
-    // this.initialize.initialize();
     // if already logged
     if (this.shared.getExpirationToken() !== null && this.params.access_token === undefined) {
       if (this.shared.checkExpirationToken()) {
@@ -132,9 +131,7 @@ export class LoginPage {
             }
           }
           else {
-            // remove comment and delete this.checkSetMood() when model is ready
-            // this.copyModel();
-            this.checkSetMood();
+            this.copyModel();
           }
         });
       });

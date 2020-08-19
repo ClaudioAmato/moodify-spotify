@@ -144,25 +144,16 @@ export class SuggestPage {
             }
           }
           else {
-            // console.log('User not found');
             this.loadingCtrl.dismiss();
-            // this.desiredFeature = tempDesiredFeature;
-            // this.recommendMusic();
+            this.navCtrl.navigateRoot('/login');
           }
         });
     });
   }
 
   ionViewWillEnter() {
-    // remove from line 164 to 169 (remove the alert) when the model is ready
-    const i = false;
-    if (!i) {
-      this.alertNotAvailable();
-    }
-    else {
-      if (this.shared.getTargetMood() !== null) {
-        this.initializeSessionDB();
-      }
+    if (this.shared.getTargetMood() !== null) {
+      this.initializeSessionDB();
     }
   }
 
@@ -255,7 +246,7 @@ export class SuggestPage {
       const data = this.feedbackPerTrack[indexOfTrack].arrayEmoji
         .find(currentEmotion => currentEmotion.name === this.feedbackPerTrack[indexOfTrack].feedback);
       for (let i = 0; i < this.feedbackPerTrack[indexOfTrack].arrayEmoji.length; i++) {
-        image = document.querySelector('#current' + i) as HTMLElement;
+        image = document.querySelector('#s_current' + i) as HTMLElement;
         if (i !== this.feedbackPerTrack[indexOfTrack].arrayEmoji.indexOf(data)) {
           image.style.filter = 'grayscale(100%) blur(1px)';
         }
@@ -266,7 +257,8 @@ export class SuggestPage {
     }
     else {
       for (let i = 0; i < this.feedbackPerTrack[indexOfTrack].arrayEmoji.length; i++) {
-        image = document.querySelector('#current' + i) as HTMLElement;
+        image = document.querySelector('#s_current' + i) as HTMLElement;
+        console.log(image);
         if (image !== null) {
           image.style.filter = 'none';
         }
@@ -334,8 +326,7 @@ export class SuggestPage {
       this.learningService.trainModel(this.doubleToUpload, this.shared.getCurrentMood());
       this.learningService.uploadPersonal(this.doubleToUpload, this.userProfile.ID, this.shared.getCurrentMood(), false);
       if (this.doubleToUpload.mood === this.shared.getTargetMood()) {
-        if (this.bufferLimit++ === 5) {
-          this.bufferLimit = 1;
+        if (++this.bufferLimit === 5) {
           this.currentIndexPlaying = 0;
           this.initializeSessionDB();
           this.wrongFeedback = 0;
@@ -590,26 +581,6 @@ export class SuggestPage {
       header: 'Oops',
       cssClass: 'alertClassError',
       message: 'It seems the algorithm is not working! Please search a song that makes you ' + this.shared.getTargetMood(),
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alertConfirm',
-          handler: () => {
-            this.navCtrl.navigateRoot('/tab/search');
-          }
-        }
-      ],
-      backdropDismiss: false
-    });
-    await alert.present();
-  }
-
-  /* ALERT BAD RECOMMENDATION */
-  private async alertNotAvailable() {
-    const alert = await this.alertController.create({
-      header: 'Not available ... for now :)',
-      cssClass: 'alertClassError',
-      message: 'This page is not available now ' + this.shared.getTargetMood(),
       buttons: [
         {
           text: 'OK',
