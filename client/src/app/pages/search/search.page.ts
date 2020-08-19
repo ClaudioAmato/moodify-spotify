@@ -6,9 +6,9 @@ import { MachineLearningService } from './../../services/machineLearning.service
 import { LogoutService } from './../../services/logout.service';
 import { EmojisService } from './../../services/emojis.service';
 import { Double } from '../../classes/Double';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, IonSearchbar } from '@ionic/angular';
 import { SharedParamsService } from './../../services/shared-params.service';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import SpotifyWebApi from 'spotify-web-api-js';
 
 @Component({
@@ -23,6 +23,7 @@ export class SearchPage {
 
   // search variables
   searchTrack: Array<{ key: string, image: any, name: string }> = [];
+  @ViewChild('searchbar') myInput: IonSearchbar;
 
   // pair used for the reinforcement learning
   doubleToUpload: Double = new Double();
@@ -82,7 +83,9 @@ export class SearchPage {
           if (result.buff === null && result.features === null) {
             // console.log('User not found');
           }
-          this.loadingCtrl.dismiss();
+          this.loadingCtrl.dismiss().then(() => {
+            this.myInput.setFocus();
+          });
         });
     });
   }
