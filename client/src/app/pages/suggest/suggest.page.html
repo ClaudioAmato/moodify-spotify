@@ -58,10 +58,10 @@
             <div class="containerData">
               <div class="wrapDiv">
                 <div class="nameField">
-                  Album:
+                  Song name:
                 </div>
                 <div class="verticalDivCenter">
-                  {{currentMusicplaying.album_name}}
+                  {{currentMusicplaying.song_name}}
                 </div>
               </div>
               <div class="wrapDiv">
@@ -78,6 +78,25 @@
                   <ng-container *ngIf="!isLast">
                     {{artist.name}},&nbsp;
                   </ng-container>
+                </div>
+              </div>
+              <div
+                class="wrapDiv"
+                *ngIf="currentMusicplaying.album_name !== undefined"
+              >
+                <div class="nameField">
+                  Album:
+                </div>
+                <div class="verticalDivCenter">
+                  {{currentMusicplaying.album_name}}
+                </div>
+              </div>
+              <div class="wrapDiv">
+                <div class="nameField">
+                  Release date:
+                </div>
+                <div class="verticalDivCenter">
+                  {{currentMusicplaying.release_date}}
                 </div>
               </div>
             </div>

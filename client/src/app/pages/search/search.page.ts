@@ -167,7 +167,9 @@ export class SearchPage {
               currentlyPlayingPreview: false,
               currentlyPlayingSong: false,
               duration: response.duration_ms,
-              album_name: response.name,
+              song_name: response.name,
+              album_name: undefined,
+              release_date: response.album['release_date'],
               preview_url: response.preview_url,
               external_urls: response.external_urls.spotify,
               features: undefined
@@ -182,11 +184,16 @@ export class SearchPage {
               currentlyPlayingPreview: false,
               currentlyPlayingSong: false,
               duration: response.duration_ms,
-              album_name: response.name,
+              song_name: response.name,
+              album_name: undefined,
+              release_date: response.album['release_date'],
               preview_url: response.preview_url,
               external_urls: response.external_urls.spotify,
               features: undefined
             };
+          }
+          if (response.album['album_type'] !== 'single') {
+            this.currentMusicplaying.album_name = response.album.name
           }
           popularity = response.popularity;
         }

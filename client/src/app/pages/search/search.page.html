@@ -3,14 +3,26 @@
     <ion-title>
       Home
     </ion-title>
-    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear">Logout</ion-button>
+    <ion-button (click)="alertLogout()" slot="end" class="logout" fill="clear"
+      >Logout</ion-button
+    >
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-refresher (ionRefresh)="doRefresh($event)" slot="fixed" pullFactor="0.5" pullMin="80" pullMax="200">
-    <ion-refresher-content pullingIcon="chevron-down" refreshingSpinner="dots" pullingText="Pull to refresh"
-      refreshingText="Refreshing..."></ion-refresher-content>
+  <ion-refresher
+    (ionRefresh)="doRefresh($event)"
+    slot="fixed"
+    pullFactor="0.5"
+    pullMin="80"
+    pullMax="200"
+  >
+    <ion-refresher-content
+      pullingIcon="chevron-down"
+      refreshingSpinner="dots"
+      pullingText="Pull to refresh"
+      refreshingText="Refreshing..."
+    ></ion-refresher-content>
   </ion-refresher>
   <ion-card>
     <ion-card-header class="ion-text-center">
@@ -18,13 +30,24 @@
         Search Music
       </ion-label>
     </ion-card-header>
-    <ion-searchbar animated placeholder="Search for a song" showCancelButton="focus" spellcheck="true" #searchbar
-      (ionChange)="searchMusic($event)" (ionClear)="clearInput()"></ion-searchbar>
+    <ion-searchbar
+      animated
+      placeholder="Search for a song"
+      showCancelButton="focus"
+      spellcheck="true"
+      #searchbar
+      (ionChange)="searchMusic($event)"
+      (ionClear)="clearInput()"
+    ></ion-searchbar>
 
     <ion-grid class="ion-no-padding">
       <ion-row style="justify-content: space-between !important;">
         <ion-col *ngFor="let item of searchTrack">
-          <ion-item lines="none" (click)="onClickTrack(item.key)" class="search-click">
+          <ion-item
+            lines="none"
+            (click)="onClickTrack(item.key)"
+            class="search-click"
+          >
             <ion-avatar style="width: 40px; height: 40px; margin-right: 10px;">
               <img src="{{item.image}}" />
             </ion-avatar>
@@ -50,11 +73,19 @@
       <ng-container *ngIf="this.currentMusicplaying !== null">
         <ion-item lines="full" class="ion-no-padding">
           <div class="itemDiv">
-            <div (click)="openSpotifyPlayer(currentMusicplaying.external_urls)" class="listenMe" style="display: grid;">
+            <div
+              (click)="openSpotifyPlayer(currentMusicplaying.external_urls)"
+              class="listenMe"
+              style="display: grid;"
+            >
               <div class="image-container">
                 <figure>
                   <img class="album" src="{{currentMusicplaying.image}}" />
-                  <img class="playing" src="assets/img/playing.png" *ngIf="currentMusicplaying.currentlyPlayingSong" />
+                  <img
+                    class="playing"
+                    src="assets/img/playing.png"
+                    *ngIf="currentMusicplaying.currentlyPlayingSong"
+                  />
                 </figure>
               </div>
               <div class="listenMeLabel">
@@ -65,17 +96,20 @@
             <div class="containerData">
               <div class="wrapDiv">
                 <div class="nameField">
-                  Album:
+                  Song name:
                 </div>
                 <div class="verticalDivCenter">
-                  {{currentMusicplaying.album_name}}
+                  {{currentMusicplaying.song_name}}
                 </div>
               </div>
               <div class="wrapDiv">
                 <div class="nameField">
                   Artists:
                 </div>
-                <div class="verticalDivCenter" *ngFor="let artist of currentMusicplaying.artists_name; last as isLast">
+                <div
+                  class="verticalDivCenter"
+                  *ngFor="let artist of currentMusicplaying.artists_name; last as isLast"
+                >
                   <ng-container *ngIf="isLast">
                     {{artist.name}}
                   </ng-container>
@@ -84,22 +118,57 @@
                   </ng-container>
                 </div>
               </div>
+              <div
+                class="wrapDiv"
+                *ngIf="currentMusicplaying.album_name !== undefined"
+              >
+                <div class="nameField">
+                  Album:
+                </div>
+                <div class="verticalDivCenter">
+                  {{currentMusicplaying.album_name}}
+                </div>
+              </div>
+              <div class="wrapDiv">
+                <div class="nameField">
+                  Release date:
+                </div>
+                <div class="verticalDivCenter">
+                  {{currentMusicplaying.release_date}}
+                </div>
+              </div>
             </div>
 
             <div class="divPreview">
-              <ion-button (click)="playPreview(currentMusicplaying.uriID)" class="previewButton" fill="outline"
-                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === false">
+              <ion-button
+                (click)="playPreview(currentMusicplaying.uriID)"
+                class="previewButton"
+                fill="outline"
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === false"
+              >
                 Preview
               </ion-button>
-              <ion-button (click)="stop(currentMusicplaying.uriID)" class="previewButton" fill="outline"
-                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true">
+              <ion-button
+                (click)="stop(currentMusicplaying.uriID)"
+                class="previewButton"
+                fill="outline"
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true"
+              >
                 Stop
               </ion-button>
-              <ion-progress-bar value="{{this.soundPlayer.currentTime / 30}} " color="tertiary"
-                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true">
+              <ion-progress-bar
+                value="{{this.soundPlayer.currentTime / 30}} "
+                color="tertiary"
+                *ngIf="currentMusicplaying.preview_url !== null && currentMusicplaying.currentlyPlayingPreview === true"
+              >
               </ion-progress-bar>
-              <ion-button class="previewButton" fill="clear" *ngIf="currentMusicplaying.preview_url === null"
-                color="danger" (click)="noPreview()">
+              <ion-button
+                class="previewButton"
+                fill="clear"
+                *ngIf="currentMusicplaying.preview_url === null"
+                color="danger"
+                (click)="noPreview()"
+              >
                 No preview available
               </ion-button>
             </div>
@@ -116,7 +185,11 @@
     </ion-card-header>
     <div class="center-div">
       <ng-container *ngFor="let item of arrayEmoji; let i = index">
-        <div class="emojiContainer" tabindex="{{i+1}}" (click)="onGivenFeedback(item.name)">
+        <div
+          class="emojiContainer"
+          tabindex="{{i+1}}"
+          (click)="onGivenFeedback(item.name)"
+        >
           <img src="{{item.image}}" class="emojiImg" id="current{{i}}" />
           <label style="text-align: center;">{{item.name}}</label>
         </div>

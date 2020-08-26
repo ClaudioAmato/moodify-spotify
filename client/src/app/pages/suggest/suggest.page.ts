@@ -258,7 +258,6 @@ export class SuggestPage {
     else {
       for (let i = 0; i < this.feedbackPerTrack[indexOfTrack].arrayEmoji.length; i++) {
         image = document.querySelector('#s_current' + i) as HTMLElement;
-        console.log(image);
         if (image !== null) {
           image.style.filter = 'none';
         }
@@ -275,11 +274,16 @@ export class SuggestPage {
             currentlyPlayingPreview: false,
             currentlyPlayingSong: false,
             duration: response.duration_ms,
-            album_name: response.name,
+            song_name: response.name,
+            album_name: undefined,
+            release_date: response.album['release_date'],
             preview_url: response.preview_url,
             external_urls: response.external_urls.spotify,
             features: undefined
           };
+          if (response.album['album_type'] !== 'single') {
+            this.currentMusicplaying.album_name = response.album.name
+          }
           if (response.album.images[0].url !== undefined) {
             this.currentMusicplaying.image = response.album.images[1].url;
           }
