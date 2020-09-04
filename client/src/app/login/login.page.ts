@@ -146,7 +146,7 @@ export class LoginPage {
       this.shared.getCurrentMood() !== null &&
       this.shared.getTargetMood() !== null
     ) {
-      this.navCtrl.navigateRoot('/tab/search');
+      this.navCtrl.navigateRoot('/tab/suggest');
     }
     else {
       this.navCtrl.navigateRoot('/mood');

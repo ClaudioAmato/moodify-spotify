@@ -108,8 +108,10 @@ export class ProfilePage {
   // Function that submit the user preferences (used for cold start)
   onClickSubmit() {
     const favArtist = [];
+    this.backupselectedFavArtist = [];
     for (let i = 0; i < this.selectedFavArtist.length; i++) {
       favArtist[i] = this.selectedFavArtist[i].key;
+      this.backupselectedFavArtist.push(this.selectedFavArtist[i]);
     }
     const pref: UserPreferences = {
       favoriteGenres: this.favGenresSelected,
@@ -124,6 +126,8 @@ export class ProfilePage {
     }
     this.userProfile.preferences = pref;
     this.shared.setUserProfile(this.userProfile);
+    this.backupfavGenresSelected = this.favGenresSelected.slice();
+    this.backuphatedGenresSelected = this.hatedGenresSelected.slice();
     this.hasChange = false;
   }
 

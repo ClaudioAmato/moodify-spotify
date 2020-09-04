@@ -18,32 +18,42 @@
         Based on your emotions and personal musical preferences, Moodify is able
         to recommend music that can change your mood.
       </div>
-      <ion-button (click)="onClickLogin()" class="mybutton" disabled="{{this.params.access_token !== undefined}}">
+      <ion-button
+        (click)="onClickLogin()"
+        class="mybutton"
+        disabled="{{this.params.access_token !== undefined}}"
+      >
         Login with Spotify
       </ion-button>
       <br />
-      <div style="margin: 2% 0; font-size: small; display: inline-flex;">
-        <div style="align-self: center; font-weight: 600;">
+      <div style="margin: 2% 0; font-size: small; display: inline-flex">
+        <div style="align-self: center; font-weight: 600">
           Login with another account?&nbsp;
         </div>
-        <ion-button (click)="changeAccount()" fill="clear" class="ion-no-padding" style="
+        <ion-button
+          (click)="changeAccount()"
+          fill="clear"
+          class="ion-no-padding"
+          style="
             font-size: 12px !important;
             text-transform: none !important;
             margin: 0;
-          " size="small">
-          <span style="text-decoration: underline;">Change</span>
+          "
+          size="small"
+        >
+          <span style="text-decoration: underline">Change</span>
         </ion-button>
       </div>
-      <div style="margin: 2% 0; font-size: small; font-weight: 600;">
+      <div style="margin: 2% 0; font-size: small; font-weight: 600">
         No Spotify yet?
-        <a href="https://www.spotify.com/">Join</a>
+        <a href="https://www.spotify.com/signup/">Join</a>
       </div>
     </div>
     <div class="social">
       <a href="https://www.facebook.com/AmatoClaudio">
         <ion-img src="../../assets/img/fb.png" class="iconSocial"></ion-img>
       </a>
-      <a href="https://www.instagram.com/i_claudio_amato/">
+      <a href="https://www.instagram.com/ilclaudioamato/">
         <ion-img src="../../assets/img/ig.png" class="iconSocial"></ion-img>
       </a>
       <a href="https://www.linkedin.com/in/claudio-amato">

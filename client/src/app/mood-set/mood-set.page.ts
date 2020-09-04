@@ -72,12 +72,12 @@ export class MoodSetPage {
             }
           }).then(() => {
             this.loadingCtrl.dismiss();
-            this.navCtrl.navigateRoot('/tab/search');
+            this.navCtrl.navigateRoot('/tab/suggest');
           });
       });
     }
     else {
-      this.navCtrl.navigateRoot('/tab/search');
+      this.navCtrl.navigateRoot('/tab/suggest');
     }
   }
 
